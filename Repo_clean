@@ -1,0 +1,111 @@
+#! /bin/bash
+
+# Quickscope - a software oscilloscope
+#
+# Copyright (C) 2012-2014  Lance Arsenault
+
+# This file is part of Quickscope.
+#
+# Quickscope is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# Quickscope is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Quickscope.  If not, see <http://www.gnu.org/licenses/>.
+#
+####################################################################
+
+
+# This script removes auto generated files.  See output from
+# $0 --help.
+
+
+srcdir="$(dirname ${BASH_SOURCE[0]})" || exit 1
+cd $srcdir || exit 1
+
+
+function usage()
+{
+  cat <<END
+   
+   Usage: $0 [--force|--help|-h]
+
+   Remove generated files.  Removes files that are generated
+ by the Quickscope package build system.  Look at this script
+ to see what is removed, so that you don't lose files that you
+ want to keep.  This will not remove files if it looks like you
+ do not have the required programs in you path needed to regenerate
+ them.
+
+   This script removes auto generated files.  If you don't have the
+ tools needed in your PATH to regenerate the auto generated files
+ this script will not do anything, or so it tries.  This should not
+ remove any of your extra development cruft files like
+ joes_configure.bash or .*.swp which you may need but will not go
+ into the repository.  Distribution tar files are not removed either.
+
+
+      OPTIONS
+
+    --force    run this script without checking that required
+               packages are in your path
+
+    --help|-h  print this help and exit
+
+END
+  exit 1
+}
+
+function remove_files()
+{
+####################################################################
+  set -x
+
+  # remove if empty
+  for f in NEWS AUTHORS ChangeLog ; do
+    if [ -f "$f" ] && [ ! -s "$f" ] ; then
+      rm -f $f
+    fi
+  done
+
+  # generated directories
+  rm -rf .deps .libs conftest.dir autom4te.cache m4
+
+  # wildcard
+  rm -f *.o *.la *.so *.lo config.h* stamp-h* *.a *.xpm
+
+  rm -f\
+ aclocal.m4 config.cache config.h install-sh config.log\
+ Makefile Makefile.in missing mkinstalldirs ltmain.sh\
+ config.sub config.guess configure\
+ configure.scan autoscan-*x.log INSTALL\
+ libtool config.status autoscan.log depcomp confdefs.h\
+ depend.make compile quickscope.h\
+ quickscope.xpm quickscope.pc quickscope.ico debug.h\
+ bin/Makefile bin/Makefile.in
+
+  # directory bin/
+  cd bin || exit 1
+
+  rm -rf .deps .libs
+  rm -f *.o *.la *.so *.lo stamp-h* *.a
+  rm -f qs_*
+
+######################################################################
+}
+
+
+[ "$1" = "--force" ] && remove_files && exit
+[ -z "$1" ] || usage
+
+# Test that we have some programs in path
+source repo_require.bash || exit 1
+check_repo_require
+
+remove_files

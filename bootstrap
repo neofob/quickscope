@@ -1,0 +1,132 @@
+#! /bin/bash
+
+# Quickscope - a software oscilloscope
+#
+# Copyright (C) 2012-2014  Lance Arsenault
+
+# This file is part of Quickscope.
+#
+# Quickscope is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# Quickscope is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Quickscope.  If not, see <http://www.gnu.org/licenses/>.
+#
+####################################################################
+
+
+
+#---------------------------------------------------------------------
+#                         WHAT'S THIS FILE FOR
+
+# Run this if you just got this package from Git.
+
+# This is run to generate files, configure, Makefile.in and the-like,
+# that are needed to make the files in this directory into something
+# closer to a package for source distribution, packages source
+# tar-ball files.  The files that this starts with commonly come from
+# a Git repository.  This uses the GNU Autotools.
+
+# The source files from the Git repository are a subset of the files
+# in a source tarball.  There no way around that if we require that
+# no generated files go into the repository and we need to minimize
+# dependences in building from source tarballs.
+
+# So now if we use GNU autotools and make files to generate files
+# that are in the source tarball, we tend to have more system
+# requirements when building from repository source than from
+# tarball source and so we are lead to having the
+# './configure --enable-repobuild' option.  We have not seen a
+# standard option flag for this kind of option, but differing
+# repo build idea is very common.
+
+#---------------------------------------------------------------------
+
+
+
+# Unlike 'configure' this script only runs in the
+# source directory and generates file in the source
+# directory where we assume this script file is.
+# See output from: $0 --help.
+
+scriptdir="$(dirname ${BASH_SOURCE[0]})" || exit 1
+cd $scriptdir || exit 1
+
+
+function bootstrap()
+{
+  # This tries to do what this script does
+  # without any checks.
+
+  # Keep autoreconf from complaining about missing m4/
+  mkdir -p m4 || FAIL
+
+  set -x
+
+  # create empty files if not present
+  for f in NEWS AUTHORS ChangeLog ; do
+    if [ ! -f "$f" ] ; then
+      touch $f
+    fi
+  done
+
+  # Today bootstrap is easy with autoreconf
+  autoreconf --force --verbose --install || FAIL
+  exit 0
+}
+
+function usage()
+{
+  cat <<END
+  
+   Usage: $0 [--force|--help|-h]
+
+   You need to run this if you got this Quickscope source
+ from the Git (or other) repository.  You most likely do
+ not need to run this otherwise.
+
+   Generate files needed to make a source tarball from
+ source files from the Git repository.  This does not
+ generate all files needed to build a source tarball.
+ You must run the GNU configure script after running this
+ script to make all the files that go into a source tarball.
+
+   This script is needed so that we do not need to check in
+ generated files into the repository and at the same time
+ reduce the number of dependences needed to build Quickscope
+ from a source tarball.  If you got this source from a
+ Git (or other) repository you need to run this.  If you got
+ this source from a tarball distribution you do not need
+ to run this.  Mostly this just runs the GNU autoreconf
+ program which generates GNU autotools build system files
+ like configure, Makefile, and libtool.
+
+   We rely on GNU autotools configure script to check for
+ other prerequisite packages.
+
+
+     OPTIONS
+
+  --force    run this without checking
+  --help|-h  print this help and exit
+
+END
+  exit 1
+}
+
+[ "$1" = "--force" ] && bootstrap
+[ -z "$1" ] || usage
+
+# Test that we have some programs in path
+source repo_require.bash || exit 1
+check_repo_require
+
+bootstrap
+

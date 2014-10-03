@@ -1,0 +1,349 @@
+# Quickscope - a software oscilloscope
+#
+# Copyright (C) 2012-2014  Lance Arsenault
+
+# This file is part of Quickscope.
+#
+# Quickscope is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# Quickscope is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Quickscope.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+
+# require autoconf version
+AC_PREREQ(2.59)
+
+#################################################################
+############### Configure a release here ########################
+#################################################################
+
+
+# AC_INIT( PACKAGE, VERSION, BUGREPORT, TARNAME , URL)
+AC_INIT([quickscope], 0.1.0,
+        [http://quickscope.sourceforge.net/],
+        [quickscope],
+        [http://quickscope.sourceforge.net/])
+
+
+# LIB_VERSION=LIB_CURRENT:LIB_REVISION:LIB_AGE
+
+LIB_CURRENT=0
+LIB_REVISION=0
+LIB_AGE=0
+
+#
+# See LIB_VERSION notes at the very bottom of this file
+#
+
+
+#################################################################
+############## END: Configure a release here ####################
+#################################################################
+
+
+# Stuff that may be configured to change constants that
+# get compiled in.
+
+DEFAULT_GRID_FONT="Sans 10"
+
+
+
+################################################################
+# setting many variables before  AC_PROG_*
+################################################################
+
+
+#AM_INIT_AUTOMAKE(option1 option2 ...)
+AM_INIT_AUTOMAKE(dist-bzip2 dist-xz)
+AC_CONFIG_MACRO_DIR([m4])
+
+AM_CONFIG_HEADER(config.h)
+AC_PROG_CC_C_O
+AM_PROG_CC_C_O
+
+AC_PROG_LIBTOOL
+AC_LANG(C)
+
+#################################################################
+
+LIB_VERSION="${LIB_CURRENT}:${LIB_REVISION}:${LIB_AGE}"
+
+################################################################
+
+# initialize the error flag
+error=no
+
+######################## REPO BUILD #########################
+
+enable_repobuild_default=no
+if test -f .git/HEAD ; then
+  enable_repobuild_default=yes
+fi
+
+AC_ARG_ENABLE([repobuild],
+    AS_HELP_STRING([--enable-repobuild],
+        [if you wish to build Quickscope from\
+ just the repository source files.\
+ The default is auto.]),
+ [enable_repobuild="$enableval"],
+ [enable_repobuild="$enable_repobuild_default"])
+
+
+##################### imagemagick convert ###################
+
+
+# convert is used to make .xpm files from .png files.
+
+USE_CONVERT=no
+
+if test "$enable_repobuild" != "no"; then
+  USE_CONVERT=yes
+  AC_CHECK_PROG(HAVE_CONVERT, convert, [yes], [no])
+
+  if test x$HAVE_CONVERT != xyes; then
+    error=yes
+    AC_MSG_WARN([
+        For building $PACKAGE_NAME for the git repository
+        convert from ImageMagick is required with to be in your PATH
+        homepage: http://www.imagemagick.org/])
+  fi
+fi
+
+AM_CONDITIONAL([USE_CONVERT], [test x$USE_CONVERT = xyes])
+
+##############################################################
+
+
+AC_CHECK_HEADERS(math.h)
+
+AC_CHECK_FUNCS(
+vsnprintf \
+powl
+)
+
+
+PKG_CHECK_MODULES([gtk_3], [gtk+-3.0 >= 3.0.12],
+    [],
+    [error=yes
+     AC_MSG_WARN([
+        gtk+-3.0 version >= 3.0.12 is required
+        homepage: http://www.gtk.org/])
+    ]
+)
+
+PKG_CHECK_MODULES([sndfile], [sndfile >= 1.0.5],
+    [],
+    [error=yes
+     AC_MSG_WARN([
+        lib sndfile version >= 1.0.5 is required
+        homepage: http://www.mega-nerd.com/libsndfile/])
+    ]
+)
+
+
+################################################################
+#                 --enable-debug
+################################################################
+
+AC_ARG_ENABLE([debug],
+    AS_HELP_STRING([--enable-debug],
+    [compile more debugging code into quickscope and libquickscope\
+ (default is no debugging code).  You do not want this unless\
+ you are developing Quickscope.  Adding this option may make\
+ use about 10% more CPU usage.  This is unrelated to the compiler\
+ options used.]),
+ [enable_debug="$enableval"],
+ [enable_debug=no])
+
+case "$enable_debug" in
+    y* | Y* )
+    debug=yes
+    ;;
+    * )
+    debug=no
+    ;;
+esac
+
+
+################################################################
+#    test for gnu/lib-names.h
+################################################################
+
+HAVE_GNU_LIB_NAMES_H=no
+
+# This is so we can see if the file gnu/lib-names.h is present and
+# works so that we can make the libraries executable. See that this
+# compiles will be a good enough test.  Used in
+# libquickscope/lib_main.c
+AC_MSG_CHECKING([if gnu/lib-names.h is present and works\
+ so we can make libraries executable])
+
+# Below the real code requires a "const char my_interp[] __att.... "
+# etc, but I don't know how to make a '[' in an autoconf string.
+
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
+
+#include <gnu/lib-names.h>
+
+#ifdef __i386__
+# define LIBDIR "/lib/"
+#endif
+
+#ifdef __x86_64__
+# define LIBDIR "/lib64/"
+#endif
+
+#ifndef LIBDIR
+# error "The compiler did not define __i386__ or __x86_64__"
+#endif
+
+const char my_interp[] __attribute__
+    ((section(".interp")))= LIBDIR LD_SO;
+
+int main(void)
+{
+  /* do something so the compiler does not give a warning */
+  char *ptr = (char *) my_interp;
+  ptr += 1;
+  return 0;
+}
+]])],
+  [AC_MSG_RESULT([yes])]
+  HAVE_GNU_LIB_NAMES_H=yes,
+  [AC_MSG_RESULT([no])],
+  [AC_MSG_RESULT([CROSS-COMPILING])]
+)
+
+AM_CONDITIONAL([HAVE_GNU_LIB_NAMES_H],
+               [test x$HAVE_GNU_LIB_NAMES_H = xyes])
+
+
+#################################################################
+
+# AC_SUBST() go into Makefile.am files and other .in files
+# AC_DEFINE*() go into config.h
+
+AC_SUBST(DEFAULT_GRID_FONT)
+AC_DEFINE_UNQUOTED(DEFAULT_GRID_FONT, "$DEFAULT_GRID_FONT",
+        [The default font used when drawing the numbers on the grid])
+
+
+
+AC_DEFINE_UNQUOTED(LIB_VERSION, "$LIB_VERSION",
+  [Quickscope Library version number])
+
+AC_SUBST(LIB_VERSION)
+AC_SUBST(LIB_CURRENT)
+AC_SUBST(LIB_REVISION)
+AC_SUBST(LIB_AGE)
+
+AM_CONDITIONAL([QS_DEBUG], [test x$debug = xyes])
+
+if test x$debug == xyes ; then
+  AC_DEFINE_UNQUOTED(QS_DEBUG,[1],
+    [If QS_DEBUG is defined we add extra debug\
+ code to quickscope and libquickscope.])
+fi
+
+
+
+AM_CONDITIONAL([HAVE_LOCAL_SCREENSHOTS], [test -f screenshots.html.in])
+
+
+
+
+#################################################################
+# We show all warnings to the user before erroring out.  This
+# beats having the user fix one error in order to get to the next.
+# Instead we show all the warnings (errors) that we can.
+
+if test x$error = xyes ; then
+  AC_MSG_ERROR([
+
+  Failed to configure quickscope version $VERSION.
+  See above WARNING(s).
+
+])
+fi
+
+#################################################################
+
+AC_CONFIG_FILES(
+Makefile
+bin/Makefile
+quickscope.pc
+)
+
+AC_OUTPUT
+
+# you can add spew here
+
+AC_MSG_RESULT([
+  ------------------------------------------------------------
+    done configuring: $PACKAGE_NAME  version $VERSION
+  ------------------------------------------------------------
+
+              extra debug code (--enable-debug): $debug
+  extra repository targets (--enable-repobuild): $enable_repobuild
+
+                 C Compiler (CC): $CC
+       C Compiler Flags (CFLAGS): $CFLAGS
+        C Linker Flags (LDFLAGS): $LDFLAGS
+
+  Installation prefix (--prefix): $prefix
+                          srcdir: $srcdir
+])
+
+
+######################################################################
+#                     LIB_VERSION notes
+######################################################################
+
+#  Updating library version interface information
+#  (from libtool version 1.4.3 info page)
+
+# GNU LibTool library interface numbers
+#
+# CURRENT
+#     The most recent interface number that this library implements.
+#
+# REVISION
+#     The implementation number of the CURRENT interface.
+#
+# AGE
+#     The difference between the newest and oldest interfaces that
+#     this library implements.  In other words, the library implements
+#     all the interface numbers in the range from number `CURRENT -
+#     AGE' to `CURRENT'.
+#
+
+#
+#  1. Start with version information of `0:0:0' for each libtool
+#     library.
+#
+#  2. Update the version information only immediately before a public
+#     release of your software.  More frequent updates are
+#     unnecessary, and only guarantee that the current interface
+#     number gets larger faster.  We do it just after a release.
+#
+#  3. If the library source code has changed at all since the last
+#     update, then increment REVISION (`C:R:A' becomes `C:r+1:A').
+#
+#  4. If any interfaces have been added, removed, or changed since the
+#     last update, increment CURRENT, and set REVISION to 0.
+#
+#  5. If any interfaces have been added since the last public release,
+#     then increment AGE.
+#
+#  6. If any interfaces have been removed since the last public
+#     release, then set AGE to 0.
+#

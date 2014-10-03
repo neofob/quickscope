@@ -1,0 +1,48 @@
+# Quickscope - a software oscilloscope
+#
+# Copyright (C) 2012-2014  Lance Arsenault
+
+# This file is part of Quickscope.
+#
+# Quickscope is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# Quickscope is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Quickscope.  If not, see <http://www.gnu.org/licenses/>.
+#
+####################################################################
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+
+lib_version=@LIB_VERSION@
+lib_age=@LIB_AGE@
+lib_current=@LIB_CURRENT@
+lib_revision=@LIB_REVISION@
+
+homepage=@PACKAGE_URL@
+
+about=quickscope version: @VERSION@
+
+###################################
+# standard pkg-config options
+Name: quickscope
+Description: @PACKAGE_NAME@
+Version: @VERSION@
+Homepage: @PACKAGE_URL@
+URL: @PACKAGE_URL@
+Requires: gtk+-3.0
+Libs: -Wl,-rpath -Wl,${libdir} -L${libdir} -lquickscope -lrt
+Cflags: -I${includedir}
+
