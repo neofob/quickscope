@@ -30,6 +30,11 @@ EXTRA_DIST =\
 
 SUBDIRS = . bin
 
+if QS_TESTS
+SUBDIRS += tests
+endif
+
+
 BUILT_SOURCES =\
  debug.h\
  quickscope.h
@@ -79,6 +84,7 @@ libquickscope_la_SOURCES =\
  source_priv.h\
  group.c\
  group.h\
+ saw.c\
  sin.c\
  swipe.c\
  swipe_priv.h\
@@ -114,6 +120,18 @@ libquickscope_la_SHORTNAME = qs
 libquickscope_la_LIBADD = libadjD.la libadjLD.la libadjInt.la $(gtk_3_LIBS) $(sndfile_LIBS) -lX11 -ldl
 libquickscope_la_CFLAGS = $(gtk_3_CFLAGS)
 libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
+
+
+# For making libquickscope.so executable if we are using GCC (g++) and
+# glibc which we tested by compiling with the gnu/lib-names.h file.
+if HAVE_GNU_LIB_NAMES_H
+libquickscope_la_SOURCES  += lib_main.c
+libquickscope_la_LDFLAGS  += -shared -Wl,-e,_lib_main
+libquickscope_la_CFLAGS   += -fPIC -shared
+else
+EXTRA_DIST += lib_main.c
+endif
+
 
 pkgconfigdir   = $(libdir)/pkgconfig
 pkgconfig_DATA = quickscope.pc

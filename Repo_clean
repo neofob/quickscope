@@ -97,6 +97,14 @@ function remove_files()
   rm -f *.o *.la *.so *.lo stamp-h* *.a
   rm -f qs_*
 
+  # directory tests/
+  cd ../tests || exit 1
+
+  rm -rf .deps .libs
+  rm -f *.o *.la *.so *.lo stamp-h* *.a Makefile Makefile.in
+  rm -f hello circle saw non_master_print source
+
+
 ######################################################################
 }
 

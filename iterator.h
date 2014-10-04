@@ -299,9 +299,9 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
   wrapDiff1 = s1->wrapCount - it->wrapCount;
 
   if( // looking ahead on i0
-      wrapDiff0 < 0 || (wrapDiff0 == 0 && it->i0 > s0->i) ||
+      wrapDiff0 < 0 || (wrapDiff0 == 0 && it->i0 >= s0->i) ||
       // looking ahead on i1
-      wrapDiff1 < 0 || (wrapDiff1 == 0 && it->i1 > s1->i))
+      wrapDiff1 < 0 || (wrapDiff1 == 0 && it->i1 >= s1->i))
     return FALSE; // We have nothing to read at this point.
 
   QS_ASSERT(wrapDiff0 == 0 || wrapDiff0 == 1);
@@ -431,10 +431,36 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
       return FALSE; // it1 is looking forward in source 1
     }
   }
+  else if(wrapDiff1 || it->i1 < s1->i)
+  {
+    // We can increment it1 but not it0.
 
+    if(it->i1 < s1->iMax || !wrapDiff1)
+    {
+      // We can increment i1 without a wrap count change
+      // but not i0
 
+      ++it->i1;
+      if(s0->timeIndex[it->i0] == s1->timeIndex[it->i1])
+        goto ret;
+
+      return FALSE;
+    }
+
+    // We can increment i1 with a wrap count change
+    // but not i0
+
+    QS_ASSERT(it->i0 == s0->iMax);
+
+    it->i0 = it->i1 = 0;
+    ++it->wrapCount;
+    return FALSE; // i0 is looking forward in source 0
+  }
+  else
+    return FALSE; // We cannot increment i0 or i1
 
 ret:
+
   *x0 = s0->framePtr[it->i0 * s0->numChannels + it->channel0];
   *x1 = s1->framePtr[it->i1 * s1->numChannels + it->channel1];
   *t = s0->group->time[s0->timeIndex[it->i0]];

@@ -80,18 +80,11 @@ _qsGroup_removeSource(struct QsGroup *g, struct QsSource *s)
 
   g->sources = g_slist_remove(g->sources, s);
 
-  if(s->isMaster)
-  {
-    QS_ASSERT(g->master == s);
-    while(g->sources)
-    {
-      QS_ASSERT(g->sources->data);
-      qsSource_destroy(((struct QsSource *) g->sources->data));
-    }
-  }
-
   if(!g->sources)
-    // There are no more sources.
+  {
+    // signal that there are no more
+    // source group.
+    s->group = NULL;
     _qsGroup_destroy(g);
+  }
 }
-

@@ -65,8 +65,6 @@ void logHandler(const gchar *log_domain,
 
 struct QsApp *qsApp_init(int *argc, char ***argv)
 {
-  if(qsApp) return qsApp;
-
 #ifdef QS_DEBUG
   // The following let us attach the GDB debugger when some
   // things go wrong, by calling QS_ASSERT() or QS_VASSERT()
@@ -94,13 +92,21 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
 #endif
 
 
-  qsApp = g_malloc0(sizeof(*qsApp));
-  qsApp->timer = qsTimer_create();
+  if(!qsApp)
+  {
+    qsApp = g_malloc0(sizeof(*qsApp));
+    qsApp->timer = qsTimer_create();
+  }
+
+  QS_ASSERT(qsApp);
+  QS_ASSERT(qsApp->timer);
 
   /*****************************
    * initialization of options *
    *****************************/
 
+  qsApp->opSourceRequireController = TRUE;
+  
   qsApp->op_fade = TRUE;
   qsApp->op_fadePeriod = 1;
   qsApp->op_fadeDelay = 0;
@@ -155,43 +161,53 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
   qsApp->op_showMenubar = FALSE;
   qsApp->op_showStatusbar = TRUE;
 
+  qsApp->op_defaultIntervalPeriod = 1.0/60.0;
+  
   /*****************************/
 
-  gtk_init(argc, argv);
+  if(!gtk_init_check(argc, argv))
+    qsApp_destroy();
+
   return qsApp;
 }
 
+
 void qsApp_main(void)
 {
+  if(!qsApp)
+    qsApp_init(NULL, NULL);
+
   QS_ASSERT(qsApp);
-  QS_ASSERT(qsApp->sources);
 
-  // Make sure we have at least one QsController
-  if(!qsApp->controllers)
+  if(qsApp->opSourceRequireController)
   {
-    // The user never made a QsController
-    // so we'll take a default action here.
-    qsInterval_create(1.0/60.0);
-  }
-
-  // We require that all QsSources have a QsController
-  GSList *l;
-  for(l = qsApp->sources; l; l = l->next)
-  {
-    struct QsSource *s;
-    s = l->data;
-    QS_ASSERT(s);
-    if(!s->controller)
+    // Make sure we have at least one QsController
+    if(!qsApp->controllers && qsApp->sources)
     {
-      QS_ASSERT(qsApp->controllers);
-      QS_ASSERT(qsApp->controllers->data);
+      // The user never made a QsController
+      // so we'll define a default action here.
+      qsInterval_create(qsApp->op_defaultIntervalPeriod);
+    }
 
-      qsController_appendSource(
+    // We require that all QsSources have a QsController
+    GSList *l;
+    for(l = qsApp->sources; l; l = l->next)
+    {
+      struct QsSource *s;
+      s = l->data;
+      QS_ASSERT(s);
+      if(!s->controller)
+      {
+        QS_ASSERT(qsApp->controllers);
+        QS_ASSERT(qsApp->controllers->data);
+
+        qsController_appendSource(
           (struct QsController *) qsApp->controllers->data,
           s, NULL); // append to end of first controller
-      // This can give bad results if the source was
-      // dependent on another source that is listed
-      // later in the qsApp->sources list.
+        // This can give bad results if the source was
+        // dependent on another source that is listed
+        // later in the qsApp->sources list.
+      }
     }
   }
 
@@ -228,6 +244,7 @@ void qsApp_main(void)
           // in the controller list to trigger the trace
           // drawing.
           struct QsSource *lastSource = NULL;
+          GSList *l;
           for(l = xs->controller->sources; l; l = l->next)
             if(l->data == xs || l->data == ys)
               lastSource = l->data;
@@ -250,12 +267,25 @@ void qsApp_main(void)
     }
   }
 
-  gtk_main();
+  if(gtk_main_level() == 0)
+  {
+    qsApp->inAppLevel = TRUE;
+    gtk_main();
+    if(!qsApp->inAppLevel)
+      qsApp_destroy();
+  }
 }
 
 void qsApp_destroy(void)
 {
   QS_ASSERT(qsApp);
+
+  if(qsApp->inAppLevel)
+  {
+    qsApp->inAppLevel = FALSE;
+    gtk_main_quit();
+    return; // We 
+  }
 
   // Destroy all things Quickscope:
 

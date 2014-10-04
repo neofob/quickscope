@@ -19,6 +19,7 @@
 
 struct QsInterval
 {
+  // inherits controller
   struct QsController controller;
   float period;
   int timeoutTag;

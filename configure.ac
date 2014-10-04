@@ -29,9 +29,9 @@ AC_PREREQ(2.59)
 
 # AC_INIT( PACKAGE, VERSION, BUGREPORT, TARNAME , URL)
 AC_INIT([quickscope], 0.1.0,
-        [http://quickscope.sourceforge.net/],
+        [https://github.com/lanceman2/quickscope],
         [quickscope],
-        [http://quickscope.sourceforge.net/])
+        [https://github.com/lanceman2/quickscope])
 
 
 # LIB_VERSION=LIB_CURRENT:LIB_REVISION:LIB_AGE
@@ -173,6 +173,24 @@ case "$enable_debug" in
     ;;
 esac
 
+################################################################
+#                 --enable-tests
+################################################################
+
+AC_ARG_ENABLE([tests],
+    AS_HELP_STRING([--enable-tests],
+    [compile tests code (default is no testing code).]),
+ [enable_tests="$enableval"],
+ [enable_tests=no])
+
+case "$enable_tests" in
+    y* | Y* )
+    tests=yes
+    ;;
+    * )
+    tests=no
+    ;;
+esac
 
 ################################################################
 #    test for gnu/lib-names.h
@@ -255,6 +273,14 @@ if test x$debug == xyes ; then
 fi
 
 
+AM_CONDITIONAL([QS_TESTS], [test x$tests = xyes])
+
+if test x$tests == xyes ; then
+  AC_DEFINE_UNQUOTED(QS_TESTS,[1],
+    [If QS_TESTS we build tests code.])
+fi
+
+
 
 AM_CONDITIONAL([HAVE_LOCAL_SCREENSHOTS], [test -f screenshots.html.in])
 
@@ -280,6 +306,7 @@ fi
 AC_CONFIG_FILES(
 Makefile
 bin/Makefile
+tests/Makefile
 quickscope.pc
 )
 
@@ -293,11 +320,13 @@ AC_MSG_RESULT([
   ------------------------------------------------------------
 
               extra debug code (--enable-debug): $debug
+              build tests code (--enable-tests): $tests
   extra repository targets (--enable-repobuild): $enable_repobuild
 
                  C Compiler (CC): $CC
        C Compiler Flags (CFLAGS): $CFLAGS
         C Linker Flags (LDFLAGS): $LDFLAGS
+         make executable library: $HAVE_GNU_LIB_NAMES_H
 
   Installation prefix (--prefix): $prefix
                           srcdir: $srcdir

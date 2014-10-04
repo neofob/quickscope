@@ -9,7 +9,6 @@ struct QsIterator;
 struct QsIterator2;
 
 
-
 typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
     long double t, long double prevT, void *data);
 
@@ -106,7 +105,8 @@ struct QsSource
   // traces to call after read, also manage these traces
   GSList *traces,
          // Lists of iterators that read from this source.
-         *iterators, *iterator2s;
+         *iterators, *iterator2s,
+         *changeCallbacks;
 
   // The Group that this source belongs to.
   // Sources in a group use the same source frame indexing
@@ -159,6 +159,10 @@ struct QsSource *qsSin_create(int maxNumFrames,
     float amp, float period, float phaseShift, int samplesPerPeriod,
     struct QsSource *group);
 extern
+struct QsSource *qsSaw_create(int maxNumFrames,
+    float amp, float period, float periodShift, float samplesPerSecond,
+    struct QsSource *group);
+extern
 void qsSource_destroy(struct QsSource *source);
 extern
 void qsSource_removeTraceDraw(struct QsSource *s,  struct QsTrace *trace);
@@ -170,6 +174,12 @@ void qsSource_addTraceDraw(struct QsSource *s,  struct QsTrace *trace);
 // Call this and then read the QsIterator and then qsSource_setFrameIt().
 extern
 void qsSource_initIt(struct QsSource *s, struct QsIterator *it);
+extern
+void *qsSource_addChangeCallback(struct QsSource *s,
+    // return FALSE to remove the callback
+    gboolean (*callback)(struct QsSource *, void *), void *data);
+extern
+void qsSource_removeChangeCallback(struct QsSource *s, void *ref);
 
 static inline
 gboolean qsSource_isMaster(const struct QsSource *s)
@@ -178,7 +188,6 @@ gboolean qsSource_isMaster(const struct QsSource *s)
   QS_ASSERT(s->group);
   QS_ASSERT((s->isMaster && s == s->group->master) ||
       (!s->isMaster && s != s->group->master));
-
   return s->isMaster;
 }
 
@@ -190,10 +199,28 @@ int qsSource_maxNumFrames(const struct QsSource *s)
   return s->group->maxNumFrames;
 }
 
-// To set frame and time arrays.
-// num is changes to be less than or equal to what
-// was passed in.
+// Set frames and set (or get for non-master) time arrays.
+// num is changed to be less than or equal to what
+// was passed in.  If the source maxNumFrames is
+// large you'll get num most of the time.
 // This can't write any multi-value frames.
+// The return float array may be filled with float
+// values in the order of frames with the sequence
+// of all channels in the source in each frame:
+//
+//   Frame0: value0_channel0, value0_channel1, ..., value0_channelN-1
+//   Frame1: value1_channel0, value1_channel1, ..., value1_channelN-1
+//   ... etc.
+//   t time is a simple array of long double times in seconds.
+//
+//  Put another way:
+//
+//    value = returnedFrames[ frameIndex * numChannels + channelIndex ];
+//    time = t[frameIndex];
+//
+//  See also qsSource_appendFrame() which more than one set of values
+//  to a frame, giving more than one value per channel at a given time.
+//
 static inline
 float *qsSource_setFrames(struct QsSource *s, long double **t,
     int *num)
@@ -210,6 +237,8 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
 
   if(qsSource_isMaster(s))
   {
+    // Easy case!
+
     QS_ASSERT(s->i < maxNumFrames);
 
     ++s->i;
@@ -244,7 +273,11 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
   // like at end points in the trace where we
   // have a point at the back edge, lift the pen,
   // and then a point at the leading edge, as in
-  // a sweep signal (source).
+  // a sweep signal (source); the leading edge
+  // point has the same time and Y-value as does
+  // the trailing edge.  Without this complexity
+  // we have a suboptimal sweep display.
+
   QS_ASSERT(s->i < s->group->bufferLength);
 
   // !s->isMaster

@@ -58,6 +58,8 @@ struct QsApp
   float op_gridLineWidth, op_tickLineWidth, op_axisLineWidth,
          op_tickLineLength, op_subGridLineWidth; // all in pixels
 
+  double op_defaultIntervalPeriod;
+
   // (source ring bufferSize)/maxNumFrames so we can have frames
   // with more than one value for each channel.
   float op_bufferFactor;
@@ -72,8 +74,13 @@ struct QsApp
   gboolean op_fullscreen, op_showWindowBorder,
            op_showMenubar, op_showStatusbar;
 
+  gboolean opSourceRequireController; // require this in qsApp_main()
+
   // Use gtk_widget_add_tick_callback() if true
   gboolean op_syncFadeDraw; // or uses g_timeout_add_full()
+
+  gboolean inAppLevel; // to see where we are in gtk_main(),
+    // qsApp_main() and qsApp_destroy();
 
   int sourceCreateCount;
 };

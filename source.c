@@ -33,6 +33,37 @@ extern void
 _qsGroup_removeSource(struct QsGroup *g, struct QsSource *s);
 
 
+struct ChangeCallback
+{
+  gboolean (*callback)(struct QsSource *, void *);
+  void *data;
+};
+
+
+void *qsSource_addChangeCallback(struct QsSource *s,
+    gboolean (*callback)(struct QsSource *, void *), void *data)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(callback);
+
+  struct ChangeCallback *cb;
+  cb = g_malloc0(sizeof(*cb));
+  cb->callback = callback;
+  cb->data = data;
+  s->changeCallbacks = g_slist_append(s->changeCallbacks, cb);
+  return (void *) cb;
+}
+
+void qsSource_removeChangeCallback(struct QsSource *s, void *ref)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(ref);
+  QS_ASSERT(g_slist_find(s->changeCallbacks, ref));
+
+  s->changeCallbacks = g_slist_remove(s->changeCallbacks, ref);
+  g_free(ref);
+}
+
 static inline
 /* This just destroys the QsSource and not the inheriting object */
 void _qsSource_internalDestroy(struct QsSource *s)
@@ -87,6 +118,9 @@ void _qsSource_internalDestroy(struct QsSource *s)
     qsIterator2_destroy((struct QsIterator2 *) s->iterator2s->data);
   }
 
+  while(s->changeCallbacks)
+    qsSource_removeChangeCallback(s, s->changeCallbacks->data);
+
 #ifdef QS_DEBUG
   if(s->isMaster)
   {
@@ -108,13 +142,43 @@ void _qsSource_internalDestroy(struct QsSource *s)
   s->framePtr = NULL; // block reentry to this function from qsSource_destroy().
 
   // This will destroy the source group if it has no more sources in it
-  // or this is the master QsSource.
+  // and sets s->group to NULL.
   _qsGroup_removeSource(s->group, s);
+
+  if(s->isMaster && s->group)
+  {
+    struct QsGroup *g;
+    g = s->group;
+    while(g->sources)
+      qsSource_destroy(((struct QsSource *) g->sources->data));
+  }
 
   qsApp->sources = g_slist_remove(qsApp->sources, s);
 
   // Free the memory of this object
   _qsAdjusterList_destroy(&s->adjusters);
+}
+
+void qsSource_destroy(struct QsSource *s)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(s->group);
+  QS_ASSERT(s->group->master);
+
+  if(s->destroy)
+  {
+    void (*destroy)(void *);
+    destroy = s->destroy;
+    /* c->destroy == NULL flags not to call qsSource_destroy() */
+    s->destroy = NULL;
+    /* destroy inheriting object first */
+    destroy(s);
+  }
+
+  /* now destroy this and the base object
+   * if it's not being destroyed now. */
+  if(s->framePtr)
+    _qsSource_internalDestroy(s);
 }
 
 void *qsSource_create(QsSource_ReadFunc_t read,
@@ -152,6 +216,7 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     // Initialize the write index in a valid point in the ring buffer.
     s->i = master->i;
     s->wrapCount = master->wrapCount;
+    // The frame array is larger than the master case.
     s->framePtr = g_malloc(sizeof(float)*numChannels*group->bufferLength);
     tI = s->timeIndex = g_malloc(sizeof(int)*group->bufferLength);
     _qsGroup_addSource(group, s);
@@ -164,6 +229,7 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     group = s->group = _qsGroup_create(s, maxNumFrames);
     s->iMax = s->i = maxNumFrames - 1;
     s->wrapCount = -1;
+    // The frame array is smaller in this master case.
     s->framePtr = g_malloc(sizeof(float)*numChannels*group->maxNumFrames);
     tI = s->timeIndex = g_malloc(sizeof(int)*group->maxNumFrames);
   }
@@ -203,28 +269,6 @@ void qsSource_initIt(struct QsSource *s, struct QsIterator *it)
     QS_ASSERT(ir->source0 == s || ir->source1 == s);
     qsIterator2_reInit(ir);
   }
-}
-
-void qsSource_destroy(struct QsSource *s)
-{
-  QS_ASSERT(s);
-  QS_ASSERT(s->group);
-  QS_ASSERT(s->group->master);
-
-  if(s->destroy)
-  {
-    void (*destroy)(void *);
-    destroy = s->destroy;
-    /* c->destroy == NULL flags not to call qsSource_destroy() */
-    s->destroy = NULL;
-    /* destroy inheriting object first */
-    destroy(s);
-  }
-
-  /* now destroy this and the base object
-   * if it's not being destroyed now. */
-  if(s->framePtr)
-    _qsSource_internalDestroy(s);
 }
 
 void qsSource_addTraceDraw(struct QsSource *s,  struct QsTrace *trace)
@@ -272,8 +316,19 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
 
   if(ret == 1)
   {
-    GSList *l;
+    GSList *l, *next;
 
+    for(l=s->changeCallbacks;l;l=next)
+    {
+      struct ChangeCallback *cb;
+      // We get next now so we can get to it
+      // if we remove the current l.
+      next = l->next;
+      cb = l->data;
+      QS_ASSERT(cb);
+      if(!cb->callback(s, cb->data))
+        qsSource_removeChangeCallback(s, cb);
+    }
     for(l = s->traces;l;l=l->next)
     {
       QS_ASSERT(l->data);
