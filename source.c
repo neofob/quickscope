@@ -28,6 +28,8 @@
 extern struct QsGroup
 *_qsGroup_create(struct QsSource *s, int maxNumFrames);
 extern void
+_qsGroup_destroy(struct QsGroup *g);
+extern void
 _qsGroup_addSource(struct QsGroup *g, struct QsSource *s);
 extern void
 _qsGroup_removeSource(struct QsGroup *g, struct QsSource *s);
@@ -145,12 +147,14 @@ void _qsSource_internalDestroy(struct QsSource *s)
   // and sets s->group to NULL.
   _qsGroup_removeSource(s->group, s);
 
-  if(s->isMaster && s->group)
+  if(s->isMaster)
   {
     struct QsGroup *g;
     g = s->group;
     while(g->sources)
       qsSource_destroy(((struct QsSource *) g->sources->data));
+    // This is the last source in the group
+    _qsGroup_destroy(s->group);
   }
 
   qsApp->sources = g_slist_remove(qsApp->sources, s);

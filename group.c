@@ -17,8 +17,7 @@
 #include "source.h"
 
 
-static void
-_qsGroup_destroy(struct QsGroup *g)
+void _qsGroup_destroy(struct QsGroup *g)
 {
   QS_ASSERT(g);
   QS_ASSERT(g->time);
@@ -79,12 +78,4 @@ _qsGroup_removeSource(struct QsGroup *g, struct QsSource *s)
   QS_ASSERT(g_slist_find(g->sources, s));
 
   g->sources = g_slist_remove(g->sources, s);
-
-  if(!g->sources)
-  {
-    // signal that there are no more
-    // source group.
-    s->group = NULL;
-    _qsGroup_destroy(g);
-  }
 }
