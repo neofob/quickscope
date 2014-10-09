@@ -312,8 +312,9 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
   QS_ASSERT(s);
   QS_ASSERT(s->group);
   QS_ASSERT(s->read);
+  QS_ASSERT(time > s->prevT);
 
-  // TODO: Check this.
+
   s->t = time;
 
   ret = s->read(s, time, s->prevT, data);
@@ -347,14 +348,17 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
       // more than once, and when it's not really needed.
       _qsWin_postTraceDraw(((struct QsTrace *) l->data)->win);
     }
+
+    // The prevT is the previous time that we got data,
+    // so that source read callbacks can know when the
+    // last time we got data was.
+    s->prevT = time;
   }
   else if(ret == -1)
   {
     qsSource_destroy(s);
     return 1;
   }
-
-  s->prevT = time;
 
   return 0;
 }

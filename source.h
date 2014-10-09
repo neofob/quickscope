@@ -341,18 +341,25 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
 
   QS_ASSERT(len > 0);
 
+  int initI;
+  if(ti + 1 != maxNumFrames)
+    initI = s->i + 1;
+  else
+    initI = 0;
+
+
   // Check that the ring buffer is long enough:
-  QS_VASSERT(s->i + len < s->group->bufferLength,
+  QS_VASSERT(initI + len <= s->group->bufferLength,
       "%s() ring buffer is too small:"
         "increase qsApp->op_bufferFactor (=%f)\n", __func__,
         qsApp->op_bufferFactor);
 
-  if(s->i + len >= s->group->bufferLength)
+  if(initI + len > s->group->bufferLength)
   {
     fprintf(stderr, "%s() ring buffer is too small:"
         "increase qsApp->op_bufferFactor (=%f)\n", __func__,
         qsApp->op_bufferFactor);
-    *num = len = s->group->bufferLength - s->i;
+    *num = len = s->group->bufferLength - initI;
     if(len <= 0)
     {
       // This would be bad.

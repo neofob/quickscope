@@ -2,6 +2,26 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
+
+/*
+    This makes a saw tooth wave like so:
+
+
+
+    |
+    |   *       *       *
+    |  *       *       *
+    | *       *       *
+    |*       *       *
+    *-------*-------*-----------
+           *       *
+          *       *
+         *       *
+        *       *
+
+
+*/
+
 #include <string.h>
 #include <math.h>
 #include <gtk/gtk.h>
@@ -21,7 +41,7 @@ static int createCount = 0;
 struct QsSaw
 {
   struct QsSource source; // inherit QsSource
-  float amp, period, periodShift, omega, samplesPerSecond;
+  float amp, period, periodShift, omega, samplesPerPeriod;
   int count;
   gboolean addPenLift;
 };
@@ -33,7 +53,7 @@ void _qsSaw_adj(struct QsSaw *s)
 }
 
 static
-int cb_sin_read(struct QsSaw *s, long double tf, long double prevT)
+int cb_saw_read(struct QsSaw *s, long double tf, long double prevT)
 {
   struct QsSource *source;
   source = (struct QsSource *) s;
@@ -43,11 +63,12 @@ int cb_sin_read(struct QsSaw *s, long double tf, long double prevT)
 
   if(isMaster)
   {
-    nFrames = s->samplesPerSecond*(tf - prevT);
+    nFrames = s->samplesPerPeriod*(tf - prevT)/s->period + 0.5;
+
     if(s->addPenLift) ++nFrames;
     if(nFrames > qsSource_maxNumFrames(source))
       // The user choose numFrames too small
-      // and/or samplesPerSecond too large.
+      // and/or samplesPerPeriod too large.
       nFrames = qsSource_maxNumFrames(source);
   }
   else
@@ -67,7 +88,7 @@ int cb_sin_read(struct QsSaw *s, long double tf, long double prevT)
   rate = amp2/s->period;
   // add 2 periods to keep the fmodl() from
   // having a negative argument.
-  periodShift = s->periodShift * s->period + 2 * s->period;
+  periodShift = (s->periodShift + 0.5) * s->period + 2 * s->period;
   float *val;
   long double *t;
 
@@ -91,6 +112,7 @@ int cb_sin_read(struct QsSaw *s, long double tf, long double prevT)
   while(nFrames)
   {
     int n, i;
+    n = nFrames;
     val = qsSource_setFrames(source, &t, &n);
 
     for(i=0;i<n;++i)
@@ -108,10 +130,11 @@ int cb_sin_read(struct QsSaw *s, long double tf, long double prevT)
 static
 size_t iconText(char *buf, size_t len, struct QsSaw *s)
 {
-  // some kind of colorful glyph for this source
+  // Make some kind of colorful glyph for this source
+  // widget.
   return snprintf(buf, len,
       "<span bgcolor=\"#CF86A5\" fgcolor=\"#97C81F\">["
-      "<span fgcolor=\"#3F3A21\">sine%d</span>"
+      "<span fgcolor=\"#3F3A21\">saw%d</span>"
       "]</span> ", s->count);
 }
 
@@ -122,22 +145,22 @@ size_t iconText(char *buf, size_t len, struct QsSaw *s)
 #define MAX_PERIOD   (1000.0F)
 
 struct QsSource *qsSaw_create(int maxNumFrames,
-    float amp, float period, float periodShift, float samplesPerSecond,
+    float amp, float period, float periodShift, float samplesPerPeriod,
     struct QsSource *group)
 {
   struct QsSaw *s;
   QS_ASSERT(amp >= 0.0);
   QS_ASSERT(period >= MIN_PERIOD && period <= MAX_PERIOD);
-  QS_ASSERT(samplesPerSecond >= MIN_SAMPLES && samplesPerSecond <= MAX_SAMPLES);
+  QS_ASSERT(samplesPerPeriod >= MIN_SAMPLES && samplesPerPeriod <= MAX_SAMPLES);
 
-  s = qsSource_create((QsSource_ReadFunc_t) cb_sin_read,
+  s = qsSource_create((QsSource_ReadFunc_t) cb_saw_read,
       1 /* numChannels */, maxNumFrames, group, sizeof(*s));
 
   s->amp = amp;
   s->period = period;
   s->periodShift = periodShift;
   s->count = ++createCount;
-  s->samplesPerSecond = samplesPerSecond;
+  s->samplesPerPeriod = samplesPerPeriod;
 
   struct QsAdjuster *adjG;
   struct QsAdjusterList *adjL;
@@ -160,7 +183,7 @@ struct QsSource *qsSaw_create(int maxNumFrames,
       -1.0, /* min */ 1.0, /* max */
       (void (*) (void *)) _qsSaw_adj, s);
   qsAdjusterFloat_create(adjL,
-      "Samples Per Second", "", &s->samplesPerSecond,
+      "Samples Per Period", "", &s->samplesPerPeriod,
       MIN_SAMPLES, /* min */ MAX_SAMPLES, /* max */
       (void (*) (void *)) _qsSaw_adj, s);
 

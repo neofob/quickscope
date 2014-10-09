@@ -13,9 +13,12 @@ SpewSource(struct QsSource *s, struct QsIterator *it)
   long double t;
 
   while(qsIterator_get(it, &x, &t))
+  {
     printf("%Lg %g\n", t, x);
+    ++count;
+  }
 
-  if(++count > 10)
+  if(count > 300)
     qsApp_destroy();
 
   return TRUE;
@@ -28,10 +31,10 @@ int main(int argc, char **argv)
 
   //qsApp_init(NULL, NULL);
   //qsApp->op_defaultIntervalPeriod = 0.4; // Seconds
-  
-  s = qsSaw_create(100 /*maxNumFrames*/, 1/*amp*/,
-      0.05/*period*/, 0/*periodShift*/,
-      5/*samplesPerSecond*/, NULL/*source group*/);
+
+  s = qsSaw_create(25 /*maxNumFrames*/, 0.5/*amp*/,
+      0.05/*period*/, 0.2/*periodShift*/,
+      20/*samplesPerPeriod*/, NULL/*source group*/);
 
   qsSource_addChangeCallback(s,
       (gboolean (*)(struct QsSource *, void *)) SpewSource,
