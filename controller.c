@@ -15,6 +15,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "timer.h"
 #include "app.h"
 #include "controller.h"
@@ -24,6 +25,43 @@
 #include "group.h"
 #include "source.h"
 #include "source_priv.h"
+
+
+// butt ugly marco coding
+//
+// QS_BASE_DEFINE(), from base.h, defines:
+// _qsController_checkBaseDestroy(void *controller)
+// and
+// _qsController_addSubDestroy(void *controller, (void (*destroy)(void *)))
+QS_BASE_DEFINE(_qsController, struct QsController)
+
+
+// See qsController_destroy() below
+void _qsController_destroy(struct QsController *c)
+{
+  // destroy the sub class
+  QS_BASE_CHECKSUBDESTROY(c);
+
+  // now destroy this class
+  while(c->sources)
+  {
+#ifdef QS_DEBUG
+    void *data;
+    data = c->sources->data;
+#endif
+    qsSource_destroy((struct QsSource *) c->sources->data);
+    /* Make sure it was removed from the list. */
+    QS_ASSERT((c->sources && c->sources->data != data) || !c->sources);
+  }
+
+  qsApp->controllers = g_slist_remove(qsApp->controllers, c);
+
+#ifdef QS_DEBUG
+  memset(c, 0, sizeof(c->objectSize));
+#endif
+  g_free(c);
+}
+
 
 
 gboolean _qsController_run(struct QsController *c)
@@ -55,31 +93,9 @@ gboolean _qsController_run(struct QsController *c)
   return TRUE;
 }
 
-static
-void _qsController_internalDestroy(struct QsController *c)
-{
-  QS_ASSERT(c);
-
-  while(c->sources)
-  {
-#ifdef QS_DEBUG
-    void *data;
-    data = c->sources->data;
-#endif
-    qsSource_destroy((struct QsSource *) c->sources->data);
-    /* Make sure it was removed from the list. */
-    QS_ASSERT((c->sources && c->sources->data != data) || !c->sources);
-  }
-
-  qsApp->controllers = g_slist_remove(qsApp->controllers, c);
-
-#ifdef QS_DEBUG
-  memset(c, 0, sizeof(c->objectSize));
-#endif
-  g_free(c);
-}
-
-void *qsController_create(size_t size)
+void *_qsController_create(
+    void (*changedSource)(struct QsController *c, GSList *sources),
+    size_t size)
 {
   struct QsController *c;
 
@@ -92,26 +108,20 @@ void *qsController_create(size_t size)
   c->objectSize = size;
 #endif
 
+  c->changedSource = changedSource;
+
   qsApp->controllers = g_slist_prepend(qsApp->controllers, c);
 
   return c;
 }
 
+
+// We need to expose the _destroy() thingy to the
+// user API while keeping the _qsController_destroy(),
+// so we have this wrapper.
 void qsController_destroy(struct QsController *c)
 {
-  QS_ASSERT(c);
-
-  if(c->destroy)
-  {
-    void (*destroy)(void *);
-    destroy = c->destroy;
-    c->destroy = NULL;
-    /* destroy inheriting object first */
-    destroy(c);
-  }
-
-  /* now destroy this and the base object */
-  _qsController_internalDestroy(c);
+  _qsController_destroy(c);
 }
 
 static

@@ -9,8 +9,13 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
+
+
+QS_BASE_DEFINE(_qsAdjuster, struct QsAdjuster)
+QS_BASE_DEFINE(_qsAdjusterList, struct QsAdjusterList)
 
 
 static inline
@@ -303,14 +308,7 @@ void _qsAdjuster_destroy(struct QsAdjuster *adj)
 {
   QS_ASSERT(adj && adj->adjs);
 
-  if(adj->destroy)
-  {
-    void (*destroy)(void *adj);
-    destroy = adj->destroy;
-    // stop re entrance
-    adj->destroy = NULL;
-    destroy(adj);
-  }
+  QS_BASE_CHECKSUBDESTROY(adj);
 
   // Remove this adjuster from all QsAdjusterList objects
   // This is not just called from _qsAdjuster_dereference()
@@ -387,6 +385,8 @@ void _qsAdjusterList_display(struct QsAdjusterList *adjs)
 
 void _qsAdjusterList_destroy(struct QsAdjusterList *adjs)
 {
+  QS_BASE_CHECKSUBDESTROY(adjs);
+
   // By destroying the widgets before the adjusters we
   // don't reset the widgets while destroying the adjusters.
   while(adjs->widgets)
@@ -539,4 +539,3 @@ void _qsAdjusterList_remove(struct QsAdjusterList *adjL,
   // We can't here because we don't know the state of the
   // Widgets and there may be more changes to come.
 }
-

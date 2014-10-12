@@ -16,6 +16,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 
@@ -605,8 +606,18 @@ static
 void destroy(struct ADJ_TYPE *adj)
 {
     QS_ASSERT(adj);
-
+    QS_ASSERT(adj->units);
+#ifdef QS_DEBUG
+    memset(adj->units, 0, strlen(adj->units));
+#endif
     g_free(adj->units);
+
+    // _qsAdjuster_checkBaseDestroy() is not necessary
+    // since only the qsAdjuster_destroy() can call this
+    // from adj->destroy, but maybe someday
+    // this may be inherited and we'll need to expose this
+    // destroy() function and call:
+    //_qsAdjuster_checkBaseDestroy(adj);
 }
 
 struct QsAdjuster *ADJUSTER_CREATE(struct QsAdjusterList *adjs,
@@ -627,7 +638,7 @@ struct QsAdjuster *ADJUSTER_CREATE(struct QsAdjusterList *adjs,
   adj->value = value;
   adj->setValue = TRUE;
   adj->units = g_strdup(units);
-  adj->adjuster.destroy = (void (*)(void*)) destroy;
+  _qsAdjuster_addSubDestroy(adj, destroy);
   adj->adjuster.getTextRender =
     (void (*)(void *obj, char *str, size_t maxLen, size_t *len))
     getTextRender;

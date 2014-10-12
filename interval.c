@@ -14,7 +14,9 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "controller_priv.h"
+#include "controller.h"
 #include "interval.h"
 
 struct QsInterval
@@ -44,26 +46,8 @@ void _qsInterval_changedSource(struct QsInterval *in, GSList *sources)
         (GSourceFunc) _qsController_run, in, NULL);
 }
 
-void *qsInterval_create(float period)
-{
-  struct QsInterval *in;
-
-  if(period > 24*3600)
-    period = 24*3600;
-  else if(period < 0.001)
-    period = 0.001;
-
-  in = (struct QsInterval *) qsController_create(sizeof(*in));
-  in->period = period;
-  in->controller.destroy = (void (*)(void *)) qsInterval_destroy;
-  in->controller.changedSource =
-    (void (*)(struct QsController *c, GSList *sources))
-    _qsInterval_changedSource;
-
-  return in;
-}
-
-void qsInterval_destroy(struct QsInterval *in)
+static
+void _qsInterval_destroy(struct QsInterval *in)
 {
   QS_ASSERT(in);
 
@@ -73,13 +57,25 @@ void qsInterval_destroy(struct QsInterval *in)
     in->timeoutTag = 0;
   }
 
-  /* We are in qsController_destroy()
-   * if in->controller.destroy == NULL */
-
-  if(in->controller.destroy)
-  {
-    in->controller.destroy = NULL;
-    qsController_destroy(&in->controller);
-  }
+  // Destroy base class if needed.
+  // If we make this function public.
+  _qsController_checkBaseDestroy(in);
 }
 
+void *qsInterval_create(float period)
+{
+  struct QsInterval *in;
+
+  if(period > 24*3600)
+    period = 24*3600;
+  else if(period < 0.001)
+    period = 0.001;
+
+  in = _qsController_create(
+      (void (*)(struct QsController *c, GSList *sources))
+      _qsInterval_changedSource, sizeof(*in));
+  in->period = period;
+  _qsController_addSubDestroy(in, _qsInterval_destroy);
+
+  return in;
+}

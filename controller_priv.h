@@ -19,20 +19,14 @@ struct QsController
 #endif
 };
 
-extern
-void *qsController_create(size_t objectSize);
-extern
-void qsController_destroy(struct QsController *c);
-extern
-void qsController_appendSource(struct QsController *c,
-    struct QsSource *s, void *callbackData);
-extern
-void qsController_prependSource(struct QsController *c,
-    struct QsSource *s, void *sourceCallbackData);
-extern
-void qsController_removeSource(struct QsController *c, struct QsSource *s);
+QS_BASE_DECLARE(_qsController);
 
+extern
+void *_qsController_create(
+    void (*changedSource)(struct QsController *c, GSList *sources),
+    size_t objectSize);
+extern
+void _qsController_destroy(struct QsController *c);
 /* protected */
 /* Always returns TRUE for super class QsInternal g_timeout thingy. */
 gboolean _qsController_run(struct QsController *c);
-

@@ -8,23 +8,30 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
+#include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
-#include "sourceGroup.h"
+#include "group.h"
 #include "source.h"
 #include "source_priv.h"
-#include "composer.h"
-#include "composer_priv.h"
+#include "iterator.h"
 #include "sweep.h"
-#include "drawsync.h"
 
 // TODO: clearly this is not thread safe
 static int createCount = 0;
 
 struct QsSweep
 {
-  struct QsComposer composer; // base object
+  // inherit QsSource
+  struct QsSource source;
 
+  struct QsIterator *triggerIt, // for reading trigger source
+    *timeIt; // for reading the time stamps that we write after
+    // getting triggered.  triggerIt reads ahead of timeIt
+    // until there is a trigger value is read, and then timeIt
+    // is used to get the appropriate frames that depend on the
+    // holdOff parameter.
   long double start, holdOff, waitUntil, delay;
   float period, level, lastValueIn, lastTIn;
   int slope; /* +1 or 0 for free run or -1 */
@@ -34,114 +41,9 @@ struct QsSweep
 
 
 static
-int cb_sweep(struct QsSweep *sweep, float *valOut,
-    long double *tOut, long double t, long double prevT,
-    int *numFrames, void *data)
+int cb_sweep(struct QsSweep *sweep,
+    long double tf, long double prevT, void *data)
 {
-  int numFramesIn, i, gotValue = 0, channelNumIn;
-  struct QsSource *sourceIn;
-
-  sourceIn = sweep->composer.sourcesIn->data;
-  numFramesIn = _qsSource_framesWritten(sourceIn);
-
-  if(numFramesIn == 0)
-    /* this is in the case when there is no new data */
-    return 0;
-
-  if(_qsSource_time(sourceIn, numFramesIn-1) < sweep->waitUntil)
-  {
-    tOut[0] = _qsSource_time(sourceIn, 0);
-    /* We must cut the line or lift the pen
-     * in case the pen is down now. */
-    valOut[0] = NAN;
-    *numFrames = 1;
-    return 1;
-  }
-
-  channelNumIn = sweep->channelNum;
-
-  /* We must produce the same number of frames as
-   * sourceIn->framesWritten or less if no drawing is needed. */
-
-  for(i=0;i<numFramesIn;++i)
-  {
-    long double tIn;
-
-    tOut[i] = tIn = _qsSource_time(sourceIn, i);
-
-    if(!isinf(sweep->start))
-    {
-      // A trace is sweeping
-
-      if(tIn >= sweep->start)
-      {
-        valOut[i] = -0.5 + (tIn - sweep->start)/sweep->period;
-        if(valOut[i] < 0.5)
-          gotValue = 1; /* We got data this call! */
-        else
-        {
-          sweep->waitUntil = sweep->holdOff + tIn;
-          valOut[i] = NAN;
-          sweep->start = INFINITY;
-        }
-      }
-      else // tIn < sweep->start
-        valOut[i] = NAN;
-    }
-    else if(tIn >= sweep->waitUntil
-      && !isnan(sweep->lastValueIn)
-      && !isnan(_qsSource_value(sourceIn, channelNumIn, i)))
-    {
-      if(sweep->slope == 0)
-      {
-        /* slope == 0 is free run */
-        gotValue = 1;  /* We got data this call! */
-        sweep->start = tIn;
-        valOut[i] = - 0.5;
-      }
-      else if(
-          (sweep->slope > 0 &&
-          sweep->lastValueIn < sweep->level &&
-          _qsSource_value(sourceIn, channelNumIn, i) >= sweep->level)
-        ||
-          (sweep->slope < 0 &&
-          sweep->lastValueIn > sweep->level &&
-          _qsSource_value(sourceIn, channelNumIn, i) <= sweep->level))
-      {
-        /* Linearly interpolate a sweep start time.
-         * Without this interpolation the trace will giggle. */
-        sweep->start = tIn - (_qsSource_value(sourceIn, channelNumIn, i) - sweep->level)
-          * (tIn - sweep->lastTIn)/(_qsSource_value(sourceIn, channelNumIn, i) -
-              sweep->lastValueIn) +
-         sweep->delay;
-
-        if(tIn >= sweep->start)
-        {
-          valOut[i] = - 0.5 + (tIn - sweep->start)/sweep->period;
-          gotValue = 1;  /* We got data this call! */
-        }
-        else
-          valOut[i] = NAN;
-      }
-      else
-        valOut[i] = NAN;
-    }
-    else
-      valOut[i] = NAN;
-
-    sweep->lastValueIn = _qsSource_value(sourceIn, channelNumIn, i);
-    sweep->lastTIn = tIn;
-  }
-
-  if(gotValue)
-    *numFrames = numFramesIn;
-  else
-    /* We just send (mark) the first NAN to signal
-     * lift the pen incase it's in the middle
-     * of drawing lines and the pen is down. */
-    *numFrames = 1;
-
-
   return 1;
 }
 
@@ -175,6 +77,40 @@ void cb_changePeriod(struct QsSweep *sweep)
     sweep->lastValueIn = -INFINITY;
 }
 
+static
+void cb_changeSlope(struct QsSweep *sweep)
+{
+  QS_ASSERT(sweep);
+}
+
+static
+void cb_changeLevel(struct QsSweep *sweep)
+{
+  QS_ASSERT(sweep);
+}
+
+static
+void cb_changeDelay(struct QsSweep *sweep)
+{
+  QS_ASSERT(sweep);
+}
+
+static
+void cb_changeHoldOff(struct QsSweep *sweep)
+{
+  QS_ASSERT(sweep);
+}
+
+static void
+_qsSweep_destroy(struct QsSweep *s)
+{
+  QS_ASSERT(s);
+  qsIterator_destroy(s->triggerIt);
+  qsIterator_destroy(s->timeIt);
+
+  qsSource_checkBaseDestroy(s);
+}
+
 struct QsSource *qsSweep_create(
     float period, float level, int slope, long double holdOff,
     long double delay,
@@ -186,12 +122,12 @@ struct QsSource *qsSweep_create(
   QS_ASSERT(delay >= 0);
   QS_ASSERT(holdOff >= 0);
 
-  sweep = qsComposer_create(
-      (QsComposer_ReadFunc_t) cb_sweep,
-      1 /* one channel out */,
-      sourceIn->numFrames,
+  sweep = qsSource_create(
+      (QsSource_ReadFunc_t) cb_sweep,
+      1 /*numChannels*/,
+      0 /*maxNumFrames*/,
+      sourceIn /*source group*/,
       sizeof(*sweep));
-  qsComposer_addSourceIn(&sweep->composer, sourceIn);
   sweep->period = period;
   sweep->start = INFINITY;
   sweep->holdOff = holdOff;
@@ -205,8 +141,11 @@ struct QsSource *qsSweep_create(
     sweep->lastValueIn = -INFINITY;
   sweep->channelNum = channelNum;
   sweep->count = createCount++;
+  sweep->triggerIt = qsIterator_create(sourceIn, channelNum);
+  sweep->timeIt = qsIterator_create(sourceIn, channelNum);
+  qsSource_initIt((struct QsSource *) sweep, sweep->timeIt);
 
-  // A Sweep is a Composer is a Source is an AdjusterList.
+  // A Sweep is a Source is an AdjusterList.
   // Ain't inheritance fun:
 
   struct QsAdjuster *adjG;
@@ -224,17 +163,17 @@ struct QsSource *qsSweep_create(
       qsAdjusterFloat_create(adjL,
       "sweep Level", "", &sweep->level,
       -100.0, /* min */ 100.0, /* max */
-      NULL, NULL), sweep);
+      (void (*)(void *)) cb_changeLevel, sweep), sweep);
   addIcon(
       qsAdjusterLongDouble_create(adjL,
       "Hold Off", "sec", &sweep->holdOff,
       0.0L, /* min */ 1000.0L, /* max */
-      NULL, NULL), sweep);
+      (void (*)(void *)) cb_changeHoldOff, sweep), sweep);
   addIcon(
       qsAdjusterLongDouble_create(adjL,
       "Delay", "sec", &sweep->delay,
       0.0L, /* min */ 1000.0L, /* max */
-      NULL, NULL), sweep);
+      (void (*)(void *)) cb_changeDelay, sweep), sweep);
   {
     int slopeValues[] = { -1, 0, 1 };
     const char *label[] = { "-", "free", "+" };
@@ -243,10 +182,12 @@ struct QsSource *qsSweep_create(
       qsAdjusterSelector_create(adjL,
       "Slope", &sweep->slope,
       slopeValues, label, 3 /* num values */,
-      NULL, NULL), sweep);
+      (void (*)(void *)) cb_changeSlope, sweep), sweep);
   }
 
   qsAdjusterGroup_end(adjG);
+
+  qsSource_addSubDestroy(sweep, _qsSweep_destroy);
 
   return (struct QsSource *) sweep;
 }

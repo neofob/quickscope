@@ -13,6 +13,7 @@
 #include <gdk/gdkkeysyms.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "win.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"

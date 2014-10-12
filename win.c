@@ -9,6 +9,7 @@
 #include <gdk/gdkx.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
@@ -16,6 +17,7 @@
 #include "win_priv.h"
 #include "trace.h"
 #include "drawsync.h"
+#include "controller.h"
 
 
 static
@@ -87,7 +89,7 @@ struct QsWin *qsWin_create(void)
 
   // QsWin inherits QsAdjusterList
   win = _qsAdjusterList_create(sizeof(*win));
-
+  _qsAdjusterList_addSubDestroy(win, qsWin_destroy);
 
   /* We get most of our win options from the App object */
 
@@ -229,7 +231,7 @@ void qsWin_destroy(struct QsWin *win)
     void *ds;
     ds = win->drawSyncs->data;
 #endif
-    qsDrawSync_destroy((struct QsDrawSync *) win->drawSyncs->data);
+    qsController_destroy((struct QsController*) win->drawSyncs->data);
     /* this should have changed the list */
     QS_ASSERT(!win->drawSyncs || win->drawSyncs->data != ds);
   }
@@ -265,8 +267,8 @@ void qsWin_destroy(struct QsWin *win)
   qsApp->wins = g_slist_remove(qsApp->wins, win);
   gtk_widget_destroy(win->win);
 
-  // destroy base object and all things in adjusterList
-  // including adjsWidget and all adjusters
-  _qsAdjusterList_destroy((struct QsAdjusterList *) win);
+  // Call the base destroy if we are not calling
+  // it already.
+  _qsAdjusterList_checkBaseDestroy(win);
 }
 

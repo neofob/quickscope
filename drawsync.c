@@ -15,6 +15,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "app.h"
 #include "timer.h"
 #include "adjuster.h"
@@ -60,23 +61,8 @@ void _qsDrawSync_changedSource(struct QsDrawSync *ds, GSList *sources)
         (GtkTickCallback) _gtkTickCallback, ds, NULL);
 }
 
-void *qsDrawSync_create(struct QsWin *win)
-{
-  struct QsDrawSync *ds;
-  QS_ASSERT(win);
-
-  ds = (struct QsDrawSync *) qsController_create(sizeof(*ds));
-  ds->win = win;
-  ds->controller.destroy = (void (*)(void *)) qsDrawSync_destroy;
-  ds->controller.changedSource =
-    (void (*)(struct QsController *c, GSList *sources))
-    _qsDrawSync_changedSource;
-  win->drawSyncs = g_slist_prepend(ds->win->drawSyncs, ds);
-
-  return ds;
-}
-
-void qsDrawSync_destroy(struct QsDrawSync *ds)
+static
+void _qsDrawSync_destroy(struct QsDrawSync *ds)
 {
   QS_ASSERT(ds);
   QS_ASSERT(ds->win);
@@ -94,13 +80,22 @@ void qsDrawSync_destroy(struct QsDrawSync *ds)
   ds->win->drawSyncs = g_slist_remove(ds->win->drawSyncs, ds);
   ds->win = NULL;
 
-  /* We are in qsController_destroy()
-   * if ds->controller.destroy == NULL */
-
-  if(ds->controller.destroy)
-  {
-    ds->controller.destroy = NULL;
-    qsController_destroy(&ds->controller);
-  }
+  // In case the user can some day calls qsDrawSync_destroy()
+  // we destroy the base class if needed.
+  _qsController_checkBaseDestroy(ds);
 }
 
+void *qsDrawSync_create(struct QsWin *win)
+{
+  struct QsDrawSync *ds;
+  QS_ASSERT(win);
+
+  ds = _qsController_create(
+      (void (*)(struct QsController *c, GSList *sources))
+      _qsDrawSync_changedSource, sizeof(*ds));
+  ds->win = win;
+  _qsController_addSubDestroy(ds, _qsDrawSync_destroy);
+  win->drawSyncs = g_slist_prepend(ds->win->drawSyncs, ds);
+
+  return ds;
+}

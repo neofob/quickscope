@@ -8,7 +8,13 @@
 # They are not so useful for regular
 # quickscope users.
 
-noinst_PROGRAMS = hello source circle saw non_master_print
+noinst_PROGRAMS =\
+ hello\
+ source\
+ circle\
+ saw\
+ non_master_print\
+ source_initIt
 
 
 hello_SOURCES = hello.c
@@ -28,3 +34,6 @@ saw_LDADD = $(qs_LDADD)
 non_master_print_SOURCES = non_master_print.c
 non_master_print_LDADD = $(qs_LDADD)
 
+
+source_initIt_SOURCES = non_master_print.c
+source_initIt_LDADD = $(qs_LDADD)

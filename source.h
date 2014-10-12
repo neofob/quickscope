@@ -139,6 +139,10 @@ struct QsSource
   // TODO: Can we have the master change?  Maybe not.
 };
 
+
+QS_BASE_DECLARE(qsSource);
+
+
 extern // Declaring this void * make is easier to  use this to make
   // an inheriting object.  It's a GTK+ learned trick. 
 void *qsSource_create(QsSource_ReadFunc_t read,

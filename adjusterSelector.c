@@ -9,6 +9,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 
@@ -74,6 +75,13 @@ void destroy(struct QsAdjusterSelector *adj)
 
   g_free(adj->values);
   g_free(adj->label);
+
+  // _qsAdjuster_checkBaseDestroy() is not necessary
+  // since only the qsAdjuster_destroy() can call this
+  // from adj->destroy, but maybe someday
+  // this may be inherited and we'll need to expose this
+  // destroy() function and call:
+  //_qsAdjuster_checkBaseDestroy(adj);
 }
 
 struct QsAdjuster *qsAdjusterSelector_create(struct QsAdjusterList *adjs,
@@ -108,8 +116,7 @@ struct QsAdjuster *qsAdjusterSelector_create(struct QsAdjusterList *adjs,
     getTextRender;
   adj->adjuster.inc     = (gboolean (*)(void *, struct QsWidget *)) inc;
   adj->adjuster.dec     = (gboolean (*)(void *, struct QsWidget *)) dec;
-  adj->adjuster.destroy = (void (*)(void *)) destroy;
-
+  _qsAdjuster_addSubDestroy(adj, destroy);
   return (struct QsAdjuster *) adj;
 }
 

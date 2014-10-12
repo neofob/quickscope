@@ -9,11 +9,11 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "app.h"
 #include "trace.h"
 #include "trace_priv.h"
 #include "controller.h"
-#include "controller_priv.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 #include "group.h"
@@ -40,6 +40,9 @@ struct ChangeCallback
   gboolean (*callback)(struct QsSource *, void *);
   void *data;
 };
+
+
+QS_BASE_DEFINE(qsSource, struct QsSource)
 
 
 void *qsSource_addChangeCallback(struct QsSource *s,
@@ -159,8 +162,9 @@ void _qsSource_internalDestroy(struct QsSource *s)
 
   qsApp->sources = g_slist_remove(qsApp->sources, s);
 
-  // Free the memory of this object
-  _qsAdjusterList_destroy(&s->adjusters);
+  // Call the base destroy if we are not calling
+  // it already.
+  _qsAdjusterList_checkBaseDestroy(s);
 }
 
 void qsSource_destroy(struct QsSource *s)
@@ -169,15 +173,7 @@ void qsSource_destroy(struct QsSource *s)
   QS_ASSERT(s->group);
   QS_ASSERT(s->group->master);
 
-  if(s->destroy)
-  {
-    void (*destroy)(void *);
-    destroy = s->destroy;
-    /* c->destroy == NULL flags not to call qsSource_destroy() */
-    s->destroy = NULL;
-    /* destroy inheriting object first */
-    destroy(s);
-  }
+  QS_BASE_CHECKSUBDESTROY(s);
 
   /* now destroy this and the base object
    * if it's not being destroyed now. */
@@ -200,6 +196,7 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     objectSize = sizeof(*s);
 
   s = _qsAdjusterList_create(objectSize);
+  _qsAdjusterList_addSubDestroy(s, qsSource_destroy);
   s->id = qsApp->sourceCreateCount++;
   s->read = read;
   s->numChannels = numChannels;

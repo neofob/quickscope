@@ -33,6 +33,9 @@ struct QsAdjusterList
   GList *adjusters, *widgets;
   int count; // number of adjuster(s)
   int changeCount; // counting changes to adjusterList
+
+  void (*destroy)(void *);
+
 #ifdef QS_DEBUG
   size_t objSize;
 #endif

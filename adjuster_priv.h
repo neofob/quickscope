@@ -45,6 +45,10 @@ struct QsAdjuster
 #endif
 };
 
+QS_BASE_DECLARE(_qsAdjuster);
+QS_BASE_DECLARE(_qsAdjusterList);
+
+
 /* widget that can display/feed any adjuster in the QsAdjusterList */
 struct QsWidget
 {
@@ -113,4 +117,3 @@ void _qsAdjusterList_prepend(struct QsAdjusterList *adjL,
 extern
 void _qsAdjusterList_remove(struct QsAdjusterList *adjL,
     struct QsAdjusterList *removedL);
-

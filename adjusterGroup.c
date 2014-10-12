@@ -8,6 +8,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 
@@ -152,6 +153,13 @@ void destroy(struct QsAdjusterGroup *adj)
     // GList(s) that it is in.
     _qsAdjuster_destroy((struct QsAdjuster *) l->data);
   }
+  
+  // _qsAdjuster_checkBaseDestroy() is not necessary
+  // since only the qsAdjuster_destroy() can call this
+  // from adj->destroy, but maybe someday
+  // this may be inherited and we'll need to expose this
+  // destroy() function and call:
+  //_qsAdjuster_checkBaseDestroy(adj);
 }
 
 struct QsAdjuster *qsAdjusterGroup_start(struct QsAdjusterList *adjs,
@@ -191,8 +199,7 @@ void qsAdjusterGroup_end(struct QsAdjuster *s)
   adj->adjuster.dec   = (gboolean (*)(void *, struct QsWidget *)) endToAdj;
   start->adjuster.inc = (gboolean (*)(void *, struct QsWidget *)) startToAdj;
   start->adjuster.dec = (gboolean (*)(void *, struct QsWidget *)) startToAdj;
-
-  start->adjuster.destroy = (void (*)(void *obj)) destroy;
+  _qsAdjuster_addSubDestroy(start, destroy);
   start->adjuster.next = (GList *(*)(void *obj, struct QsAdjusterList *)) next;
   start->otherGroup = adj;
   adj->adjuster.icon = start->adjuster.icon;

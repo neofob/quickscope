@@ -6,11 +6,10 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "app.h"
 #include "trace.h"
 #include "trace_priv.h"
-#include "controller.h"
-#include "controller_priv.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 #include "group.h"

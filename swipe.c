@@ -10,6 +10,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 #include "win.h"

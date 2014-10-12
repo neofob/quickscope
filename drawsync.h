@@ -7,6 +7,3 @@ struct QsWin;
 
 extern
 void *qsDrawSync_create(struct QsWin *win);
-extern
-void qsDrawSync_destroy(struct QsDrawSync *ds);
-

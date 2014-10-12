@@ -2,8 +2,9 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
-struct QsSource;
+
 struct QsController;
+struct QsSource;
 
 extern
 void qsController_destroy(struct QsController *c);

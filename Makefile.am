@@ -64,6 +64,7 @@ libquickscope_la_SOURCES =\
  app.h\
  assert.c\
  assert.h\
+ base.h\
  config.h\
  controller.c\
  controller.h\
@@ -88,6 +89,8 @@ libquickscope_la_SOURCES =\
  sin.c\
  swipe.c\
  swipe_priv.h\
+ sweep.c\
+ sweep.h\
  timer.c\
  timer.h\
  trace.c\
@@ -103,7 +106,6 @@ libquickscope_la_SOURCES =\
  win_priv.h\
  win_savePNG.c\
  win_setGrid.c
-# to add back sweep.c sweep.h
 
 noinst_LTLIBRARIES = libadjD.la libadjLD.la libadjInt.la
 libadjD_la_SHORTNAME = adjD
@@ -140,11 +142,12 @@ include_HEADERS = quickscope.h
 quickscope_headers =\
  top_quickscope.h\
  debug.h\
+ base.h\
  adjuster.h\
  app.h\
  assert.h\
- controller.h\
  drawsync.h\
+ controller.h\
  fd.h\
  group.h\
  interval.h\

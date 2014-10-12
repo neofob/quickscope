@@ -14,7 +14,9 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "controller_priv.h"
+#include "controller.h"
 #include "fd.h"
 
 struct QsFdGSource
@@ -37,8 +39,8 @@ struct QsFd
   void (*destroy)(void *);
 };
 
-extern
-void qsFd_destroy(struct QsFd *fd);
+
+QS_BASE_DEFINE(qsFd, struct QsFd)
 
 
 static inline
@@ -83,16 +85,15 @@ gboolean dispatch(struct QsFdGSource *fD, GSourceFunc callback, gpointer data)
   return TRUE;
 }
 
-static
-void _qsFd_internalDestroy(struct QsFd *fd)
+void qsFd_destroy(struct QsFd *fd)
 {
+  QS_BASE_CHECKSUBDESTROY(fd);
+
+  /* now destroy this and then the base object */
   struct QsFdGSource *gfd;
-  struct QsController *c;
-  QS_ASSERT(fd);
   QS_ASSERT(fd->fdGSource);
 
   gfd = fd->fdGSource;
-  c = (struct QsController *)fd;
 
   gfd->pfd.revents = 0;
   g_source_remove_poll(&gfd->gsource, &(gfd->pfd));
@@ -107,12 +108,9 @@ void _qsFd_internalDestroy(struct QsFd *fd)
   /* free the GSource and struct QsFdGSource memory */
   g_source_unref(&gfd->gsource);
 
- if(c->destroy)
- {
-   c->destroy = NULL;
-   /* destroy base class which frees memory */
-   qsController_destroy(c);
- }
+  /* now destroy the base unless we are in
+   * the base qsController_destroy() */
+  _qsController_checkBaseDestroy(fd);
 }
 
 struct QsController *qsFd_create(int fD, size_t size)
@@ -135,8 +133,8 @@ struct QsController *qsFd_create(int fD, size_t size)
   if(size < sizeof(*fd))
     size = sizeof(*fd);
 
-  fd = qsController_create(size);
-  fd->destroy = (void(*)(void*)) qsFd_destroy;
+  fd = _qsController_create(NULL, size);
+  _qsController_addSubDestroy(fd, qsFd_destroy);
   fd->fdGSource = gs = (struct QsFdGSource *)
     g_source_new(&source_funcs, sizeof(*gs));
   memset(((uint8_t*)gs) + sizeof(GSource), 0, sizeof(*gs) - sizeof(GSource));
@@ -158,23 +156,4 @@ struct QsController *qsFd_createFILE(FILE *file, size_t size)
   struct QsFd *fd;
   fd = (struct QsFd *) qsFd_create(fileno(file), size);
   return (struct QsController *) fd;
-}
-
-void qsFd_destroy(struct QsFd *fd)
-{
-  QS_ASSERT(fd);
-
-  if(fd->destroy)
-  {
-    void (*destroy)(void *);
-    destroy = fd->destroy;
-
-    /* c->destroy == NULL flags not to call qsComposer_destroy() */
-    fd->destroy = NULL;
-    /* destroy inheriting object first */
-    destroy(fd);
-  }
-
-  /* now destroy this and the base object */
-  _qsFd_internalDestroy(fd);
 }

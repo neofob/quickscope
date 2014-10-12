@@ -7,6 +7,4 @@ struct QsInterval;
 
 extern
 void *qsInterval_create(float period /* seconds */);
-extern
-void qsInterval_destroy(struct QsInterval *in);
-
+// Destroy with qsController_destroy();

@@ -9,6 +9,7 @@
 #include <gdk/gdkx.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"

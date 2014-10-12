@@ -155,7 +155,6 @@ struct QsWin
   int width, height; /* drawing area window width and height */
 
   int swipePointCount; /* window global counter used by trace swipe */
-
 };
 
 /* To cut down on the number of colors and the size

@@ -27,6 +27,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "base.h"
 #include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
@@ -53,7 +54,8 @@ void _qsSaw_adj(struct QsSaw *s)
 }
 
 static
-int cb_saw_read(struct QsSaw *s, long double tf, long double prevT)
+int cb_saw(struct QsSaw *s, long double tf,
+    long double prevT, void *data)
 {
   struct QsSource *source;
   source = (struct QsSource *) s;
@@ -153,7 +155,7 @@ struct QsSource *qsSaw_create(int maxNumFrames,
   QS_ASSERT(period >= MIN_PERIOD && period <= MAX_PERIOD);
   QS_ASSERT(samplesPerPeriod >= MIN_SAMPLES && samplesPerPeriod <= MAX_SAMPLES);
 
-  s = qsSource_create((QsSource_ReadFunc_t) cb_saw_read,
+  s = qsSource_create((QsSource_ReadFunc_t) cb_saw,
       1 /* numChannels */, maxNumFrames, group, sizeof(*s));
 
   s->amp = amp;
