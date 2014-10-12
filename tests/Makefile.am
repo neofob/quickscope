@@ -13,8 +13,7 @@ noinst_PROGRAMS =\
  source\
  circle\
  saw\
- non_master_print\
- source_initIt
+ non_master_print
 
 
 hello_SOURCES = hello.c
@@ -33,7 +32,3 @@ saw_LDADD = $(qs_LDADD)
 
 non_master_print_SOURCES = non_master_print.c
 non_master_print_LDADD = $(qs_LDADD)
-
-
-source_initIt_SOURCES = non_master_print.c
-source_initIt_LDADD = $(qs_LDADD)
