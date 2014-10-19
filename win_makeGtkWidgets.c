@@ -8,7 +8,6 @@
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
-#include "timer.h"
 #include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
@@ -66,10 +65,11 @@ gboolean _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
 
 #ifdef QS_DEBUG
 #if 0
+#include "timer_priv.h"
 static int64_t frameCount = 0;
   if((++frameCount) % 20 == 0)
     printf("%s() %"PRId64"  %Lg frames/sec\n", __func__,
-        frameCount, frameCount/qsTimer_get(qsApp->timer));
+        frameCount, frameCount/_qsTimer_get(qsApp->timer));
 #endif
 #endif
 

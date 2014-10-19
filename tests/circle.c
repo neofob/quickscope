@@ -12,20 +12,20 @@ int main(int argc, char **argv)
   qsApp_init(&argc, &argv);
 
   qsApp->op_fade = TRUE;
-  qsApp->op_fadePeriod = 2.0F;
-  qsApp->op_fadeDelay = 1.0F;
+  qsApp->op_fadePeriod = 0.8F;
+  qsApp->op_fadeDelay =  0.2F;
   qsApp->op_doubleBuffer = TRUE;
   qsApp->op_grid = 0;
 
 
-  sinSource = qsSin_create( 100 /* maxNumFrames */,
-        0.4F /*amplitude*/, 3.2348F /*period*/,
-        0.0F /*phaseShift*/, 35 /*samplesPerPeriod*/,
+  sinSource = qsSin_create( 1000 /* maxNumFrames */,
+        0.4F /*amplitude*/, 1.2348F /*period*/,
+        0.0F /*phaseShift*/, 100 /*samplesPerPeriod*/,
         NULL /* group */);
 
-  cosSource = qsSin_create( 100 /* maxNumFrames */,
-        0.4F /*amplitude*/, 3.2348F /*period*/,
-        M_PI/2.0F /*phaseShift*/, 35 /*samplesPerPeriod*/,
+  cosSource = qsSin_create( 0 /* maxNumFrames */,
+        0.4F /*amplitude*/, 1.2348F /*period*/,
+        M_PI/2.0F /*phaseShift*/, 100 /*samplesPerPeriod*/,
         sinSource /* group is same as sinSource group */);
 
   qsTrace_create(NULL /* QsWin, NULL to make a default */,

@@ -11,6 +11,7 @@
 #include "assert.h"
 #include "base.h"
 #include "app.h"
+#include "timer_priv.h"
 #include "trace.h"
 #include "trace_priv.h"
 #include "controller.h"
@@ -55,7 +56,7 @@ void *qsSource_addChangeCallback(struct QsSource *s,
   cb = g_malloc0(sizeof(*cb));
   cb->callback = callback;
   cb->data = data;
-  s->changeCallbacks = g_slist_append(s->changeCallbacks, cb);
+  s->changeCallbacks = g_slist_prepend(s->changeCallbacks, cb);
   return (void *) cb;
 }
 
@@ -77,6 +78,10 @@ void _qsSource_internalDestroy(struct QsSource *s)
   QS_ASSERT(s->group);
   QS_ASSERT(s->read);
   QS_ASSERT(s->numChannels >= 1);
+
+  // Make it so that there is no minimum sample rate requirement
+  // for this now dead source.
+  qsSource_setMinSampleRate(s, 0);
 
   if(s->controller)
     // This will not destroy the source.
@@ -104,6 +109,9 @@ void _qsSource_internalDestroy(struct QsSource *s)
     }
   }
 
+  while(s->changeCallbacks)
+    qsSource_removeChangeCallback(s, s->changeCallbacks->data);
+
   // Now destroy traces that use this source for a trace draw callback
   while(s->traces)
     qsSource_removeTraceDraw(s, (struct QsTrace *) s->traces->data);
@@ -122,22 +130,22 @@ void _qsSource_internalDestroy(struct QsSource *s)
         s == ((struct QsIterator2 *) s->iterator2s->data)->source1);
     qsIterator2_destroy((struct QsIterator2 *) s->iterator2s->data);
   }
-
-  while(s->changeCallbacks)
-    qsSource_removeChangeCallback(s, s->changeCallbacks->data);
+  
+  struct QsGroup *g;
+  g = s->group;
 
 #ifdef QS_DEBUG
   if(s->isMaster)
   {
-    QS_ASSERT(s == s->group->master);
-    memset(s->framePtr, 0, sizeof(float)*s->numChannels*s->group->maxNumFrames);
-    memset(s->timeIndex, 0, sizeof(int)*s->group->maxNumFrames);
+    QS_ASSERT(s == g->master);
+    memset(s->framePtr, 0, sizeof(float)*s->numChannels*g->maxNumFrames);
+    memset(s->timeIndex, 0, sizeof(int)*g->maxNumFrames);
   }
   else
   {
-    QS_ASSERT(s != s->group->master);
-    memset(s->framePtr, 0, sizeof(float)*s->numChannels*s->group->bufferLength);
-    memset(s->timeIndex, 0, sizeof(int)*s->group->bufferLength);
+    QS_ASSERT(s != g->master);
+    memset(s->framePtr, 0, sizeof(float)*s->numChannels*g->bufferLength);
+    memset(s->timeIndex, 0, sizeof(int)*g->bufferLength);
   }
 #endif
 
@@ -146,18 +154,17 @@ void _qsSource_internalDestroy(struct QsSource *s)
 
   s->framePtr = NULL; // block reentry to this function from qsSource_destroy().
 
-  // This will destroy the source group if it has no more sources in it
-  // and sets s->group to NULL.
-  _qsGroup_removeSource(s->group, s);
+  _qsGroup_removeSource(g, s);
 
   if(s->isMaster)
   {
-    struct QsGroup *g;
-    g = s->group;
+    // The master source is the first source created and
+    // all the other sources in the group depend on it.
+    // The master source was the last in the list.
     while(g->sources)
       qsSource_destroy(((struct QsSource *) g->sources->data));
     // This is the last source in the group
-    _qsGroup_destroy(s->group);
+    _qsGroup_destroy(g);
   }
 
   qsApp->sources = g_slist_remove(qsApp->sources, s);
@@ -179,6 +186,13 @@ void qsSource_destroy(struct QsSource *s)
    * if it's not being destroyed now. */
   if(s->framePtr)
     _qsSource_internalDestroy(s);
+}
+
+void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(read);
+  s->read = read;
 }
 
 void *qsSource_create(QsSource_ReadFunc_t read,
@@ -239,21 +253,30 @@ void *qsSource_create(QsSource_ReadFunc_t read,
   for(i=0; i<maxNumFrames; ++i)
     tI[i] = i;
 
-  qsApp->sources = g_slist_append(qsApp->sources, s);
+  if(!groupSource)
+    // This is the master source
+    // We set a time for the last frame which
+    // has no valid data, but has a valid time now
+    // so that qsSource_lastMasterTime() works now.
+    group->time[s->i] = _qsTimer_get(qsApp->timer);
+
+  // prepend!  It's very important that it's not append,
+  // so that we auto destroy in reverse order of creation.
+  qsApp->sources = g_slist_prepend(qsApp->sources, s);
 
   return s;
 }
 
-void qsSource_initIt(struct QsSource *s, struct QsIterator *it)
+long double qsSource_lastTime(struct QsSource *s)
 {
   QS_ASSERT(s);
-  QS_ASSERT(!s->isMaster);
-  QS_ASSERT(it);
+  QS_ASSERT(s->group);
+  _qsSource_checkWithMaster(s, s->group->master);
+  return s->group->time[s->i];
+}
 
-  s->i = it->i;
-  s->wrapCount = it->wrapCount;
-
-  // Empty all the iterators that use this source s.
+void qsSource_emptyIterators(struct QsSource *s)
+{
   GSList *l;
   for(l=s->iterators; l; l=l->next)
   {
@@ -272,6 +295,77 @@ void qsSource_initIt(struct QsSource *s, struct QsIterator *it)
   }
 }
 
+// Make source (s) be ready to write to the position
+// of the last read in the iterator (it).
+void qsSource_sync(struct QsSource *s, struct QsIterator *it)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(it);
+  QS_ASSERT(it->source);
+  QS_ASSERT(s->group);
+  QS_ASSERT(s->group == it->source->group);
+  struct QsSource *master;
+  master = s->group->master;
+
+  _qsSource_checkWithMaster(it->source, master);
+  _qsIterator_checkWithMaster(it, master);
+
+  s->i = it->i;
+  s->wrapCount = it->wrapCount;
+
+  --s->i;
+  if(s->i < 0)
+  {
+    s->i = s->group->maxNumFrames - 1;
+    --s->wrapCount;
+    // Do we need to set s->timeIndex[s->i]?
+    // So long as we empty all source (s) iterators
+    // the timeIndex should not have to be valid,
+    // except when there are appended frames.
+    // Less than it->source->timeIndex[it->i] should
+    // keep iterators from reading it at an appended
+    // frame.
+    s->timeIndex[s->i] = it->source->timeIndex[it->i] - 1;
+    if(s->timeIndex[s->i] < 0)
+      // case when all data in it->source is in
+      // 1 frame (time index or time stamp)
+      // Not likely.  And would brake other things.
+      // case when source buffers are too small.
+      s->timeIndex[s->i] = 0;
+  }
+
+  // Make sure we did not go back too far in the
+  // frame buffer.
+  _qsSource_checkWithMaster(s, master);
+
+  qsSource_emptyIterators(s);
+}
+
+// Make it so we may read the iterator and than write the
+// source at the same frame (time stamp) that was read
+// by the iterator.
+void qsSource_initIterator(struct QsSource *s, struct QsIterator *it)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(!s->isMaster);
+  QS_ASSERT(it);
+  QS_ASSERT(s->group);
+  struct QsSource *master, *is;
+  master = s->group->master;
+  is = it->source;
+
+  _qsSource_checkWithMaster(is, master);
+
+  // All in sync and iterator (it) with no data to read.
+  s->i = it->i = is->i;
+  s->wrapCount = it->wrapCount = is->wrapCount;
+  s->timeIndex[s->i] = is->timeIndex[is->i];
+
+  // The source s buffer has no valid data in it, so
+  // we empty all the iterators that use this source s.
+  qsSource_emptyIterators(s);
+}
+
 void qsSource_addTraceDraw(struct QsSource *s,  struct QsTrace *trace)
 {
   QS_ASSERT(s);
@@ -280,8 +374,8 @@ void qsSource_addTraceDraw(struct QsSource *s,  struct QsTrace *trace)
   // a particular source.
   if(g_slist_find(s->traces, trace) == NULL)
   {
-    s->traces = g_slist_append(s->traces, trace);
-    trace->drawSources = g_slist_append(trace->drawSources, s);
+    s->traces = g_slist_prepend(s->traces, trace);
+    trace->drawSources = g_slist_prepend(trace->drawSources, s);
   }
 }
 
@@ -316,9 +410,11 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
 
   ret = s->read(s, time, s->prevT, data);
 
+  GSList *l;
+
   if(ret == 1)
   {
-    GSList *l, *next;
+    GSList *next;
 
     for(l=s->changeCallbacks;l;l=next)
     {
@@ -336,6 +432,17 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
       QS_ASSERT(l->data);
       _qsTrace_draw((struct QsTrace *)l->data, time);
     }
+
+    // The prevT is the previous time that we got data,
+    // so that source read callbacks can know when the
+    // last time we got data was.
+    s->prevT = time;
+  }
+
+  if(ret != -1)
+  {
+    // We may need to draw even if we got no new data
+    // because there may be fading (fade drawing) to do.
     for(l = s->traces;l;l=l->next)
     {
       // We queue the drawing areas after we finish having all the traces
@@ -343,15 +450,10 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
       QS_ASSERT(l->data);
       // This is an inline function that will handle being called
       // more than once, and when it's not really needed.
-      _qsWin_postTraceDraw(((struct QsTrace *) l->data)->win);
+      _qsWin_postTraceDraw(((struct QsTrace *) l->data)->win, time);
     }
-
-    // The prevT is the previous time that we got data,
-    // so that source read callbacks can know when the
-    // last time we got data was.
-    s->prevT = time;
   }
-  else if(ret == -1)
+  else // if(ret == -1)
   {
     qsSource_destroy(s);
     return 1;

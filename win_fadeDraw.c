@@ -10,18 +10,21 @@
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
-#include "timer.h"
+#include "timer_priv.h"
 #include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 #include "win.h"
 #include "win_priv.h"
-#include "fadeDraw_priv.h"
+#include "win_fadeDraw_priv.h"
 
 
 #if 0
 //#ifdef QS_DEBUG
 
+// CHECK_LIST is a very very expensive debugging tool,
+// so we tend to leave it off, even with QS_DEBUG.
+//
 #  define CHECK_LIST(win) _check_list(win)
 
 void _check_list(struct QsWin *win)
@@ -122,7 +125,6 @@ void _qsWin_drawTracePoint(struct QsWin *win, int x, int y,
   }
 
   QS_ASSERT(win->fadeSurface);
-
 
   float I; // intensity
   long double t0;
@@ -244,7 +246,7 @@ gboolean _qsWin_fadeDraw(struct QsWin *win)
   QS_ASSERT(win);
 
   if(!win->gc || !win->fadeFront)
-    // wait until configure event or something
+    // wait until configure event and something
     // is in the list:
     return TRUE;
 
@@ -264,8 +266,8 @@ gboolean _qsWin_fadeDraw(struct QsWin *win)
   w = gtk_widget_get_allocated_width(win->da);
   h = gtk_widget_get_allocated_height(win->da);
   if(w != win->width || h != win->height)
-    /* We need to wait for a resize configure.  Yes,
-     * this was a fix for a nasty BUG. */
+    /* We need to wait for a resize configure.
+     * Yes, this was a fix for a nasty BUG. */
     return TRUE;
 
   struct QsFadingColor *fc, *FC, *prev;
@@ -275,7 +277,7 @@ gboolean _qsWin_fadeDraw(struct QsWin *win)
   long double lastT0 = SMALL_LDBL;
 #endif
 
-  win->fadeLastTime = t = qsTimer_get(qsApp->timer);
+  win->fadeLastTime = t = _qsTimer_get(qsApp->timer);
 #ifdef LINEAR_FADE
   alpha = win->fadePeriod;
 #else
@@ -384,18 +386,22 @@ gboolean _qsWin_fadeDraw(struct QsWin *win)
     _qsWin_drawPoints(win);
   }
 
-
   // There is no need to redraw unfaded pixels with I >= 1
   // because they are drawn already.
 
   return TRUE;
 }
 
+// Draw pixels from the fading color buffer.
+// It just so happened that the fading color buffer
+// has all we need to draw (or redraw) all the traces.
+// This does not add additional fade due to time
+// elapsing.  It's handy for getting the traces in
+// image saving.
 void _qsWin_traceFadeRedraws(struct QsWin *win)
 {
   QS_ASSERT(win && win->fade && win->fadeSurface);
   
-  // Draw pixels from the fading color buffer
   int w;
   float alpha;
 #ifdef LINEAR_FADE

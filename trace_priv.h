@@ -12,7 +12,8 @@ struct QsTrace
   struct QsWin *win;
   struct QsIterator2 *it;
   int xChannelNum, yChannelNum, xID, yID;
-  int traceCount; // trace ID from counting creates
+  int id; // trace ID from counting creates in a given QsWin
+
   /* Scale from input to normalized */
   float xScale, yScale, xShift, yShift;
  

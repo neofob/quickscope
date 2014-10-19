@@ -39,8 +39,8 @@ BUILT_SOURCES =\
  debug.h\
  quickscope.h
 
-# The .xpm files are built but come in a tarball
-# .xpm files are not checked into the repository
+# The .xpm files are built but come in a tarball.
+# .xpm files are not checked into the repository.
 
 if USE_CONVERT
 BUILT_SOURCES +=\
@@ -56,7 +56,7 @@ libquickscope_la_SOURCES =\
  adjuster.c\
  adjuster.h\
  adjusterBoolean.c\
- adjusterFloat.c\
+ adjusterType.c\
  adjusterGroup.c\
  adjusterSelector.c\
  adjuster_priv.h\
@@ -92,7 +92,7 @@ libquickscope_la_SOURCES =\
  sweep.c\
  sweep.h\
  timer.c\
- timer.h\
+ timer_priv.h\
  trace.c\
  trace.h\
  trace_priv.h\
@@ -101,19 +101,26 @@ libquickscope_la_SOURCES =\
  win_cb_configure.c\
  win_drawBackground.c\
  win_fadeDraw.c\
+ win_fadeDraw_priv.h\
  win_keyPress.c\
  win_makeGtkWidgets.c\
  win_priv.h\
  win_savePNG.c\
  win_setGrid.c
 
+# automake has no per-object spectfic flags, so making
+# a library for each object that requires spectfic
+# CPP flags is a workaround that gets us per-object
+# spectfic flags on these special objects.
+# adjusterType.c is a marco template source file,
+# so to speak.  It's default Type is float.
 noinst_LTLIBRARIES = libadjD.la libadjLD.la libadjInt.la
 libadjD_la_SHORTNAME = adjD
 libadjLD_la_SHORTNAME = adjLD
 libadjInt_la_SHORTNAME = adjInt
-libadjD_la_SOURCES = adjusterFloat.c adjuster.h adjuster_priv.h
-libadjLD_la_SOURCES = adjusterFloat.c adjuster.h adjuster_priv.h
-libadjInt_la_SOURCES = adjusterFloat.c adjuster.h adjuster_priv.h
+libadjD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
+libadjLD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
+libadjInt_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
 libadjD_la_CFLAGS = -DDOUBLE $(gtk_3_CFLAGS)
 libadjLD_la_CFLAGS = -DLONG_DOUBLE $(gtk_3_CFLAGS)
 libadjInt_la_CFLAGS = -DINT $(gtk_3_CFLAGS)
@@ -154,7 +161,6 @@ quickscope_headers =\
  source.h\
  iterator.h\
  sweep.h\
- timer.h\
  trace.h\
  win.h
 

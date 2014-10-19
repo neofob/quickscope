@@ -14,7 +14,6 @@
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
-#include "timer.h"
 #include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"

@@ -121,13 +121,12 @@ app           global singlet object, parses command line
               object in Quickscope
 
 
-
 controller    base class for drawsync, interval and fd,
               manages sources, makes sense to have just one
               per program but can have more, calls sources'
               read callbacks, controller sets up a blocking
-              call that is called regularly
-
+              call that is called regularly which in turn
+              calls the sources' read callbacks regularly
 
 
 drawsync      a controller that uses
@@ -140,22 +139,20 @@ drawsync      a controller that uses
 
 interval      a controller that manages a single callback
               interval using g_timeout_add_full(), which
-              I imagine is using the system family of functions
-              that are started with setitimer(),
+              I imagine is using the system family of
+              functions that are started with setitimer(),
 
 
 fd            a controller that reads files, uses something
               like a glib wrapper of a blocking poll() call
-              call using a g_source, used for efficient blocking
-              read of a file,
-
+              call using a g_source, used for efficient
+              blocking read of a file,
 
 
 source        we read data from a source, source callback
               controlled by controller using a controller,
               this allocates the buffer of data read that
               may be used to render in the beam trace,
-              a (not pure virtual) base class for composer,
               sources cause traces to draw when they get new
               data, a source is an adjusterList, win adds
               adjusters from the sources in its traces to
@@ -165,17 +162,15 @@ source        we read data from a source, source callback
               traces that use that source
 
 
-
 group         a group of sources.  Has no public interfaces
               and is used internally only.
 
 
-
 sweep         is a source that acts like a scope sweep with
-              trigger, its a composer read callback that reads
+              trigger, it has a source read callback that reads
               another source buffer to compose the sweep source,
-              has lots of configuration parameters
-
+              has lots of configuration parameters that can
+              be adjusted and are in its source adjusterList
 
 
 trace         managed by a win, short for beam trace,
@@ -198,12 +193,14 @@ adjusterList  a list of adjusters, manages many adjuster
               objects, you can cycle through many adjuster(s)
               with an adjusters
 
+
 widget        a widget that displays/inputs adjusters to
               and from the user
 
 
-timer         simple gettimeofday() wrapper, there's one in
-              app, turns time in seconds into a long double
+timer         simple gettimeofday() or clock_gettime() wrapper,
+              there's one in app, turns time in seconds into a
+              long double
 
 
 assert        QS_ASSERT() and QS_VASSERT() macros

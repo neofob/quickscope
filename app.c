@@ -11,7 +11,7 @@
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
-#include "timer.h"
+#include "timer_priv.h"
 #include "app.h"
 #include "controller.h"
 #include "adjuster.h"
@@ -96,8 +96,14 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
   if(!qsApp)
   {
     qsApp = g_malloc0(sizeof(*qsApp));
-    qsApp->timer = qsTimer_create();
+    qsApp->timer = _qsTimer_create();
   }
+#ifdef QS_DEBUG
+  else
+    // We don't re-initialize the timer, because
+    // we don't like time to go backwards.
+    memset(qsApp, 0, sizeof(*qsApp));
+#endif
 
   QS_ASSERT(qsApp);
   QS_ASSERT(qsApp->timer);
@@ -166,11 +172,26 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
   
   /*****************************/
 
-  if(!gtk_init_check(argc, argv))
+  if(gtk_main_level() == 0 &&
+      !gtk_init_check(argc, argv))
     qsApp_destroy();
 
   return qsApp;
 }
+
+// We record the state of the call stack
+// so that the user can call any combo of
+// qsApp_init(), qsApp_main() and qsApp_destroy()
+// any number of times without crashing.
+
+// QS_APP_INGTKMAIN and QS_APP_NEEDAPPDESTROY lets
+// us call qsApp_destroy() and/or gtk_main_quit()
+// from within qsApp_main()
+#define QS_APP_INGTKMAIN       (1<<0)
+#define QS_APP_NEEDAPPDESTROY  (1<<1)
+// QS_APP_INAPPMAIN keeps us from reentering qsApp_main()
+#define QS_APP_INAPPMAIN       (1<<2)
+
 
 
 void qsApp_main(void)
@@ -178,7 +199,10 @@ void qsApp_main(void)
   if(!qsApp)
     qsApp_init(NULL, NULL);
 
-  QS_ASSERT(qsApp);
+  if(qsApp->inAppLevel & QS_APP_INAPPMAIN)
+    return;
+  qsApp->inAppLevel |= QS_APP_INAPPMAIN;
+
 
   if(qsApp->opSourceRequireController)
   {
@@ -186,28 +210,37 @@ void qsApp_main(void)
     if(!qsApp->controllers && qsApp->sources)
     {
       // The user never made a QsController
+      // and we have at least one source,
       // so we'll define a default action here.
       qsInterval_create(qsApp->op_defaultIntervalPeriod);
     }
 
-    // We require that all QsSources have a QsController
+    // We require that all QsSources have a QsController.
     GSList *l;
     for(l = qsApp->sources; l; l = l->next)
     {
+      // Source in this list are from newest to oldest.
+      // The oldest and last in this list is the master.
       struct QsSource *s;
       s = l->data;
       QS_ASSERT(s);
       if(!s->controller)
       {
+        // The user did not add this source to
+        // a controller, so we add it to the default
+        // controller.
         QS_ASSERT(qsApp->controllers);
         QS_ASSERT(qsApp->controllers->data);
 
         qsController_appendSource(
           (struct QsController *) qsApp->controllers->data,
-          s, NULL); // append to end of first controller
-        // This can give bad results if the source was
+          s, NULL); // append to the start of controller list
+        // This can give slower results if the source was
         // dependent on another source that is listed
         // later in the qsApp->sources list.
+        // The controllers list of sources with be from
+        // oldest source to newest source.
+        //
       }
     }
   }
@@ -233,8 +266,7 @@ void qsApp_main(void)
       ys = it->source1;
       if(!trace->drawSources)
       {
-        // This trace has nothing causing it to be
-        // drawn.
+        // This trace has nothing causing it to be drawn.
         QS_ASSERT(xs->controller);
         QS_ASSERT(ys->controller);
         if(xs->controller == ys->controller)
@@ -244,62 +276,100 @@ void qsApp_main(void)
           // so we assume that we want the later source
           // in the controller list to trigger the trace
           // drawing.
-          struct QsSource *lastSource = NULL;
+          struct QsSource *newestSource = NULL;
           GSList *l;
           for(l = xs->controller->sources; l; l = l->next)
             if(l->data == xs || l->data == ys)
-              lastSource = l->data;
+            {
+              newestSource = l->data;
+              break;
+            }
 
-          QS_ASSERT(lastSource);
-          qsSource_addTraceDraw(lastSource, trace);
+          QS_ASSERT(newestSource);
+          qsSource_addTraceDraw(newestSource, trace);
+          fprintf(stderr,
+              "Added trace (id=%d) in win (%p) to source (id=%d) draw pusher.\n",
+              trace->id, trace->win, newestSource->id);
         }
         else
         {
-          QS_VASSERT(0, "we have a trace with sources that have different"
-              "QsController(s):\n"
+          // Assert and fail in the DEBUG case, because what the default
+          // should be is not obvious ... yet.
+          QS_VASSERT(0, "we have a trace with two sources that have different"
+              "QsControllers:\n"
               "you must call qsSource_addTraceDraw(source, trace)"
               " after trace = qsTrace_create()"
               " to choose a source to cause the trace drawing.\n");
           // Don't let them run the scope with an unused trace.
-          fprintf(stderr, "Using the traces X Source to cause the draw.\n");
+          // Works this way by default.  We could use the newer source
+          // instead of just using the X source.
+          fprintf(stderr,
+              "Using the traces X Source to cause the draw:\n"
+              "Added trace (id=%d) in win (%p) to source (id=%d) draw pusher.\n",
+              trace->id, trace->win, xs->id);
           qsSource_addTraceDraw(xs, trace);
         }
       }
     }
   }
 
+
+
+  // We keep from calling gtk_main() twice:
   if(gtk_main_level() == 0)
   {
-    qsApp->inAppLevel = TRUE;
+    qsApp->inAppLevel |= QS_APP_INGTKMAIN;
     gtk_main();
-    if(!qsApp->inAppLevel)
+    qsApp->inAppLevel &= ~QS_APP_INGTKMAIN;
+
+    if(qsApp->inAppLevel & QS_APP_NEEDAPPDESTROY)
+    {
       qsApp_destroy();
+      return;
+    }
   }
+
+  qsApp->inAppLevel &= ~QS_APP_INAPPMAIN;
 }
 
 void qsApp_destroy(void)
 {
-  QS_ASSERT(qsApp);
+  if(!qsApp)
+    // Let the user call qsApp_destroy() many times.
+    return;
 
-  if(qsApp->inAppLevel)
+  if((qsApp->inAppLevel & QS_APP_INGTKMAIN))
   {
-    qsApp->inAppLevel = FALSE;
-    gtk_main_quit();
-    return; // We 
+    // We are calling qsApp_destroy() from within
+    // gtk_main() within qsApp_main().
+
+    // Flag that we need to call qsApp_destroy again.
+    qsApp->inAppLevel |= QS_APP_NEEDAPPDESTROY;
+
+    if(gtk_main_level())
+      // This will get us out of gtk_main()
+      gtk_main_quit();
+
+    return; // We will hopefully return to within
+    // qsApp_main() at the gtk_main() call.
   }
 
   // Destroy all things Quickscope:
 
-  while(qsApp->wins)
-    qsWin_destroy((struct QsWin *) qsApp->wins->data);
+  while(qsApp->sources)
+    // Because sources can depend on other sources, we
+    // destroy sources in reverse order of creation.
+    // We prepended sources to this list as the sources
+    // where created in qsSource_create().
+    qsSource_destroy((struct QsSource *) qsApp->sources->data);
 
   while(qsApp->controllers)
     qsController_destroy((struct QsController *) qsApp->controllers->data);
 
-  while(qsApp->sources)
-    qsSource_destroy((struct QsSource *) qsApp->sources->data);
+  while(qsApp->wins)
+    qsWin_destroy((struct QsWin *) qsApp->wins->data);
 
-  qsTimer_destroy(qsApp->timer);
+  _qsTimer_destroy(qsApp->timer);
 
 #ifdef QS_DEBUG
   memset(qsApp, 0, sizeof(*qsApp));

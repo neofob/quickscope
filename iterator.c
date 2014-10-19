@@ -43,6 +43,10 @@ struct QsIterator
 
   s->iterators = g_slist_prepend(s->iterators, it);
 
+#ifdef QS_DEBUG
+  it->lastT = -INFINITY;
+#endif
+
   return it;
 }
 
@@ -86,6 +90,10 @@ struct QsIterator2
   s0->iterator2s = g_slist_prepend(s0->iterator2s, it);
   if(s0 != s1)
     s1->iterator2s = g_slist_prepend(s1->iterator2s, it);
+
+#ifdef QS_DEBUG
+  it->lastT = -INFINITY;
+#endif
 
   return it;
 }

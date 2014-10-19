@@ -11,13 +11,13 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <math.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
 #include "app.h"
-#include "timer.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
 #include "win.h"

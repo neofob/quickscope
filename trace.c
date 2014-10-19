@@ -25,7 +25,10 @@
 
 #define SMALL 0.01F
 
-#define SKIP(x, y)  qsIterator2_isLift(x, y)
+
+#define SKIP(x, y)    (isnan(x) || isnan(y))
+#define NSKIP(x, y)   (!isnan(x) && !isnan(y))
+
 
 
 // TODO: removing double culling codes
@@ -319,7 +322,7 @@ void makeAdjuster(struct  QsTrace *trace, const char *text,
     float *val, float max, float min)
 {
   char desc[64];
-  snprintf(desc, 64, "trace%d: %s", trace->traceCount, text);
+  snprintf(desc, 64, "trace%d: %s", trace->id, text);
   qsAdjusterFloat_create(&trace->win->adjusters,
       desc, "", val, max, min,
       (void (*)(void *)) _qsTrace_rescale, trace);
@@ -380,21 +383,21 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
   trace->prevY = NAN;
   trace->prevPrevX = NAN;
   trace->prevPrevY = NAN;
-  trace->traceCount = win->traceCount;
+  trace->id = win->traceCount;
   ++win->traceCount;
   _qsTrace_scale(trace);
 
-  win->traces = g_slist_append(win->traces, trace);
+  win->traces = g_slist_prepend(win->traces, trace);
 
 
   char desc[64];
-  snprintf(desc, 64, "trace%d", trace->traceCount);
+  snprintf(desc, 64, "trace%d", trace->id);
   struct QsAdjuster *group;
   trace->adjusterGroup = group = qsAdjusterGroup_start(&win->adjusters, desc);
   group->icon = (size_t (*)(char *buf, size_t len, void *iconData)) iconText;
   group->iconData = trace;
 
-  snprintf(desc, 64, "trace%d  Lines", trace->traceCount);
+  snprintf(desc, 64, "trace%d  Lines", trace->id);
   qsAdjusterBoolean_create(&trace->win->adjusters, desc,
       &trace->lines, NULL, NULL);
 
@@ -464,10 +467,6 @@ void _qsTrace_drawSameXY(struct QsTrace *trace,
   struct QsIterator2 *it;
   it = trace->it;
 
-#ifdef QS_DEBUG
-  long double lastT = SMALL_LDBL;
-#endif
-
   prevX = trace->prevX;
   prevY = trace->prevY;
 
@@ -485,21 +484,17 @@ void _qsTrace_drawSameXY(struct QsTrace *trace,
     {
       x = x*trace->xScalePix + trace->xShiftPix;
       y = y*trace->yScalePix + trace->yShiftPix;
-#ifdef QS_DEBUG
-      QS_ASSERT(time >= lastT);
-      lastT = time;
-#endif
 
       /* The value NAN [SKIP()] has the effect of lifting
        * the pen and braking the line. */
 
-      if(!SKIP(x,y) && !SKIP(prevX,prevY)
+      if(NSKIP(x,y) && NSKIP(prevX,prevY)
           && (x != prevX || y != prevY))
       {
         _qsWin_drawLine(win, trace, swipe,
           prevX, prevY, x, y, r, g, b, time);
       }
-      else if(SKIP(prevPrevX,prevPrevY) && !SKIP(prevX,prevY) && (SKIP(x,y)) &&
+      else if(SKIP(prevPrevX,prevPrevY) && NSKIP(prevX,prevY) && (SKIP(x,y)) &&
           Round(prevX) >= 0 && Round(prevX) < win->width)
       {
         // In this odd case there is a x,y point with a NAN
@@ -528,12 +523,8 @@ void _qsTrace_drawSameXY(struct QsTrace *trace,
   {
     while(qsIterator2_get(it, &x, &y, &time))
     {
-#ifdef QS_DEBUG
-      QS_ASSERT(time >= lastT);
-      lastT = time;
-#endif
 
-      if(!isnan(x) && !isnan(y) && (x != prevX || y != prevY))
+      if(NSKIP(x,y) && (x != prevX || y != prevY))
       {
         int ix, iy;
         ix = x;
@@ -566,9 +557,6 @@ void _qsTrace_draw(struct QsTrace *trace, long double t)
   QS_ASSERT(trace);
   QS_ASSERT(trace->win);
   QS_ASSERT(trace->it);
-#ifdef QS_DEBUG
-  long double lastT = SMALL_LDBL;
-#endif
 
   struct QsSwipe *swipe;
   swipe = trace->swipe;
@@ -589,12 +577,7 @@ void _qsTrace_draw(struct QsTrace *trace, long double t)
 
       while(qsIterator2_get(it, &x, &y, &time))
       {
-#ifdef QS_DEBUG
-        QS_ASSERT(time >= lastT);
-        lastT = time;
-#endif
-
-        if(!SKIP(x,y))
+        if(NSKIP(x,y))
         {
           int ix;
           ix = x*trace->xScalePix + trace->xShiftPix;
@@ -611,7 +594,7 @@ void _qsTrace_draw(struct QsTrace *trace, long double t)
     /* We must lift the pen now so that when we
      * resume we do not draw a line connecting
      * between two non-temporally-adjacent points. */
-    trace->prevPrevX = trace->prevX = NAN;
+    trace->prevPrevX = trace->prevX = QS_LIFT;
     return;
   }
 
@@ -633,7 +616,6 @@ void qsTrace_destroy(struct QsTrace *trace)
     _qsTrace_cleanupSwipe(trace);
 
   win->traces = g_slist_remove(win->traces, trace);
-  --win->traceCount;
 
 
   // Now remove (or derefenence) the source adjusters from the QsWin

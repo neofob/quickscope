@@ -19,7 +19,7 @@ void prefix ## _addSubDestroy(void *x, void *destroy)
 
 
 #define QS_BASE_DEFINE(prefix, type) \
-/* To be called in inheriting _destroy() function */ \
+/* To be called at end of inheriting _destroy() function */ \
 void prefix ## _checkBaseDestroy(void *x) \
 { \
   type *s; \
@@ -31,6 +31,7 @@ void prefix ## _checkBaseDestroy(void *x) \
     s->destroy = NULL; \
     prefix ## _destroy(s); \
   } \
+  /* printf("end of %s()\n", __func__); */ \
 } \
  \
 /* To be called in inheriting _create() function */ \
@@ -49,6 +50,7 @@ void prefix ## _addSubDestroy(void *x, void *destroy) \
 /* Call at the start of base _destroy() */ \
 do { \
   QS_ASSERT((s)); \
+  /* printf("start of %s()\n", __func__); */ \
  \
   if((s)->destroy) \
   { \

@@ -16,7 +16,7 @@
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
-#include "timer.h"
+#include "timer_priv.h"
 #include "app.h"
 #include "controller.h"
 #include "controller_priv.h"
@@ -62,8 +62,6 @@ void _qsController_destroy(struct QsController *c)
   g_free(c);
 }
 
-
-
 gboolean _qsController_run(struct QsController *c)
 {
   GSList *l;
@@ -74,7 +72,7 @@ gboolean _qsController_run(struct QsController *c)
 
   /* we will go through the list of QsSources */
   l = c->sources;
-  t = qsTimer_get(qsApp->timer);
+  t = _qsTimer_get(qsApp->timer);
 
   do
   {

@@ -14,7 +14,6 @@
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
-#include "timer.h"
 #include "app.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
@@ -23,7 +22,7 @@
 #include "trace.h"
 #include "trace_priv.h"
 #include "swipe_priv.h"
-#include "fadeDraw_priv.h"
+#include "win_fadeDraw_priv.h"
 
 
 static inline

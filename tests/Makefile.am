@@ -13,7 +13,8 @@ noinst_PROGRAMS =\
  source\
  circle\
  saw\
- non_master_print
+ non_master_print\
+ sin_sweep
 
 
 hello_SOURCES = hello.c
@@ -32,3 +33,6 @@ saw_LDADD = $(qs_LDADD)
 
 non_master_print_SOURCES = non_master_print.c
 non_master_print_LDADD = $(qs_LDADD)
+
+sin_sweep_SOURCES = sin_sweep.c
+sin_sweep_LDADD = $(qs_LDADD)

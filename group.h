@@ -17,6 +17,8 @@ struct QsGroup
 
   long double *time; // time stamp array/buffer
 
+  float sampleRate;
+
   int maxNumFrames,
       bufferLength; // larger than maxNumFrames
       // by a factor of qsApp->op_bufferFactor to

@@ -102,7 +102,7 @@ function remove_files()
 
   rm -rf .deps .libs
   rm -f *.o *.la *.so *.lo stamp-h* *.a Makefile Makefile.in
-  rm -f hello circle saw non_master_print source
+  rm -f hello circle saw non_master_print source sin_sweep
 
 
 ######################################################################

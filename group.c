@@ -3,6 +3,7 @@
  * GNU General Public License version 3
  */
 #include <string.h>
+#include <math.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -46,16 +47,11 @@ struct QsGroup
   g->maxNumFrames = maxNumFrames;
 
   // bufferLength must be the same or larger than maxNumFrames.
-  g->bufferLength = (maxNumFrames + 1.001F) * qsApp->op_bufferFactor;
+  g->bufferLength = (maxNumFrames + 1.001F) * qsApp->op_bufferFactor + 10;
 
-  g->time = g_malloc(sizeof(long double)*g->maxNumFrames);
-  int i;
-  for(i=0; i<maxNumFrames; ++i)
-    // The quickscope valid time stamp starts at zero.
-    // We want this time to be less than that.
-    g->time[i] = -1;
+  g->time = g_malloc0(sizeof(long double)*g->maxNumFrames);
 
-  g->sources = g_slist_append(g->sources, s);
+  g->sources = g_slist_prepend(g->sources, s);
 
   return g;
 }
@@ -66,7 +62,7 @@ _qsGroup_addSource(struct QsGroup *g, struct QsSource *s)
   QS_ASSERT(g);
   QS_ASSERT(g->time);
   QS_ASSERT(!g_slist_find(g->sources, s));
-  g->sources = g_slist_append(g->sources, s);
+  g->sources = g_slist_prepend(g->sources, s);
 }
 
 void

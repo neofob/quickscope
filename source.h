@@ -2,6 +2,10 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
+
+// We use this 1 special float value
+#define QS_LIFT   (NAN)  /* lift pen */
+
 struct QsTrace;
 struct QsSource;
 struct QsGroup;
@@ -102,6 +106,8 @@ struct QsSource
 
     numChannels; // number of channels per frame
 
+  float minSampleRate;
+
   // traces to call after read, also manage these traces
   GSList *traces,
          // Lists of iterators that read from this source.
@@ -152,6 +158,8 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     // It is also the ring buffer length.
     struct QsSource *group /* group=NULL to make a new group */,
     size_t objectSize);
+extern
+void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read);
 
 // TODO: make plotting (traces) between 2 sources in different groups
 // by interpolating with the time stamps of the two different source
@@ -172,18 +180,152 @@ extern
 void qsSource_removeTraceDraw(struct QsSource *s,  struct QsTrace *trace);
 extern
 void qsSource_addTraceDraw(struct QsSource *s,  struct QsTrace *trace);
-// Initialize a source so that it may be written to with
-// qsSource_setFrameIt(struct QsSource *s, const struct QsIterator *it)
-// and it has no data in it.
-// Call this and then read the QsIterator and then qsSource_setFrameIt().
+// Initialize a source so that it may be written to at the same
+// place as that the iterator reads.
+// Call this and then read the QsIterator and then qsSource_setFrame()
+// again and again, that's read 1 then write 1 and then
+// read 1 then write 1 and so on for a long time.
 extern
-void qsSource_initIt(struct QsSource *s, struct QsIterator *it);
+void qsSource_initIterator(struct QsSource *s, struct QsIterator *it);
 extern
 void *qsSource_addChangeCallback(struct QsSource *s,
     // return FALSE to remove the callback
     gboolean (*callback)(struct QsSource *, void *), void *data);
 extern
 void qsSource_removeChangeCallback(struct QsSource *s, void *ref);
+// changes source (to) to be at the same frame as (from)
+extern
+void qsSource_sync(struct QsSource *to, struct QsIterator *it);
+extern
+long double qsSource_lastTime(struct QsSource *s);
+
+// All sources in a group share the same time stamp therefore
+// they share the same sample rate.  The group sample rate,
+// returned by qsSource_getSampleRate(),
+// will be set to the maximum of qsSource_setMinSampleRate()
+// which can be called on behalf of each source, not just the
+// master.  Returns TRUE if the group rate changed, returns FALSE
+// otherwise.
+// This may be used to increase or decrease the rate.
+static inline
+gboolean qsSource_setMinSampleRate(struct QsSource *s, float rate/*Hz*/)
+{
+  QS_ASSERT(rate >= 0);
+  QS_ASSERT(s);
+  struct QsGroup *g;
+  g = s->group;
+  QS_ASSERT(g);
+
+  if(rate > g->sampleRate)
+  {
+    s->minSampleRate = g->sampleRate = rate;
+    return TRUE;
+  }
+  if(rate > s->minSampleRate) // && rate <= s->group->sampleRate
+  {
+    s->minSampleRate = rate;
+    return FALSE;
+  }
+
+  if(rate != s->minSampleRate)
+    s->minSampleRate = rate;
+
+  if(rate != g->sampleRate)
+  {
+    // We check if this used to be the max rate source
+    // that is being decreased now.
+    GSList *l;
+    float oldRate;
+    oldRate = g->sampleRate;
+    g->sampleRate = 0;
+    for(l = g->sources; l; l = l->next)
+    {
+      struct QsSource *q;
+      q = l->data;
+      // See if there is a new max.
+      if(q->minSampleRate > g->sampleRate)
+        g->sampleRate = q->minSampleRate;
+    }
+    return (g->sampleRate != oldRate)?TRUE:FALSE;
+  }
+
+  return FALSE;
+}
+
+static inline
+float qsSource_getSampleRate(const struct QsSource *s)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(s->group);
+  return s->group->sampleRate;
+}
+
+// Returns the number of frames that may be written to
+// catch up to the master QsSource.
+static inline
+int qsSource_numFrames(const struct QsSource *s)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(s->group);
+  QS_ASSERT(s->group->master);
+  if(s->isMaster) return 0;
+
+  struct QsSource *master;
+  master = s->group->master;
+  QS_ASSERT(master != s);
+  int i, wrapDiff;
+  wrapDiff = master->wrapCount - s->wrapCount;
+  i = s->timeIndex[s->i];
+
+  QS_ASSERT(wrapDiff >= 0);
+  QS_ASSERT(wrapDiff > 0 || master->i >= i);
+
+  if(wrapDiff > 1 || (wrapDiff == 1 && i <= master->i))
+    return s->group->maxNumFrames; // We can write the whole buffer.
+  else if(wrapDiff == 0)
+    return master->i - i;
+  else // wrapDiff == 1
+    return master->i + s->group->maxNumFrames - i;
+}
+
+static inline
+int qsSource_maxNumFrames(const struct QsSource *s)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(s->group);
+  return s->group->maxNumFrames;
+}
+
+// Returns the number of samples needed based on
+// s->group->sampleRate, and times tF, and tPrev
+// This can return zero if the rate is low or the
+// time difference is small.
+static inline
+int qsSource_getRequestedSamples(const struct QsSource *s,
+    long double tF, long double tPrev)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(s->group);
+  QS_ASSERT(tF >= tPrev);
+  QS_ASSERT(tF - tPrev < ((long double) FLT_MAX));
+  if(s->isMaster)
+  {
+    int n;
+    n = s->group->sampleRate * (tF - tPrev);
+
+    // TODO: We need to do more for this check:
+    // maybe auto resize the sources and iterators,
+    // but we should not like things get too large.
+    QS_VASSERT(n <= qsSource_maxNumFrames(s),
+        "The number of frames in the source buffer is too small\n"
+        "We have %d but need %d.",  qsSource_maxNumFrames(s), n);
+
+    if(n > qsSource_maxNumFrames(s))
+      n = qsSource_maxNumFrames(s);
+    return n;
+  }
+  return qsSource_numFrames(s);
+}
 
 static inline
 gboolean qsSource_isMaster(const struct QsSource *s)
@@ -195,13 +337,62 @@ gboolean qsSource_isMaster(const struct QsSource *s)
   return s->isMaster;
 }
 
+// This should be private but can't be if
+// qsSource_checkWithMaster() is static inline.
+extern
+void qsSource_emptyIterators(struct QsSource *s);
+
+
+// private to source and iterator stuff.
+// Makes sure that the source is within a lap of the master.
+// Time stamps are only valid within a lap behind the master.
 static inline
-int qsSource_maxNumFrames(const struct QsSource *s)
+gboolean _qsSource_checkWithMaster(struct QsSource *s,
+    const struct QsSource *master)
 {
-  QS_ASSERT(s);
-  QS_ASSERT(s->group);
-  return s->group->maxNumFrames;
+  QS_ASSERT(master);
+
+  if(s == master)
+    return FALSE; // there may be data to read
+
+  int wrapDiff;
+
+  wrapDiff = master->wrapCount - s->wrapCount;
+  // No source should write ahead of the master source.
+  // We must be behind or at the master in writing:
+  QS_ASSERT((wrapDiff == 0 && s->timeIndex[s->i] <= master->i) || wrapDiff > 0);
+  QS_ASSERT(master->i >= 0 && master->i < s->group->maxNumFrames);
+
+
+  if(wrapDiff > 1 || (wrapDiff == 1 &&
+        (s->timeIndex[s->i] <= master->i || s->i <= master->i)))
+  {
+    // The source fell behind in writing by more than one wrap so
+    // we reset the source writing to one wrap behind.
+    // The buffer is only valid from within one lap of the master.
+    s->wrapCount = master->wrapCount - 1;
+    s->i = master->i;
+    s->timeIndex[s->i] = s->i;
+    s->iMax = 0;
+    // Note: the last time stamp index must be valid
+    // so that it can be used by iterators to compare
+    // to the last write index to the current read index.
+
+    // The source s buffer has no valid data in it, so
+    // we empty all the iterators that use this source s.
+    qsSource_emptyIterators(s);
+#ifdef QS_DEBUG
+    fprintf(stderr, "%s() had to reset source buffer that may be too small\n"
+        "source id=%d maxNumFrames=%d\n",
+        __func__, master->id, master->group->maxNumFrames);
+#endif
+    return TRUE; // there is no data to read
+  }
+
+  return FALSE; // there may be data to read
 }
+
+// TODO: Add auto-resizing of the source framePtr buffer.
 
 // Set frames and set (or get for non-master) time arrays.
 // num is changed to be less than or equal to what
@@ -297,28 +488,17 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
   QS_ASSERT((wrapDiff == 0 && ti <= master->i) || wrapDiff > 0);
   QS_ASSERT(master->i >= 0 && master->i < maxNumFrames);
 
+  _qsSource_checkWithMaster(s, master);
+
   if(wrapDiff == 0 && ti == master->i)
   {
     // We have caught up to the master in writing.
     // TODO: Can this source become the master?
     // For now, no.
+    QS_VASSERT(0, "Cannot write ahead of master source\n");
     *num = 0;
     *t = NULL;
     return NULL;
-  }
-
-  if((wrapDiff == 1 && ti < master->i) || wrapDiff > 1)
-  {
-    // We are one wrap or more behind the master in
-    // writing so we empty the ring buffer and align it
-    // with the master source minus one buffer lap.
-    s->wrapCount = master->wrapCount - 1;
-    wrapDiff = 1;
-    ti = s->i = master->i;
-    // Note: the last time stamp index must be valid
-    // so that it can be used by iterators to compare
-    // to the last write index to the current read index.
-    s->timeIndex[ti] = ti;
   }
 
   int len;
@@ -368,6 +548,9 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
     {
       // This would be bad.
       *t = NULL;
+      QS_VASSERT(0, "%s() ring buffer is too small:"
+        "increase qsApp->op_bufferFactor (=%f)\n", __func__,
+        qsApp->op_bufferFactor);
       return NULL;
     }
   }
@@ -421,33 +604,6 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
   return ret;
 }
 
-// Returns the number of frames that may be written to
-// catch up to the master QsSource.
-static inline
-int qsSource_numFrames(struct QsSource *s)
-{
-  QS_ASSERT(s);
-  QS_ASSERT(s->group);
-  QS_ASSERT(s->group->master);
-  if(s->isMaster) return 0;
-
-  struct QsSource *master;
-  master = s->group->master;
-  QS_ASSERT(master != s);
-  int i, wrapDiff;
-  wrapDiff = master->wrapCount - s->wrapCount;
-  i = s->timeIndex[s->i];
-
-  QS_ASSERT(wrapDiff >= 0);
-  QS_ASSERT(wrapDiff > 0 || master->i >= i);
-
-  if(wrapDiff > 1 || (wrapDiff == 1 && i <= master->i))
-    return s->group->maxNumFrames; // We can write the whole buffer.
-  else if(wrapDiff == 0)
-    return master->i - i;
-  else // wrapDiff == 1
-    return master->i + s->group->maxNumFrames - i;
-}
 
 // Returns float array pointer for frame to write, if the
 // QsSource has not catch up to the master QsSource,
@@ -459,20 +615,28 @@ float *qsSource_setFrame(struct QsSource *s, long double **t)
   return qsSource_setFrames(s, t, &num);
 }
 
-// Appends another set of values to the frame.
-// A frame may have one or more sets of values
-// for each channel (except for the master QsSource).
+// Appends another set of values to the frame, if not the master.
+// Adds a frame with the same time stamp as the last, if it is the master.
+// A frame may have one or more sets of values, for non-master sources,
+// for each channel.
 // So the master QsSource can't be changed to a different QsSource.
-// This cannot be called by the master QsSource,
-// for the master can just make another frame with
-// the same time stamp as the last frame in order to
-// get the effect of multi value frames.
 static inline
 float *qsSource_appendFrame(struct QsSource *s)
 {
   QS_ASSERT(s);
-  QS_ASSERT(!s->isMaster);
+  QS_ASSERT(s->group);
   QS_ASSERT(s->i >= 0);
+  
+  if(qsSource_isMaster(s))
+  {
+    long double oldT, *t;
+    oldT = s->group->time[s->i];
+    float *val;
+    val = qsSource_setFrame(s, &t);
+    *t = oldT;
+    return val;
+  }
+
   QS_ASSERT(s->i < s->group->bufferLength - 1);
 
   if(s->i >= s->group->bufferLength - 1)
@@ -489,4 +653,29 @@ float *qsSource_appendFrame(struct QsSource *s)
   s->timeIndex[i] = s->timeIndex[i-1];
 
   return &s->framePtr[s->numChannels*i];
+}
+
+// Returns 1 for the master and 0 from a non-master source
+// which is the number of frames used.
+// Writes the next frame with the last time for the master source and
+// appends to the last frame for a non master source.
+static inline
+int qsSource_addPenLift(struct QsSource *s)
+{
+  QS_ASSERT(s);
+
+  if(s->isMaster)
+  {
+    long double lastT, *t;
+    lastT = s->group->time[s->i];
+    float *val;
+    val = qsSource_setFrame(s, &t);
+    *t = lastT;
+    *val = QS_LIFT;
+    return 1;
+  }
+
+  // non master source
+  *qsSource_appendFrame(s) = QS_LIFT;
+  return 0;
 }

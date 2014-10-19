@@ -36,14 +36,17 @@ void _qsWin_displayParameter(struct QsWidget *w,
   gtk_label_set_markup(GTK_LABEL(win->statusbar), text);
 }
 
-#ifndef LINEAR_FADE
 static
 void _qsWin_changeFadePeriod(struct QsWin *win)
 {
+#ifndef LINEAR_FADE
   // fadeAlpha will be less than zero
   win->fadeAlpha = logf((float) MIN_INTENSITY)/win->fadePeriod;
-}
 #endif
+  win->fadeMaxDrawPeriod = win->fadePeriod/20;
+  if(win->fadeMaxDrawPeriod < 1.0F/60.0F)
+    win->fadeMaxDrawPeriod = 1.0F/60.0F;
+}
 
 static
 size_t iconText(char *buf, size_t len, struct QsWin *win)
@@ -139,9 +142,7 @@ struct QsWin *qsWin_create(void)
 
   win->fadePeriod = qsApp->op_fadePeriod;
   win->fadeDelay = qsApp->op_fadeDelay;
-#ifndef LINEAR_FADE
   _qsWin_changeFadePeriod(win);
-#endif
   win->fade = qsApp->op_fade;
 
 
@@ -171,12 +172,8 @@ struct QsWin *qsWin_create(void)
   qsAdjusterFloat_create(&win->adjusters,
       "Fade Period", "sec", &win->fadePeriod,
       0.0F, /* min */ 10000.0F, /* max */
-#ifndef LINEAR_FADE
       (void (*)(void *)) _qsWin_changeFadePeriod,
       win);
-#else
-      NULL, NULL);
-#endif
   qsAdjusterFloat_create(&win->adjusters,
       "Fade Delay", "sec", &win->fadeDelay,
       0.0F, /* min */ 10000.0F, /* max */
@@ -212,7 +209,6 @@ struct QsWin *qsWin_create(void)
   //_qsAdjusters_display(&win->adjusters);
 
   qsApp->wins = g_slist_prepend(qsApp->wins, win); 
-  
   
   return win;
 }

@@ -8,7 +8,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
-#include "timer.h"
+#include "timer_priv.h"
 
 
 struct QsTimer
@@ -30,6 +30,8 @@ struct QsTimer
 #  define TIME(x)  GETTIME(x)
 #endif
 
+
+#ifdef TEST_THIS
 static inline
 void fixTimespec(struct timespec *t)
 {
@@ -86,7 +88,30 @@ void qsTimer_set(struct QsTimer *timer, long double time)
   }
 }
 
-long double qsTimer_get(struct QsTimer *timer)
+void qsTimer_sync(struct QsTimer *to, struct QsTimer *timer)
+{
+  QS_ASSERT(to);
+  QS_ASSERT(timer);
+  memcpy(timer, to, sizeof(*timer));
+}
+#endif // #ifdef TEST_THIS
+
+void _qsTimer_destroy(struct QsTimer *timer)
+{
+  QS_ASSERT(timer);
+  g_free(timer);
+}
+
+struct QsTimer *_qsTimer_create(void)
+{
+  struct QsTimer *timer;
+  timer = g_malloc0(sizeof(*timer));
+  TIME(&timer->offset);
+  return timer;
+}
+
+
+long double _qsTimer_get(struct QsTimer *timer)
 {
   struct timespec t;
   if(timer->stop.tv_sec)
@@ -96,28 +121,6 @@ long double qsTimer_get(struct QsTimer *timer)
   return  ((long double) t.tv_sec)- timer->offset.tv_sec +
         (t.tv_nsec - timer->offset.tv_nsec) * 0.000000001L;
 }
-
-struct QsTimer *qsTimer_create(void)
-{
-  struct QsTimer *timer;
-  timer = g_malloc0(sizeof(*timer));
-  TIME(&timer->offset);
-  return timer;
-}
-
-void qsTimer_sync(struct QsTimer *to, struct QsTimer *timer)
-{
-  QS_ASSERT(to);
-  QS_ASSERT(timer);
-  memcpy(timer, to, sizeof(*timer));
-}
-
-void qsTimer_destroy(struct QsTimer *timer)
-{
-  QS_ASSERT(timer);
-  g_free(timer);
-}
-
 
 #ifdef TEST_THIS
 /*

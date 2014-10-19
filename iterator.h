@@ -10,21 +10,6 @@
  * and the compiler.  NAN and INFINITY work as float, double,
  * and long double.  It's magic. */
 
-// We use this 1 special value
-#define QS_LIFT   (NAN)  /* lift pen */
-
-static inline
-gboolean qsIterator_isLift(float x)
-{
-  return isnan(x);
-}
-
-static inline
-gboolean qsIterator2_isLift(float x, float y)
-{
-  return (isnan(x) || isnan(y));
-}
-
 
 // A friend of QsSource.
 // reads 1 channel from a Source
@@ -35,6 +20,9 @@ struct QsIterator
   int i, // The last read index to source frame buffer
     wrapCount, // to detect when we read slower than the writer
     channel; // channel number to read
+#ifdef QS_DEBUG
+  long double lastT; // Make sure time always increases
+#endif
 };
 
 struct QsIterator2
@@ -44,6 +32,9 @@ struct QsIterator2
   int i0, i1, // The last read index to source frame buffer
     wrapCount, // to detect when we read slower than the writer
     channel0, channel1; // channel number to read
+#ifdef QS_DEBUG
+  long double lastT; // Make sure time always increases
+#endif
 };
 
 
@@ -95,47 +86,35 @@ void qsIterator2_reInit(struct QsIterator2 *it)
     it->wrapCount = s1->wrapCount;
 }
 
-
+// private to libquickscope
 static inline
-gboolean _qsIterator_checkWithMaster(struct QsSource *s,
+gboolean _qsIterator_checkWithMaster(struct QsIterator *it,
     const struct QsSource *master)
 {
-  QS_ASSERT(master);
-
-  if(s == master)
-    return FALSE; // there may be data to read
-
   int wrapDiff;
+  wrapDiff = master->wrapCount - it->wrapCount;
 
-  wrapDiff = master->wrapCount - s->wrapCount;
-  // No source should write ahead of the master source.
-  QS_ASSERT(
-      (wrapDiff == 0 && s->timeIndex[s->i] <= master->i) ||
-      wrapDiff > 0);
-
-  if(wrapDiff > 1 || (wrapDiff == 1 && s->timeIndex[s->i] < master->i))
+  while(wrapDiff > 1 || (wrapDiff == 1 &&
+        (it->source->timeIndex[it->i] <= master->i ||
+         it->i <= master->i)))
   {
-    // The source fell behind in writing by more than one wrap so
-    // we reset the source writing to one wrap behind.
-    // The buffer is only valid from within one lap of the master.
-    s->wrapCount = master->wrapCount - 1;
-    s->i = master->i;
-    s->timeIndex[s->i] = s->i;
-    // Note: the last time stamp index must be valid
-    // so that it can be used by iterators to compare
-    // to the last write index to the current read index.
-    return TRUE; // no data to read
+    // The iterator is a lap or more behind the master source
+    // at an invalid (nonexistent) old point in the ring buffer.
+    // The buffer is only valid from one lap behind the master
+    // to the current masters last write position.
+    qsIterator_reInit(it);
+#ifdef QS_DEBUG
+    fprintf(stderr, "%s() had to reset iterator buffer that may be too small\n"
+        "source id=%d maxNumFrames=%d\n",
+        __func__, master->id, master->group->maxNumFrames);
+#endif
+    return TRUE;
   }
-
-  return FALSE; // there may be data to read
+  return FALSE;
 }
 
-
-// Read a particular source and channel
-// Returns TRUE if there is a value, else
-// returns FALSE if there is no value.
 static inline
-gboolean qsIterator_get(struct QsIterator *it, float *x, long double *t)
+gboolean qsIterator_check(struct QsIterator *it)
 {
   QS_ASSERT(it);
   QS_ASSERT(it->source);
@@ -144,35 +123,38 @@ gboolean qsIterator_get(struct QsIterator *it, float *x, long double *t)
   s = it->source;
   master = s->group->master;
 
-  if(_qsIterator_checkWithMaster(s, master))
-    return FALSE;
+  if(_qsSource_checkWithMaster(s, master) ||
+    _qsIterator_checkWithMaster(it, master))
+    return FALSE; // no data to read
 
   int wrapDiff;
-
-  wrapDiff = master->wrapCount - it->wrapCount;
-
-  if(wrapDiff > 1 || (wrapDiff == 1 && it->i < master->i))
-  {
-    // The iterator is a lap or more behind the master source
-    // at an invalid (nonexistent) old point in the ring buffer.
-    // The buffer is only valid from one lap behind the master
-    // to the current master last write position.
-    // Where to put the iterator now is some-what arbitrary,
-    // but it must be at or after one lap back from the master.
-    //
-    // We make the iterator be as full as possible.
-    it->wrapCount = master->wrapCount - 1;
-    it->i = master->i; // It's at the last invalid position
-    // which will not be read, since it's marked as the last read.
-  }
-
   wrapDiff = s->wrapCount - it->wrapCount;
+
 
   if(wrapDiff < 0 || (wrapDiff == 0 && it->i >= s->i))
     return FALSE; // no data to read
 
   QS_ASSERT(wrapDiff == 1 || wrapDiff == 0);
+  
+  return TRUE; // we have data to read.
+}
 
+// Read a particular source and channel
+// Returns TRUE if there is a value, else
+// returns FALSE if there is no value.
+static inline
+gboolean qsIterator_get(struct QsIterator *it, float *x, long double *t)
+{
+  if(!qsIterator_check(it))
+    return FALSE; // no data to read.
+
+  struct QsSource *s;
+  s = it->source;
+
+  // TODO: FIX computing this twice
+  // once below and once in qsIterator_check().
+  int wrapDiff;
+  wrapDiff = s->wrapCount - it->wrapCount;
 
   // increment the iterator
   ++it->i;
@@ -185,6 +167,14 @@ gboolean qsIterator_get(struct QsIterator *it, float *x, long double *t)
 
   *x = s->framePtr[it->i * s->numChannels + it->channel];
   *t = s->group->time[s->timeIndex[it->i]];
+
+#ifdef QS_DEBUG
+  QS_VASSERT(*t >= it->lastT, "Time is decreasing:\n"
+      "Time went from (it->lastT=) %Lg to (*t=) %Lg",
+      it->lastT, *t);
+  it->lastT = *t;
+#endif
+
   return TRUE;
 }
 
@@ -272,25 +262,32 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
   master = s0->group->master;
 
-  if(_qsIterator_checkWithMaster(s0, master))
+  if(_qsSource_checkWithMaster(s0, master) ||
+    _qsSource_checkWithMaster(s1, master))
     return FALSE;
 
-  if(_qsIterator_checkWithMaster(s1, master))
-    return FALSE;
 
+  int wrapDiff, mi;
 
-  int wrapDiff;
-
+  mi = master->i;
   wrapDiff = master->wrapCount - it->wrapCount;
 
   if(wrapDiff > 1 ||
-      (wrapDiff == 1 && (it->i0 < master->i || it->i1 < master->i)))
+      (wrapDiff == 1 && 
+       (s0->timeIndex[it->i0] <= mi ||
+        s1->timeIndex[it->i1] <= mi ||
+        it->i0 <= mi || it->i1 <= mi)))
   {
     // The iterator is a lap or more behind the master source.
     // The buffer is only valid from within one lap of the master.
     // Where to put the iterator now is some what arbitrary.
-    it->wrapCount = master->wrapCount - 1;
-    it->i1 = it->i0 = master->i;
+    qsIterator2_reInit(it);
+#ifdef QS_DEBUG
+    fprintf(stderr, "%s() had to reset iterator buffer that may be too small\n"
+        "source id=%d maxNumFrames=%d\n",
+        __func__, master->id, master->group->maxNumFrames);
+#endif
+    return FALSE;
   }
 
   int wrapDiff0, wrapDiff1;
@@ -467,12 +464,96 @@ ret:
 
   QS_ASSERT(s0->timeIndex[it->i0] == s1->timeIndex[it->i1]);
 
+#ifdef QS_DEBUG
+#  if 1
+  if(*t < it->lastT)
+  {
+    fprintf(stderr, "*t=%Lg\n", *t);
+    fprintf(stderr, "it->i0=%d "
+      "it->i1=%d it->wrapCount=%d\n",
+      it->i0,
+      it->i1, it->wrapCount);
+
+    {
+      GSList *l;
+      for(l=qsApp->sources; l; l=l->next)
+      {
+        struct QsSource *s;
+        s = l->data;
+        fprintf(stderr, "%s%d ", (s->isMaster)?"master":"source",
+            s->id);
+      }
+      fprintf(stderr, "\n");
+    }
+    {
+      GSList *l;
+      for(l=qsApp->sources; l; l=l->next)
+      {
+        struct QsSource *s;
+        s = l->data;
+        fprintf(stderr, "iMax=%3.3d  ", s->iMax);
+      }
+      fprintf(stderr, "\n");
+    }
+    {
+      GSList *l;
+      for(l=qsApp->sources; l; l=l->next)
+      {
+        struct QsSource *s;
+        s = l->data;
+        fprintf(stderr, "i=%3.3d    ", s->i);
+      }
+      fprintf(stderr, "\n");
+    }
+    {
+      GSList *l;
+      for(l=qsApp->sources; l; l=l->next)
+      {
+        struct QsSource *s;
+        s = l->data;
+        fprintf(stderr, "wc=%3.3d   ", s->wrapCount);
+      }
+      fprintf(stderr, "\n");
+    }
+
+    int i;
+
+    for(i=0; i<s0->group->bufferLength; ++i)
+    {
+      fprintf(stderr, "TI %d   ", i);
+      GSList *l;
+      for(l=qsApp->sources; l; l=l->next)
+      {
+        struct QsSource *s;
+        s = l->data;
+        if(!s->isMaster || i < s0->group->maxNumFrames)
+          fprintf(stderr, "v%3.3g TI%3.3d  ",
+              s->framePtr[i*s->numChannels],
+              s->timeIndex[i]);
+        else
+          fprintf(stderr, "[            ] ");
+      }
+      if(i < s0->group->maxNumFrames)
+        fprintf(stderr, " tstamp=%3.3Lg\n", s0->group->time[i]);
+      else
+        fprintf(stderr, "\n");
+    }
+  }
+#  endif
+
+  QS_VASSERT(*t >= it->lastT, "Time is decreasing:\n"
+      "Time went from (it->lastT=) %Lg to (*t=) %Lg\n"
+      "timeIndex0[%d]=timeIndex1[%d]=%d",
+      it->lastT, *t, it->i0, it->i1, s0->timeIndex[it->i0]);
+  it->lastT = *t;
+#endif
+
   return TRUE;
 }
 
 // Sets frame at index based on an iterator which was read with
 // call again with the same iterator to write more than one value
-// in the given frame, from a call to qsIterator_getNext(it,...).
+// in the given frame, from a call to qsIterator_get(it,...).
 // This keeps the reading and than writing of QsSource's synchronized
 // by keeping them with values with the same time stamps.
 static inline

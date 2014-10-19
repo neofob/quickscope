@@ -15,8 +15,6 @@
 #define SMALL_LDBL  (-1.0e-30)
 
 struct QsWin;
-//struct QsSwipe;
-
 struct QsXColor
 {
   unsigned long pixel;/* X11 pixel color value */
@@ -80,7 +78,7 @@ struct QsWin
   struct QsFadingColor *fadeSurface, *fadeFront, *fadeRear, *fadeLastInsert;
   long double fadeLastTime; // last time _qsWin_fadeDraw() was called.
   /* user controllable fade parameters */
-  float fadePeriod, fadeDelay;
+  float fadePeriod, fadeDelay, fadeMaxDrawPeriod;
 #ifndef LINEAR_FADE
   /* alpha is used to get intensity by: I = exp(-alpha*t) */
   float fadeAlpha;
@@ -88,11 +86,6 @@ struct QsWin
 
   gboolean fade; /* beam trace lines and points fade in time or not */
 
-
-
-  /* TODO: handle having more than one QsSwipe in a QsWin
-   * add a GSList of swipes in place of this: */
-  //struct QsSwipe *swipe;
 
   Pixmap pixmap; /* if double buffered */
 
@@ -281,7 +274,7 @@ void _qsWin_drawPoints(struct QsWin *win)
        * at least it's not talking on a local socket
        * file descriptor to the Xserver.  Anyhow we don't
        * think this is the current bottle-neck.  We
-       * think that win.c:fadeDraw() is the current top
+       * think that win.c:_qsWin_fadeDraw() is the current top
        * CPU (for-loop) pig.  Given todays multi-core systems,
        * having the XServer draw may be better than
        * having a single thread (this code) do direct
@@ -309,9 +302,11 @@ extern
 gboolean _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win);
 
 static inline
-void _qsWin_postTraceDraw(struct QsWin *win)
+void _qsWin_postTraceDraw(struct QsWin *win, long double t)
 {
-  if(win->needPostPointDraw && !win->freezeDisplay)
+  if((win->needPostPointDraw ||
+    (win->fadeFront && t >= win->fadeLastTime + win->fadeMaxDrawPeriod)
+    ) && !win->freezeDisplay)
   {
     if(win->fade)
        _qsWin_fadeDraw(win);
