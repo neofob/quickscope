@@ -41,6 +41,12 @@ struct QsIterator2
 extern
 struct QsIterator
 *qsIterator_create(struct QsSource *source, int channel);
+extern
+// Iterators use very little data so this
+// just costs about as much as doing malloc(20)
+struct QsIterator
+*qsIterator_createCopy(struct QsIterator *it);
+
 
 extern
 void qsIterator_destroy(struct QsIterator *it);
@@ -173,6 +179,44 @@ gboolean qsIterator_get(struct QsIterator *it, float *x, long double *t)
       "Time went from (it->lastT=) %Lg to (*t=) %Lg",
       it->lastT, *t);
   it->lastT = *t;
+#endif
+
+  return TRUE;
+}
+
+// Read a particular source and channel
+// Returns TRUE if there is a value, else
+// returns FALSE if there is no value.
+// Does not advance to the next value like in
+// qsInterator_get().
+static inline
+gboolean qsIterator_poll(struct QsIterator *it, float *x, long double *t)
+{
+  if(!qsIterator_check(it))
+    return FALSE; // no data to read.
+
+  struct QsSource *s;
+  s = it->source;
+
+  // TODO: FIX computing this twice
+  // once below and once in qsIterator_check().
+  int wrapDiff;
+  wrapDiff = s->wrapCount - it->wrapCount;
+
+  // increment the iterator
+  int i;
+  i = it->i + 1;
+
+  if(wrapDiff && i > s->iMax)
+    i = 0;
+
+  *x = s->framePtr[i * s->numChannels + it->channel];
+  *t = s->group->time[s->timeIndex[i]];
+
+#ifdef QS_DEBUG
+  QS_VASSERT(*t >= it->lastT, "Time is decreasing:\n"
+      "Time went from (it->lastT=) %Lg to (*t=) %Lg",
+      it->lastT, *t);
 #endif
 
   return TRUE;

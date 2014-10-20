@@ -232,13 +232,13 @@ void qsApp_main(void)
         QS_ASSERT(qsApp->controllers);
         QS_ASSERT(qsApp->controllers->data);
 
-        qsController_appendSource(
+        qsController_prependSource(
           (struct QsController *) qsApp->controllers->data,
           s, NULL); // append to the start of controller list
         // This can give slower results if the source was
         // dependent on another source that is listed
         // later in the qsApp->sources list.
-        // The controllers list of sources with be from
+        // The controllers list of sources will be from
         // oldest source to newest source.
         //
       }

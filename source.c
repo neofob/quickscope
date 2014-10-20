@@ -72,10 +72,9 @@ void qsSource_removeChangeCallback(struct QsSource *s, void *ref)
 
 static inline
 /* This just destroys the QsSource and not the inheriting object */
-void _qsSource_internalDestroy(struct QsSource *s)
+void _qsSource_internalDestroy(struct QsSource *s, struct QsGroup *g)
 {
   QS_ASSERT(s);
-  QS_ASSERT(s->group);
   QS_ASSERT(s->read);
   QS_ASSERT(s->numChannels >= 1);
 
@@ -131,8 +130,6 @@ void _qsSource_internalDestroy(struct QsSource *s)
     qsIterator2_destroy((struct QsIterator2 *) s->iterator2s->data);
   }
   
-  struct QsGroup *g;
-  g = s->group;
 
 #ifdef QS_DEBUG
   if(s->isMaster)
@@ -152,20 +149,11 @@ void _qsSource_internalDestroy(struct QsSource *s)
   g_free(s->framePtr);
   g_free(s->timeIndex);
 
-  s->framePtr = NULL; // block reentry to this function from qsSource_destroy().
-
   _qsGroup_removeSource(g, s);
 
   if(s->isMaster)
-  {
-    // The master source is the first source created and
-    // all the other sources in the group depend on it.
-    // The master source was the last in the list.
-    while(g->sources)
-      qsSource_destroy(((struct QsSource *) g->sources->data));
-    // This is the last source in the group
+   // This is the last source in the group
     _qsGroup_destroy(g);
-  }
 
   qsApp->sources = g_slist_remove(qsApp->sources, s);
 
@@ -177,15 +165,39 @@ void _qsSource_internalDestroy(struct QsSource *s)
 void qsSource_destroy(struct QsSource *s)
 {
   QS_ASSERT(s);
-  QS_ASSERT(s->group);
-  QS_ASSERT(s->group->master);
+  struct QsGroup *g;
+  g = s->group;
+  QS_ASSERT(g);
+  QS_ASSERT(g->master);
+
+  if(s->isMaster)
+  {
+    QS_ASSERT(g->master == s);
+    // The master source is the first source created and
+    // all the other sources in the group depend on it.
+    // The g->sources list starts at the newest source
+    // so source destruction is in reverse order of
+    // creation.
+    GSList *l, *next;
+    for(l = g->sources; l; l=next)
+    {
+      // We are editing the list as we iterate through
+      // so we save next.
+      next = l->next;
+      if(!((struct QsSource *) l->data)->isMaster)
+        qsSource_destroy(((struct QsSource *) l->data));
+#ifdef DEBUG
+      else
+        QS_ASSERT(((struct QsSource *) l->data) == s);
+#endif
+    }
+  }
 
   QS_BASE_CHECKSUBDESTROY(s);
 
   /* now destroy this and the base object
    * if it's not being destroyed now. */
-  if(s->framePtr)
-    _qsSource_internalDestroy(s);
+  _qsSource_internalDestroy(s, g);
 }
 
 void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read)
@@ -404,7 +416,6 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
   QS_ASSERT(s->group);
   QS_ASSERT(s->read);
   QS_ASSERT(time > s->prevT);
-
 
   s->t = time;
 

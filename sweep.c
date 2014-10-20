@@ -39,11 +39,10 @@ struct QsSweep
     // until there is a trigger value is read, and then timeIt
     // is used to get the appropriate frames that depend on the
     // holdOff parameter.
-  long double startT, lastTRead, waitUntilT;
+  long double startT, prevT, waitUntilT, nextRunningT;
   float period, holdOff, oldHoldOff, delay, oldDelay,
-        level, lastValueRead, lastValueOut;
-  int slope; /* +1 or 0 for free run or -1 */
-  int channelNum;
+        level, prevValueRead, prevValueOut;
+  int slope, oldSlope; /* +1 or 0 for free run or -1 */
   int id; // this sweep createCount
   int sourceInID;
   enum STATE state; // sweep state when not free run
@@ -64,16 +63,16 @@ int cb_sweep(struct QsSweep *sw,
 {
   struct QsSource *s;
   s = (struct QsSource *) sw;
-  float lastValueOut;
-  lastValueOut = sw->lastValueOut;
-  float x;
-  long double lastTRead;
-  lastTRead = sw->lastTRead;
+  float prevValueOut;
+  prevValueOut = sw->prevValueOut;
+  float y;
+  long double t;
+  prevT = sw->prevT;
   struct QsIterator *tit;
   tit = sw->timeIt;
   long double startT;
   startT = sw->startT;
-  long double *t = NULL;
+  long double *tOut = NULL;
   float period;
   period = sw->period;
  
@@ -81,31 +80,31 @@ int cb_sweep(struct QsSweep *sw,
   {
     // free run with no waiting
  
-    while(qsIterator_get(tit, &x, &lastTRead))
+    while(qsIterator_get(tit, &y, &t))
     {
       float val;
-      
-      val = _qsSweep_val(lastTRead, startT, period);
-      if(val < lastValueOut)
+
+      val = _qsSweep_val(t, startT, period);
+      if(val < prevValueOut)
       {
         // Outputting a decrease in value
         // which is sweeping back with the same
         // time stamp, *t.
         *qsSource_appendFrame(s) = QS_LIFT;
-        *qsSource_appendFrame(s) = lastValueOut - 1.0F;
+        *qsSource_appendFrame(s) = prevValueOut - 1.0F;
       }
 
-      *qsSource_setFrame(s, &t) = val;
-      
-      QS_ASSERT(lastTRead == *t);
+      *qsSource_setFrame(s, &tOut) = val;
 
-      lastValueOut = val;
+      QS_ASSERT(t == *tOut);
+      prevValueOut = val;
+      prevT = t;
     }
 
-    if(t)
+    if(tOut)
     {
-      sw->lastValueOut = lastValueOut;
-      sw->lastTRead = lastTRead;
+      sw->prevValueOut = prevValueOut;
+      sw->prevT = prevT;
       return 1; // yes new data
     }
     return 0; // no new data
@@ -117,17 +116,16 @@ int cb_sweep(struct QsSweep *sw,
   
   long double waitUntilT;
   waitUntilT = sw->waitUntilT;
-  float lastValueRead;
-  lastValueRead = sw->lastValueRead;
+  float prevValueRead;
+  prevValueRead = sw->prevValueRead;
   enum STATE state;
   state = sw->state;
   int slope;
   slope = sw->slope;
   float level;
   level = sw->level;
-  prevT = sw->lastTRead;
 
-  if(qsIterator_get(tit, &x, &lastTRead))
+  if(qsIterator_get(tit, &y, &t))
     do
     {
 
@@ -135,20 +133,21 @@ int cb_sweep(struct QsSweep *sw,
       {
         do
           {
-            if(lastTRead >= waitUntilT)
+            if(t >= waitUntilT)
             {
               if(slope > 0)
-                lastValueRead = INFINITY;
+                prevValueRead = INFINITY;
               else if(slope < 0)
-                lastValueRead = -INFINITY;
+                prevValueRead = -INFINITY;
               state = ARMED;
               break;
             }
-            prevT = lastTRead;
+            prevT = t;
             // We must write one for each read on tit.
-            *qsSource_setFrame(s, &t) = QS_LIFT;
+            *qsSource_setFrame(s, &tOut) = QS_LIFT;
+            QS_ASSERT(*tOut == t);
           }
-          while(qsIterator_get(tit, &x, &lastTRead)); // read
+          while(qsIterator_get(tit, &y, &t)); // read
         if(state == HELD) break;
       }
 
@@ -157,61 +156,95 @@ int cb_sweep(struct QsSweep *sw,
       {
         do
           {
-            if(lastValueRead <= level &&
-                level <= x && lastValueRead < x)
+            if(prevValueRead <= level &&
+                level <= y && prevValueRead < y)
             {
               state = TRIGGERED;
+              // linearly interpolate a start time
+              startT = prevT +
+                (level - prevValueRead)*(t - prevT)/(y - prevValueRead) +
+                sw->delay;
               break;
             }
             
-            lastValueRead = x;
-            prevT = lastTRead;
+            prevValueRead = y;
+            prevT = t;
             // We must write one for each read on tit.
-            *qsSource_setFrame(s, &t) = QS_LIFT;
+            *qsSource_setFrame(s, &tOut) = QS_LIFT;
+            QS_ASSERT(*tOut == t);
           }
-          while(qsIterator_get(tit, &x, &lastTRead));
+          while(qsIterator_get(tit, &y, &t));
       }
       else if(state == ARMED && slope < 0)
       {
         do
           {
-            if(lastValueRead >= level &&
-                level >= x && lastValueRead > x)
+            if(prevValueRead >= level &&
+                level >= y && prevValueRead > y)
             {
               state = TRIGGERED;
+              // linearly interpolate a start time
+              startT = prevT +
+                (level - prevValueRead)*(t - prevT)/(y - prevValueRead) +
+                sw->delay;
               break;
             }
             
-            lastValueRead = x;
-            prevT = lastTRead;
+            prevValueRead = y;
+            prevT = t;
             // We must write one for each read on tit.
-            *qsSource_setFrame(s, &t) = QS_LIFT;
+            *qsSource_setFrame(s, &tOut) = QS_LIFT;
+            QS_ASSERT(*tOut == t);
           }
-          while(qsIterator_get(tit, &x, &lastTRead));
+          while(qsIterator_get(tit, &y, &t));
       }
       else if(state == ARMED)
       {
-        // free run
+        // free run and maybe hold off or delay
         state = TRIGGERED;
+        if(sw->delay > 0)
+        {
+          if(sw->nextRunningT != t)
+            // there saw a hold off
+            startT = t + sw->delay;
+          else
+            // there was no hold off
+            startT += sw->delay;
+        }
+        else if(sw->delay < 0)
+        {
+          if(sw->nextRunningT != t)
+            // there saw a hold off
+            startT = t;
+          else
+            // there was no hold off
+            ;
+        }
+        else if(sw->nextRunningT != t)
+            // there saw a hold off
+            startT = t + sw->delay;
+        // else there is no hold off or delay
       }
-      if(state == ARMED) break;
+
+      if(state == ARMED)
+        break;
 
 
       if(state == TRIGGERED && sw->delay > 0)
       {
         do
           {
-            if(1)
+            if(t >= startT)
             {
-          
               state = RUNNING;
               break;
             }
-            prevT = lastTRead;
+            prevT = t;
             // We must write one for each read on tit.
-            *qsSource_setFrame(s, &t) = QS_LIFT;
+            *qsSource_setFrame(s, &tOut) = QS_LIFT;
+            QS_ASSERT(*tOut == t);
           }
-          while(qsIterator_get(tit, &x, &lastTRead));
+          while(qsIterator_get(tit, &y, &t));
         if(state == TRIGGERED) break;
       }
 
@@ -219,16 +252,18 @@ int cb_sweep(struct QsSweep *sw,
       {
         do
           {
+            // TODO: write this THING!!!!!!!
             if(1)
             {
               state = RUNNING;
               break;
             }
-            prevT = lastTRead;
+            prevT = t;
             // We must write one for each read on tit.
-            *qsSource_setFrame(s, &t) = QS_LIFT;
+            *qsSource_setFrame(s, &tOut) = QS_LIFT;
+            QS_ASSERT(*tOut == t);
           }
-          while(qsIterator_get(tit, &x, &lastTRead));
+          while(qsIterator_get(tit, &y, &t));
         if(state == TRIGGERED) break;
       }
 
@@ -238,51 +273,76 @@ int cb_sweep(struct QsSweep *sw,
       do
         {
           float val; 
-          val = _qsSweep_val(lastTRead, startT, period);
-
-          if(val < lastValueOut)
+          val = _qsSweep_val(t, startT, period);
+          
+          if(val < prevValueOut)
           {
             state = HELD;
-            waitUntilT = lastTRead + sw->holdOff;
-            *qsSource_setFrame(s, &t) = val + 1.0F;
+            waitUntilT = t + sw->holdOff;
+            *qsSource_setFrame(s, &tOut) = val + 1.0F;
             *qsSource_appendFrame(s) = QS_LIFT;
-            lastValueOut = -INFINITY;
+            QS_ASSERT(*tOut == t);
+            prevValueOut = -INFINITY;
+            sw->nextRunningT = t;
             break;
           }
 
-          *qsSource_setFrame(s, &t) = (lastValueOut = val);
-          prevT = lastTRead;
-        }
-        while(qsIterator_get(tit, &x, &lastTRead));
+          *qsSource_setFrame(s, &tOut) = (prevValueOut = val);
+          QS_ASSERT(*tOut == t);
 
-      if(state == HELD && !qsIterator_get(tit, &x, &lastTRead))
-        break;
+          prevT = t;
+        }
+        while(qsIterator_get(tit, &y, &t));
+
+
+      if(state == HELD)
+      {
+        if(qsIterator_get(tit, &y, &t))
+          sw->nextRunningT = t;
+        else
+          break;
+      }
+
     }
     while(state == HELD);
 
 
   sw->waitUntilT = waitUntilT;
-  sw->lastTRead = lastTRead;
+  sw->prevT = prevT;
   sw->state = state;
   sw->startT = startT;
-  sw->lastValueRead = lastValueRead;
-  sw->lastValueOut = lastValueOut;
+  sw->prevValueRead = prevValueRead;
+  sw->prevValueOut = prevValueOut;
 
-  return (t)?1:0;
+  return (tOut)?1:0;
 }
 
+// Kind of like self-removing initialization code.
+// It keeps this code out of the running source
+// read callback.
 static
 int cb_sweep_init(struct QsSweep *sw,
     long double tf, long double prevT, void *data)
 {
+  QS_ASSERT(sw);
   struct QsSource *s;
   s = (struct QsSource *) sw;
+  float x;
 
-  sw->lastTRead = sw->startT = prevT;
-  sw->waitUntilT = prevT + sw->holdOff;
+  // state starts at HELD
 
-  qsSource_setReadFunc(s, (QsSource_ReadFunc_t) cb_sweep);
-  return cb_sweep(sw, tf, prevT, data);
+  if(qsIterator_poll(sw->timeIt, &x, &sw->startT))
+  {
+    sw->waitUntilT = sw->startT + sw->holdOff;
+    sw->prevT = sw->startT;
+
+    // Next time they call cb_sweep():
+    qsSource_setReadFunc(s, (QsSource_ReadFunc_t) cb_sweep);
+    return cb_sweep(sw, tf, prevT, data);
+  }
+
+  // No data to read from sourceIn yet.
+  return 0;
 }
 
 static
@@ -308,41 +368,43 @@ void _qsSweep_setContStart(struct QsSweep *sweep)
 {
   /* This keeps continuity in the trace so
    * we don't need to lift the pen. */
-  if(sweep->lastValueOut <= 0.5F && sweep->lastValueOut >= -0.5F)
-    sweep->startT = sweep->lastTRead -
-        (sweep->lastValueOut + 0.5F)*sweep->period;
+  if(sweep->prevValueOut <= 0.5F && sweep->prevValueOut >= -0.5F)
+    sweep->startT = sweep->prevT -
+        (sweep->prevValueOut + 0.5F)*sweep->period;
   else
-    sweep->startT = sweep->lastTRead;
+    sweep->startT = sweep->prevT;
 }
 
 static
 void cb_changePeriod(struct QsSweep *sweep)
 {
   QS_ASSERT(sweep);
-
-  if(!sweep->slope)
-  {
-    // mode == free run
-    _qsSweep_setContStart(sweep);
-  }
+  //gboolean free;
+  //free = !sweep->slope && !sweep->holdOff && !sweep->delay;
+  _qsSweep_setContStart(sweep);
 }
 
 static
 void cb_changeSlope(struct QsSweep *sweep)
 {
   QS_ASSERT(sweep);
-  if(!sweep->slope)
+  gboolean free, wasFree;
+  free = !sweep->slope && !sweep->holdOff && !sweep->delay;
+  wasFree = !sweep->oldSlope && !sweep->holdOff && !sweep->delay;
+
+  if(free && !wasFree)
   {
-    // free run
+    // changed to free run
     // This will cause us to write QS_LIFT in the next frame
     // written.
-    sweep->lastValueOut = INFINITY;
-    qsSource_initIterator((struct QsSource *) sweep, sweep->timeIt);
+    sweep->prevValueOut = -INFINITY;
   }
   else if(sweep->slope > 0)
-    sweep->lastValueRead = INFINITY;
+    sweep->prevValueRead = INFINITY;
   else if(sweep->slope < 0)
-    sweep->lastValueRead = -INFINITY;
+    sweep->prevValueRead = -INFINITY;
+
+  sweep->oldSlope = sweep->slope;
 }
 
 static
@@ -373,10 +435,16 @@ void cb_changeHoldOff(struct QsSweep *sweep)
   free = !sweep->slope && !sweep->holdOff && !sweep->delay;
   wasFree = !sweep->slope && !sweep->oldHoldOff && !sweep->delay;
 
-  if(!free && sweep->state == HELD)
-    sweep->waitUntilT += sweep->holdOff - sweep->oldHoldOff;
+  if(sweep->state == HELD)
+  {
+    sweep->waitUntilT += (sweep->holdOff - sweep->oldHoldOff);
+
+  printf("sweep->waitUntilT-prevT=%Lg sweep->holdOff=%g sweep->oldHoldOff=%g\n",
+    sweep->waitUntilT - sweep->prevT, sweep->holdOff, sweep->oldHoldOff);
+  }
 
   sweep->oldHoldOff = sweep->holdOff;
+
   _qsSweep_setContStart(sweep);
 
   if(!free && wasFree)
@@ -445,15 +513,16 @@ struct QsSource *qsSweep_create(
   sweep->holdOff = holdOff;
   sweep->oldHoldOff = holdOff;
   sweep->level = level;
-  sweep->slope = (slope>0)?1:((slope<0)?-1:0); // slope==0 is free run
+  slope = (slope>0)?1:((slope<0)?-1:0); // slope==0 is free run
+  sweep->slope = slope;
+  sweep->oldSlope = slope;
   sweep->delay = delay;
   sweep->oldDelay = delay;
   if(slope > 0)
-    sweep->lastValueRead = INFINITY;
+    sweep->prevValueRead = INFINITY;
   else
-    sweep->lastValueRead = -INFINITY;
-  sweep->lastValueOut = -INFINITY;
-  sweep->channelNum = channelNum;
+    sweep->prevValueRead = -INFINITY;
+  sweep->prevValueOut = -INFINITY;
   sweep->id = createCount++;
   sweep->backIt = qsIterator_create(sourceIn, channelNum);
   sweep->timeIt = qsIterator_create(sourceIn, channelNum);

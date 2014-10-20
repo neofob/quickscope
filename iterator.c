@@ -50,6 +50,17 @@ struct QsIterator
   return it;
 }
 
+struct QsIterator
+*qsIterator_createCopy(struct QsIterator *itin)
+{
+  QS_ASSERT(itin);
+  struct QsIterator *it;
+  it = g_malloc(sizeof(*it));
+  memcpy(it, itin, sizeof(*it));
+  // itin was valid than so is it.
+  return it;
+}
+
 void qsIterator_destroy(struct QsIterator *it)
 {
   QS_ASSERT(it);
