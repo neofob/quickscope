@@ -365,11 +365,12 @@ gboolean _qsSource_checkWithMaster(struct QsSource *s,
 
 
   if(wrapDiff > 1 || (wrapDiff == 1 &&
-        (s->timeIndex[s->i] <= master->i || s->i <= master->i)))
+        (s->timeIndex[s->i] < master->i || s->i < master->i)))
   {
     // The source fell behind in writing by more than one wrap so
     // we reset the source writing to one wrap behind.
     // The buffer is only valid from within one lap of the master.
+    // It's the first invalid index, the next index is valid.
     s->wrapCount = master->wrapCount - 1;
     s->i = master->i;
     s->timeIndex[s->i] = s->i;
@@ -382,7 +383,7 @@ gboolean _qsSource_checkWithMaster(struct QsSource *s,
     // we empty all the iterators that use this source s.
     qsSource_emptyIterators(s);
 #ifdef QS_DEBUG
-    fprintf(stderr, "%s() had to reset source buffer that may be too small\n"
+    QS_VASSERT(0, "%s() had to reset source buffer that may be too small\n"
         "source id=%d maxNumFrames=%d\n",
         __func__, master->id, master->group->maxNumFrames);
 #endif

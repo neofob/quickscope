@@ -59,6 +59,14 @@ struct QsIterator2
 extern
 void qsIterator2_destroy(struct QsIterator2 *it);
 
+static inline
+void qsIterator_copy(struct QsIterator *it,
+    const struct QsIterator *from)
+{
+  QS_ASSERT(it);
+  QS_ASSERT(from);
+  memcpy(it, from, sizeof(*it));
+}
 
 static inline
 void qsIterator_reInit(struct QsIterator *it)
@@ -108,11 +116,19 @@ gboolean _qsIterator_checkWithMaster(struct QsIterator *it,
     // at an invalid (nonexistent) old point in the ring buffer.
     // The buffer is only valid from one lap behind the master
     // to the current masters last write position.
-    qsIterator_reInit(it);
+    it->i = master->i + 1;
+    it->wrapCount = master->wrapCount - 1;
+
+    if(it->i >= master->group->maxNumFrames)
+    {
+      it->i = 0;
+      it->wrapCount = master->wrapCount;
+    }
+
 #ifdef QS_DEBUG
-    fprintf(stderr, "%s() had to reset iterator buffer that may be too small\n"
-        "source id=%d maxNumFrames=%d\n",
-        __func__, master->id, master->group->maxNumFrames);
+    QS_VASSERT(0, "%s() had to reset iterator buffer that may be too small\n"
+        "maxNumFrames=%d\n",
+        __func__, master->group->maxNumFrames);
 #endif
     return TRUE;
   }
@@ -285,6 +301,86 @@ gboolean _qsIterator2_bumpIts(struct QsIterator2 *it,
   return FALSE;
 }
 
+#define PRINT()    /* empty */
+//#define PRINT()  fprintf(stderr, "%s line:%d:%s()\n", __FILE__, __LINE__, __func__)
+
+#if 0
+#define  PRINTALL() \
+{\
+  {\
+    fprintf(stderr, "*t=%Lg\n", *t);\
+    fprintf(stderr, "it->i0=%d "\
+      "it->i1=%d it->wrapCount=%d\n",\
+      it->i0,\
+      it->i1, it->wrapCount);\
+\
+    {\
+      GSList *l;\
+      for(l=qsApp->sources; l; l=l->next)\
+      {\
+        struct QsSource *s;\
+        s = l->data;\
+        fprintf(stderr, "%s%d ", (s->isMaster)?"master":"source",\
+            s->id);\
+      }\
+      fprintf(stderr, "\n");\
+    }\
+    {\
+      GSList *l;\
+      for(l=qsApp->sources; l; l=l->next)\
+      {\
+        struct QsSource *s;\
+        s = l->data;\
+        fprintf(stderr, "iMax=%3.3d  ", s->iMax);\
+      }\
+      fprintf(stderr, "\n");\
+    }\
+    {\
+      GSList *l;\
+      for(l=qsApp->sources; l; l=l->next)\
+      {\
+        struct QsSource *s;\
+        s = l->data;\
+        fprintf(stderr, "i=%3.3d    ", s->i);\
+      }\
+      fprintf(stderr, "\n");\
+    }\
+    {\
+      GSList *l;\
+      for(l=qsApp->sources; l; l=l->next)\
+      {\
+        struct QsSource *s;\
+        s = l->data;\
+        fprintf(stderr, "wc=%3.3d   ", s->wrapCount);\
+      }\
+      fprintf(stderr, "\n");\
+    }\
+\
+    int i;\
+\
+    for(i=0; i<s0->group->bufferLength; ++i)\
+    {\
+      fprintf(stderr, "TI %d   ", i);\
+      GSList *l;\
+      for(l=qsApp->sources; l; l=l->next)\
+      {\
+        struct QsSource *s;\
+        s = l->data;\
+        if(!s->isMaster || i < s0->group->maxNumFrames)\
+          fprintf(stderr, "v%3.3g TI%3.3d  ",\
+              s->framePtr[i*s->numChannels],\
+              s->timeIndex[i]);\
+        else\
+          fprintf(stderr, "[            ] ");\
+      }\
+      if(i < s0->group->maxNumFrames)\
+        fprintf(stderr, " tstamp=%3.3Lg\n", s0->group->time[i]);\
+      else\
+        fprintf(stderr, "\n");\
+    }\
+  }\
+} while(0)
+#endif
 
 // Read 2 particular sources and channels
 // Returns TRUE if there is a value, else
@@ -318,20 +414,34 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
   if(wrapDiff > 1 ||
       (wrapDiff == 1 && 
-       (s0->timeIndex[it->i0] <= mi ||
-        s1->timeIndex[it->i1] <= mi ||
-        it->i0 <= mi || it->i1 <= mi)))
+       (s0->timeIndex[it->i0] < mi ||
+        s1->timeIndex[it->i1] < mi ||
+        it->i0 < mi || it->i1 < mi)))
   {
     // The iterator is a lap or more behind the master source.
     // The buffer is only valid from within one lap of the master.
-    // Where to put the iterator now is some what arbitrary.
-    qsIterator2_reInit(it);
+    // We set it to the first invalid index so that the next
+    // one we read will be valid.
+
+    it->i0 = ++mi;
+    it->i1 = mi;
+    it->wrapCount = master->wrapCount - 1;
+
+    if(mi >= master->group->maxNumFrames)
+    {
+      it->i0 = 0;
+      it->i1 = 0;
+      it->wrapCount = master->wrapCount;
+    }
+
+
 #ifdef QS_DEBUG
     fprintf(stderr, "%s() had to reset iterator buffer that may be too small\n"
         "source id=%d maxNumFrames=%d\n",
         __func__, master->id, master->group->maxNumFrames);
 #endif
-    return FALSE;
+
+    //return FALSE;
   }
 
   int wrapDiff0, wrapDiff1;
@@ -343,8 +453,10 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
       wrapDiff0 < 0 || (wrapDiff0 == 0 && it->i0 >= s0->i) ||
       // looking ahead on i1
       wrapDiff1 < 0 || (wrapDiff1 == 0 && it->i1 >= s1->i))
+  {
+PRINT();
     return FALSE; // We have nothing to read at this point.
-
+  }
   QS_ASSERT(wrapDiff0 == 0 || wrapDiff0 == 1);
   QS_ASSERT(wrapDiff1 == 0 || wrapDiff1 == 1);
 
@@ -396,10 +508,12 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
   }
 
   if(s1->timeIndex[it->i1] != s0->timeIndex[it->i0])
+  {
     // The two iterators are not at the at the same timestamp
     // and we cannot increment the iterators to get them there.
+PRINT();
     return FALSE;
-
+  }
   // Now we have the same timestamp for both iterators
   
   if(didIncrement)
@@ -432,7 +546,7 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
           if(_qsIterator2_bumpIts(it, s0, s1))
             goto ret;
-
+PRINT();
           return FALSE;
         }
       
@@ -443,7 +557,7 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
         if(wrapDiff0)
           goto ret;
-   
+PRINT(); 
         return FALSE; // i0 is looking forward in source 0
       }
 
@@ -453,7 +567,7 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
       if(s0->timeIndex[it->i0] == s1->timeIndex[it->i1])
         goto ret;
-
+PRINT();
       return FALSE;
     }
     else
@@ -468,7 +582,7 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
       if(wrapDiff1)
         goto ret;
-   
+PRINT();
       return FALSE; // it1 is looking forward in source 1
     }
   }
@@ -484,7 +598,7 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
       ++it->i1;
       if(s0->timeIndex[it->i0] == s1->timeIndex[it->i1])
         goto ret;
-
+PRINT();
       return FALSE;
     }
 
@@ -495,10 +609,14 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
     it->i0 = it->i1 = 0;
     ++it->wrapCount;
+PRINT();
     return FALSE; // i0 is looking forward in source 0
   }
   else
+  {
+PRINT();
     return FALSE; // We cannot increment i0 or i1
+  }
 
 ret:
 
@@ -508,90 +626,20 @@ ret:
 
   QS_ASSERT(s0->timeIndex[it->i0] == s1->timeIndex[it->i1]);
 
+
 #ifdef QS_DEBUG
-#  if 1
-  if(*t < it->lastT)
-  {
-    fprintf(stderr, "*t=%Lg\n", *t);
-    fprintf(stderr, "it->i0=%d "
-      "it->i1=%d it->wrapCount=%d\n",
-      it->i0,
-      it->i1, it->wrapCount);
 
-    {
-      GSList *l;
-      for(l=qsApp->sources; l; l=l->next)
-      {
-        struct QsSource *s;
-        s = l->data;
-        fprintf(stderr, "%s%d ", (s->isMaster)?"master":"source",
-            s->id);
-      }
-      fprintf(stderr, "\n");
-    }
-    {
-      GSList *l;
-      for(l=qsApp->sources; l; l=l->next)
-      {
-        struct QsSource *s;
-        s = l->data;
-        fprintf(stderr, "iMax=%3.3d  ", s->iMax);
-      }
-      fprintf(stderr, "\n");
-    }
-    {
-      GSList *l;
-      for(l=qsApp->sources; l; l=l->next)
-      {
-        struct QsSource *s;
-        s = l->data;
-        fprintf(stderr, "i=%3.3d    ", s->i);
-      }
-      fprintf(stderr, "\n");
-    }
-    {
-      GSList *l;
-      for(l=qsApp->sources; l; l=l->next)
-      {
-        struct QsSource *s;
-        s = l->data;
-        fprintf(stderr, "wc=%3.3d   ", s->wrapCount);
-      }
-      fprintf(stderr, "\n");
-    }
-
-    int i;
-
-    for(i=0; i<s0->group->bufferLength; ++i)
-    {
-      fprintf(stderr, "TI %d   ", i);
-      GSList *l;
-      for(l=qsApp->sources; l; l=l->next)
-      {
-        struct QsSource *s;
-        s = l->data;
-        if(!s->isMaster || i < s0->group->maxNumFrames)
-          fprintf(stderr, "v%3.3g TI%3.3d  ",
-              s->framePtr[i*s->numChannels],
-              s->timeIndex[i]);
-        else
-          fprintf(stderr, "[            ] ");
-      }
-      if(i < s0->group->maxNumFrames)
-        fprintf(stderr, " tstamp=%3.3Lg\n", s0->group->time[i]);
-      else
-        fprintf(stderr, "\n");
-    }
-  }
-#  endif
+ // if(*t < it->lastT)
+ //   PRINTALL();
 
   QS_VASSERT(*t >= it->lastT, "Time is decreasing:\n"
       "Time went from (it->lastT=) %Lg to (*t=) %Lg\n"
       "timeIndex0[%d]=timeIndex1[%d]=%d",
       it->lastT, *t, it->i0, it->i1, s0->timeIndex[it->i0]);
-  it->lastT = *t;
 #endif
 
+  it->lastT = *t;
+PRINT();
   return TRUE;
 }
 
