@@ -527,8 +527,8 @@ void _qsTrace_drawSameXY(struct QsTrace *trace,
       if(NSKIP(x,y) && (x != prevX || y != prevY))
       {
         int ix, iy;
-        ix = x;
-        iy = y;
+        ix = x = x*trace->xScalePix + trace->xShiftPix;
+        iy = y = y*trace->yScalePix + trace->yShiftPix;
  
         if(ix >= 0 && ix < win->width)
         {

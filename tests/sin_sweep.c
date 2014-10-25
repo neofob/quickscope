@@ -16,7 +16,7 @@ int main(int argc, char **argv)
   qsApp->op_doubleBuffer = TRUE;
   qsApp->op_grid = 0;
 
-  sin = qsSin_create( 1000 /* maxNumFrames */,
+  sin = qsSin_create( 200 /* maxNumFrames */,
         0.45F /*amplitude*/, 0.5F /*period*/,
         0.0F*M_PI /*phaseShift*/, 40 /*samplesPerPeriod*/,
         NULL /* group */);

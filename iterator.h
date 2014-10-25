@@ -396,11 +396,13 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
   QS_ASSERT(s0);
   QS_ASSERT(s1);
-  QS_ASSERT(s0->group);
+  struct QsGroup *g;
+  g = s0->group;
+  QS_ASSERT(g);
   QS_ASSERT(s1->group);
-  QS_ASSERT(s0->group == s1->group);
+  QS_ASSERT(g == s1->group);
 
-  master = s0->group->master;
+  master = g->master;
 
   if(_qsSource_checkWithMaster(s0, master) ||
     _qsSource_checkWithMaster(s1, master))
@@ -415,8 +417,7 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
   if(wrapDiff > 1 ||
       (wrapDiff == 1 && 
        (s0->timeIndex[it->i0] < mi ||
-        s1->timeIndex[it->i1] < mi ||
-        it->i0 < mi || it->i1 < mi)))
+        s1->timeIndex[it->i1] < mi)))
   {
     // The iterator is a lap or more behind the master source.
     // The buffer is only valid from within one lap of the master.
@@ -427,21 +428,29 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
     it->i1 = mi;
     it->wrapCount = master->wrapCount - 1;
 
-    if(mi >= master->group->maxNumFrames)
+    while(s0->timeIndex[it->i0] < mi ||
+      s1->timeIndex[it->i1] < mi)
     {
-      it->i0 = 0;
-      it->i1 = 0;
-      it->wrapCount = master->wrapCount;
+      ++it->i0;
+      ++it->i1;
+      if(mi >= g->maxNumFrames)
+      {
+        // May as well wrap back to zero at this point.
+        // Then this works if we are reading the master
+        // too.
+        it->i0 = 0;
+        it->i1 = 0;
+        it->wrapCount = master->wrapCount;
+        break;
+      }
     }
-
 
 #ifdef QS_DEBUG
     fprintf(stderr, "%s() had to reset iterator buffer that may be too small\n"
-        "source id=%d maxNumFrames=%d\n",
-        __func__, master->id, master->group->maxNumFrames);
+        "or some object stopped reading a source, as in freeZe (z-key):\n"
+        "source ids=%d,%d maxNumFrames=%d\n",
+        __func__, s0->id, s1->id, g->maxNumFrames);
 #endif
-
-    //return FALSE;
   }
 
   int wrapDiff0, wrapDiff1;

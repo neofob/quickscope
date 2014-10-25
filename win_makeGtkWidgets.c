@@ -2,6 +2,15 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
+
+// We define _GNU_SOURCE to declare extra GNU stuff
+// like program_invocation_short_name
+// but if __USE_GNU does not come to be defined
+// in the system header files than we don't get
+// the extra GNU stuff and _GNU_SOURCE is ignored.
+// glibc users should never define __USE_GNU directly.
+#define _GNU_SOURCE
+#include <errno.h> // for program_invocation_short_name
 #include <inttypes.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
@@ -189,7 +198,11 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
   GtkAccelGroup *accelGroup;
 
   win->win = w = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title(GTK_WINDOW(w), "Quickscope");
+  char title[200] = "Quickscope";
+#ifdef __USE_GNU  // if using glibc
+  snprintf(title, 200, "%s <Quickscope>", program_invocation_short_name);
+#endif
+  gtk_window_set_title(GTK_WINDOW(w), title);
   gtk_window_set_icon(GTK_WINDOW(win->win),
 	      pixbuf = gdk_pixbuf_new_from_xpm_data(quickscope_32));
   g_object_unref(G_OBJECT(pixbuf));
