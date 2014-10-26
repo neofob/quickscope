@@ -30,12 +30,12 @@ int main(int argc, char **argv)
   struct QsSource *s0, *s1;
 
   // master source
-  s0 = qsSaw_create(25 /*maxNumFrames*/, 0.5/*amp*/,
+  s0 = qsSaw_create(200 /*maxNumFrames*/, 0.5/*amp*/,
       0.05/*period*/, 0.0/*periodShift*/,
       100/*samplesPerPeriod*/, NULL/*source group*/);
 
   // non-master source
-  s1 = qsSaw_create(25 /*maxNumFrames*/, 0.3/*amp*/,
+  s1 = qsSaw_create(0 /*maxNumFrames*/, 0.3/*amp*/,
       0.03/*period*/, 0.1/*periodShift*/,
       5/*samplesPerPeriod*/, s0/*source group*/);
 

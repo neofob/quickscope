@@ -263,6 +263,8 @@ void qsWin_destroy(struct QsWin *win)
   qsApp->wins = g_slist_remove(qsApp->wins, win);
   gtk_widget_destroy(win->win);
 
+  _qsWidget_destroy(win->adjsWidget);
+
   // Call the base destroy if we are not calling
   // it already.
   _qsAdjusterList_checkBaseDestroy(win);

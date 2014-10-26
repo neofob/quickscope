@@ -560,6 +560,7 @@ struct QsSource *qsSweep_create(
   sweep->timeIt = qsIterator_create(sourceIn, channelNum);
   qsSource_initIterator((struct QsSource *) sweep, sweep->timeIt);
   sweep->state = HELD;
+  qsSource_setIsSwipable((struct QsSource *)sweep, TRUE);
 
   // More of struct sweep gets initialized in cb_sweep_init()
   // above.

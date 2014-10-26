@@ -143,6 +143,7 @@ struct QsSource
   // statement to see if we have the master.
   // Who is the master? (??) The QsSource that is writing the fastest.
   // TODO: Can we have the master change?  Maybe not.
+  gboolean isSwipable;
 };
 
 
@@ -160,6 +161,18 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     size_t objectSize);
 extern
 void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read);
+static inline
+gboolean qsSource_isSwipable(struct QsSource *s)
+{
+  QS_ASSERT(s);
+  return s->isSwipable;
+}
+static inline
+void qsSource_setIsSwipable(struct QsSource *s, gboolean isSwipable)
+{
+  QS_ASSERT(s);
+  s->isSwipable = isSwipable;
+}
 
 // TODO: make plotting (traces) between 2 sources in different groups
 // by interpolating with the time stamps of the two different source

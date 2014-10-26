@@ -311,7 +311,7 @@ size_t iconText(char *buf, size_t len, struct QsTrace *trace)
 }
 
 static
-void _qsTrace_rescale(struct QsTrace *trace)
+void _qsTrace_cb_rescale(struct QsTrace *trace)
 {
   _qsTrace_scale(trace);
   _qsWin_reconfigure(trace->win);
@@ -325,7 +325,14 @@ void makeAdjuster(struct  QsTrace *trace, const char *text,
   snprintf(desc, 64, "trace%d: %s", trace->id, text);
   qsAdjusterFloat_create(&trace->win->adjusters,
       desc, "", val, max, min,
-      (void (*)(void *)) _qsTrace_rescale, trace);
+      (void (*)(void *)) _qsTrace_cb_rescale, trace);
+}
+
+static
+void _qsTrace_cb_swipe(struct  QsTrace *trace, void *data)
+{
+  printf("%s(trace=%p, data=%p) isSwipe=%d\n",
+      __func__, trace, data, trace->isSwipe);
 }
 
 struct QsTrace *qsTrace_create(struct QsWin *win,
@@ -397,7 +404,14 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
   group->icon = (size_t (*)(char *buf, size_t len, void *iconData)) iconText;
   group->iconData = trace;
 
-  snprintf(desc, 64, "trace%d  Lines", trace->id);
+  if(qsSource_isSwipable(xs))
+  {
+    snprintf(desc, 64, "trace%d: Swipe", trace->id);
+    qsAdjusterBoolean_create(&trace->win->adjusters, desc,
+        &trace->isSwipe, (void (*)(void *)) _qsTrace_cb_swipe, trace);
+  }
+
+  snprintf(desc, 64, "trace%d: Lines", trace->id);
   qsAdjusterBoolean_create(&trace->win->adjusters, desc,
       &trace->lines, NULL, NULL);
 
