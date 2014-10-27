@@ -31,7 +31,7 @@ int main(int argc, char **argv)
   sweep = qsSweep_create(0.5F /*sweep period*/,
       0.0F /*trigger level*/,
       1 /*slope may be  -1, 0, 1   0 => free run */,
-      0.0F /*trigger hold off*/,
+      0.3F /*trigger hold off*/,
       0.0F /*delay after trigger, may be negative*/,
       sin /*source group: is from sin QsSource above */,
       0 /*source channel number, 0=first*/);
