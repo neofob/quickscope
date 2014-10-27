@@ -19,16 +19,6 @@
 #
 ####################################################################
 
-EXTRA_DIST =\
- imgSaveImage.png\
- imgSaveImage.xpm\
- quickscope.ico\
- quickscope.xpm\
- quickscope.png\
- bootstrap\
- Repo_clean\
- top_quickscope.h
-
 SUBDIRS = . bin
 
 if QS_TESTS
@@ -36,19 +26,49 @@ SUBDIRS += tests
 endif
 
 
-BUILT_SOURCES =\
+quickscope_headers =\
+ top_quickscope.h\
  debug.h\
- quickscope.h
+ assert.h\
+ base.h\
+ adjuster.h\
+ app.h\
+ drawsync.h\
+ controller.h\
+ fd.h\
+ group.h\
+ interval.h\
+ source.h\
+ iterator.h\
+ sweep.h\
+ trace.h\
+ win.h
 
 # The .xpm files are built but come in a tarball.
 # .xpm files are not checked into the repository.
 
-if USE_CONVERT
-BUILT_SOURCES +=\
+convert_generated_images =\
  imgSaveImage.xpm\
  quickscope_32.xpm\
  quickscope.ico
+
+EXTRA_DIST =\
+ imgSaveImage.png\
+ quickscope.png\
+ bootstrap\
+ Repo_clean\
+ $(quickscope_headers)\
+ $(convert_generated_images)
+
+
+BUILT_SOURCES =\
+ debug.h\
+ quickscope.h
+
+if USE_CONVERT
+BUILT_SOURCES += $(convert_generated_images)
 endif
+
 
 
 lib_LTLIBRARIES = libquickscope.la
@@ -80,7 +100,6 @@ libquickscope_la_SOURCES =\
  interval.h\
  iterator.c\
  iterator.h\
- quickscope.xpm\
  source.c\
  source.h\
  source_priv.h\
@@ -147,23 +166,6 @@ pkgconfigdir   = $(libdir)/pkgconfig
 pkgconfig_DATA = quickscope.pc
 
 include_HEADERS = quickscope.h
-quickscope_headers =\
- top_quickscope.h\
- debug.h\
- assert.h\
- base.h\
- adjuster.h\
- app.h\
- drawsync.h\
- controller.h\
- fd.h\
- group.h\
- interval.h\
- source.h\
- iterator.h\
- sweep.h\
- trace.h\
- win.h
 
 
 gzfile  = $(distdir).tar.gz
@@ -213,9 +215,10 @@ endif
 quickscope.h: Makefile $(quickscope_headers)
 	echo "/* This is a generated file */" > $@
 	for i in $(quickscope_headers) ; do \
-           echo "/****** from file: $$i *******/" >> $@; \
+           echo "/*************** Start from file: $$i **************/" >> $@; \
            cat $$i >> $@; \
-           echo "/****** end file: $$i ********/" >> $@; \
+           echo "/*************** End from file: $$i ****************" >> $@; \
+           echo " *******************************************************/" >> $@; \
         done
 
 hash: sha1 sha256 sha512
