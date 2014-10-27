@@ -77,10 +77,10 @@ int main(int argc, char **argv)
 
   qsApp_init(&argc, &argv);
 
-  qsApp->op_fade = TRUE;
+  qsApp->op_fade = true;
   qsApp->op_fadePeriod = 4.0F;
   qsApp->op_fadeDelay = 5.0F;
-  qsApp->op_doubleBuffer = TRUE;
+  qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
 
   sinSource = qsSin_create( 100 /* maxNumFrames */,
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
   qsTrace_create(NULL /* QsWin, NULL to make a default */,
       freeRunSource, 0, sinSource, 0, /* x/y source and channels */
       1.0F, 0.9F, 0, 0, /* xscale, yscale, xshift, yshift */
-      TRUE, /* lines */ 0, 1, 0 /* RGB line color */);
+      true, /* lines */ 0, 1, 0 /* RGB line color */);
 
   qsApp_main();
 

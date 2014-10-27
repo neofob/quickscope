@@ -36,7 +36,7 @@ struct QsDrawSync
   gint callbackID;
 };
 
-static gboolean _gtkTickCallback(GtkWidget *widget,
+static bool _gtkTickCallback(GtkWidget *widget,
     GdkFrameClock *frame_clock, struct QsController *c)
 {
   QS_ASSERT(c);

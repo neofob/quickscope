@@ -7,6 +7,7 @@
 #include <math.h>
 #include <inttypes.h>
 #include <string.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -88,7 +89,7 @@ void _qsTrace_reallocSwipe(struct QsTrace *trace)
   swipe->surface = g_malloc0(sizeof(*swipe->surface) *
       win->width * win->height);
 
-  trace->isSwipe = TRUE;
+  trace->isSwipe = true;
 }
 
 void _qsTrace_cleanupSwipe(struct QsTrace *trace)
@@ -110,10 +111,10 @@ void _qsTrace_cleanupSwipe(struct QsTrace *trace)
 
   g_free(trace->swipe);
   trace->swipe = NULL;
-  trace->isSwipe = FALSE;
+  trace->isSwipe = false;
 }
 
-void qsTrace_setSwipeX(struct QsTrace *trace, gboolean on)
+void qsTrace_setSwipeX(struct QsTrace *trace, bool on)
 {
   QS_ASSERT(trace && trace->win);
 

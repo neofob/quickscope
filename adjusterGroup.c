@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -83,7 +84,7 @@ GList *prev(struct QsAdjusterGroup *adj, struct QsAdjusterList *adjL)
 }
 
 static
-gboolean startToAdj(struct QsAdjusterGroup *adj, struct QsWidget *w)
+bool startToAdj(struct QsAdjusterGroup *adj, struct QsWidget *w)
 {
   QS_ASSERT((void *) adj->adjuster.next == (void *) next);
   if(w->current->next)
@@ -96,11 +97,11 @@ gboolean startToAdj(struct QsAdjusterGroup *adj, struct QsWidget *w)
     w->current = w->adjs->adjusters;
     w->adjCount = 1;
   }
-  return TRUE;
+  return true;
 }
 
 static
-gboolean endToAdj(struct QsAdjusterGroup *adj, struct QsWidget *w)
+bool endToAdj(struct QsAdjusterGroup *adj, struct QsWidget *w)
 {
   QS_ASSERT(adj);
   QS_ASSERT(adj->otherGroup);
@@ -117,7 +118,7 @@ gboolean endToAdj(struct QsAdjusterGroup *adj, struct QsWidget *w)
   // TODO: make this faster
   w->adjCount = g_list_position(w->adjs->adjusters, w->current) + 1;
   
-  return TRUE;
+  return true;
 }
 
 // Destroy all adjuster(s) in the group
@@ -195,10 +196,10 @@ void qsAdjusterGroup_end(struct QsAdjuster *s)
     (void (*)(void *obj, char *str, size_t maxLen, size_t *len))
     getTextRender;
   adj->adjuster.prev = (GList *(*)(void *obj, struct QsAdjusterList *)) prev;
-  adj->adjuster.inc   = (gboolean (*)(void *, struct QsWidget *)) endToAdj;
-  adj->adjuster.dec   = (gboolean (*)(void *, struct QsWidget *)) endToAdj;
-  start->adjuster.inc = (gboolean (*)(void *, struct QsWidget *)) startToAdj;
-  start->adjuster.dec = (gboolean (*)(void *, struct QsWidget *)) startToAdj;
+  adj->adjuster.inc   = (bool (*)(void *, struct QsWidget *)) endToAdj;
+  adj->adjuster.dec   = (bool (*)(void *, struct QsWidget *)) endToAdj;
+  start->adjuster.inc = (bool (*)(void *, struct QsWidget *)) startToAdj;
+  start->adjuster.dec = (bool (*)(void *, struct QsWidget *)) startToAdj;
   _qsAdjuster_addSubDestroy(start, destroy);
   start->adjuster.next = (GList *(*)(void *obj, struct QsAdjusterList *)) next;
   start->otherGroup = adj;

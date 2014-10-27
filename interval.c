@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"

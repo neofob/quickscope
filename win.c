@@ -166,7 +166,7 @@ struct QsWin *qsWin_create(void)
   adjG->iconData = win;
 
 
-  qsAdjusterBoolean_create(&win->adjusters,
+  qsAdjusterBool_create(&win->adjusters,
       "Fade", &win->fade, 
       (void (*)(void *)) _qsWin_reconfigure,
       win);
@@ -187,19 +187,19 @@ struct QsWin *qsWin_create(void)
       "Y Grid Shift", "*height", &win->gridYWinOffset,
       -0.6, /* min */ 0.6, /* max */
       (void (*)(void *)) _qsWin_reconfigure, win);
-  qsAdjusterBoolean_create(&win->adjusters,
+  qsAdjusterBool_create(&win->adjusters,
       "Show Grid", &win->grid, 
       (void (*)(void *)) _qsWin_reconfigure,
       win);
-  qsAdjusterBoolean_create(&win->adjusters,
+  qsAdjusterBool_create(&win->adjusters,
       "Show Subgrid", &win->subGrid, 
       (void (*)(void *)) _qsWin_reconfigure,
       win);
-  qsAdjusterBoolean_create(&win->adjusters,
+  qsAdjusterBool_create(&win->adjusters,
       "Show Axis", &win->axis, 
       (void (*)(void *)) _qsWin_reconfigure,
       win);
-  qsAdjusterBoolean_create(&win->adjusters,
+  qsAdjusterBool_create(&win->adjusters,
       "Show Ticks", &win->ticks, 
       (void (*)(void *)) _qsWin_reconfigure,
       win);

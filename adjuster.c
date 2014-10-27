@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -244,16 +245,16 @@ void *_qsAdjuster_create(struct QsAdjusterList *adjs,
 }
 
 static inline
-gboolean _qsAdjuster_isInList(struct QsAdjuster *adj,
+bool _qsAdjuster_isInList(struct QsAdjuster *adj,
     struct QsAdjusterList *adjL)
 {
   QS_ASSERT(adj);
-  if(!adjL) return TRUE; // yes have nothings in the list
+  if(!adjL) return true; // yes have nothings in the list
   GSList *l;
   for(l = adj->adjs; l; l = l->next)
     if(l->data == (void *) adjL)
 #ifndef QS_DEBUG
-      return TRUE;
+      return true;
 #else
       break;
 
@@ -262,13 +263,13 @@ gboolean _qsAdjuster_isInList(struct QsAdjuster *adj,
     GList *dl;
     for(dl = adjL->adjusters; dl; dl = dl->next)
       if(dl->data == (void *) adj)
-        return TRUE;
+        return true;
     QS_VASSERT(0,
         "adjuster not found in adjusterList that adjuster says it's in");
   }
 #endif
 
-  return FALSE; // no it's not in the list
+  return false; // no it's not in the list
 }
 
 static inline
@@ -402,11 +403,11 @@ void _qsAdjusterList_destroy(struct QsAdjusterList *adjs)
 }
 
 static inline
-gboolean check_listEmpty(struct QsAdjusterList *actL)
+bool check_listEmpty(struct QsAdjusterList *actL)
 {
-  if(!actL || !actL->adjusters) return TRUE;
+  if(!actL || !actL->adjusters) return true;
 
-  return FALSE;
+  return false;
 }
 
 void _qsAdjusterList_append(struct QsAdjusterList *adjL,

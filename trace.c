@@ -339,7 +339,7 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
       struct QsSource *xs, int xChannelNum,
       struct QsSource *ys, int yChannelNum,
       float xScale, float yScale, float xShift, float yShift,
-      gboolean lines,
+      bool lines,
       float red, float green, float blue)
 {
   struct QsTrace *trace;
@@ -407,12 +407,12 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
   if(qsSource_isSwipable(xs))
   {
     snprintf(desc, 64, "trace%d: Swipe", trace->id);
-    qsAdjusterBoolean_create(&trace->win->adjusters, desc,
+    qsAdjusterBool_create(&trace->win->adjusters, desc,
         &trace->isSwipe, (void (*)(void *)) _qsTrace_cb_swipe, trace);
   }
 
   snprintf(desc, 64, "trace%d: Lines", trace->id);
-  qsAdjusterBoolean_create(&trace->win->adjusters, desc,
+  qsAdjusterBool_create(&trace->win->adjusters, desc,
       &trace->lines, NULL, NULL);
 
   makeAdjuster(trace, "X Scale", &trace->xScale,

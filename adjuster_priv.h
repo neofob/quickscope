@@ -18,10 +18,10 @@ struct QsAdjuster
   // inheriting objects set these methods or not
   void (*destroy)(void *obj);
   void (*getTextRender)(void *obj, char *str, size_t maxLen, size_t *len);
-  gboolean (*shiftLeft)(void *obj);
-  gboolean (*shiftRight)(void *obj);
-  gboolean (*inc)(void *obj, struct QsWidget *w);
-  gboolean (*dec)(void *obj, struct QsWidget *w);
+  bool (*shiftLeft)(void *obj);
+  bool (*shiftRight)(void *obj);
+  bool (*inc)(void *obj, struct QsWidget *w);
+  bool (*dec)(void *obj, struct QsWidget *w);
   
   // For making adjuster groups
   // moves QsWidget to different next in the QsAdjusterList
@@ -30,7 +30,7 @@ struct QsAdjuster
   GList *(*prev)(void *obj, struct QsAdjusterList *);
 
   // reset the object after setting parameter value not using this object
-  gboolean (*reset)(void *obj);
+  bool (*reset)(void *obj);
   // icon is a callback to return pre description text, so it may change
   // between calls.  Returns the length of the string.
   size_t (*icon)(char *buf, size_t len, void *iconData);

@@ -102,7 +102,7 @@ void qsIterator2_reInit(struct QsIterator2 *it)
 
 // private to libquickscope
 static inline
-gboolean _qsIterator_checkWithMaster(struct QsIterator *it,
+bool _qsIterator_checkWithMaster(struct QsIterator *it,
     const struct QsSource *master)
 {
   int wrapDiff;
@@ -130,13 +130,13 @@ gboolean _qsIterator_checkWithMaster(struct QsIterator *it,
         "maxNumFrames=%d\n",
         __func__, master->group->maxNumFrames);
 #endif
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
 }
 
 static inline
-gboolean qsIterator_check(struct QsIterator *it)
+bool qsIterator_check(struct QsIterator *it)
 {
   QS_ASSERT(it);
   QS_ASSERT(it->source);
@@ -147,28 +147,28 @@ gboolean qsIterator_check(struct QsIterator *it)
 
   if(_qsSource_checkWithMaster(s, master) ||
     _qsIterator_checkWithMaster(it, master))
-    return FALSE; // no data to read
+    return false; // no data to read
 
   int wrapDiff;
   wrapDiff = s->wrapCount - it->wrapCount;
 
 
   if(wrapDiff < 0 || (wrapDiff == 0 && it->i >= s->i))
-    return FALSE; // no data to read
+    return false; // no data to read
 
   QS_ASSERT(wrapDiff == 1 || wrapDiff == 0);
   
-  return TRUE; // we have data to read.
+  return true; // we have data to read.
 }
 
 // Read a particular source and channel
-// Returns TRUE if there is a value, else
-// returns FALSE if there is no value.
+// Returns true if there is a value, else
+// returns false if there is no value.
 static inline
-gboolean qsIterator_get(struct QsIterator *it, float *x, long double *t)
+bool qsIterator_get(struct QsIterator *it, float *x, long double *t)
 {
   if(!qsIterator_check(it))
-    return FALSE; // no data to read.
+    return false; // no data to read.
 
   struct QsSource *s;
   s = it->source;
@@ -197,19 +197,19 @@ gboolean qsIterator_get(struct QsIterator *it, float *x, long double *t)
   it->lastT = *t;
 #endif
 
-  return TRUE;
+  return true;
 }
 
 // Read a particular source and channel
-// Returns TRUE if there is a value, else
-// returns FALSE if there is no value.
+// Returns true if there is a value, else
+// returns false if there is no value.
 // Does not advance to the next value like in
 // qsInterator_get().
 static inline
-gboolean qsIterator_poll(struct QsIterator *it, float *x, long double *t)
+bool qsIterator_poll(struct QsIterator *it, float *x, long double *t)
 {
   if(!qsIterator_check(it))
-    return FALSE; // no data to read.
+    return false; // no data to read.
 
   struct QsSource *s;
   s = it->source;
@@ -235,11 +235,11 @@ gboolean qsIterator_poll(struct QsIterator *it, float *x, long double *t)
       it->lastT, *t);
 #endif
 
-  return TRUE;
+  return true;
 }
 
 static inline
-gboolean _qsIterator2_bumpIts(struct QsIterator2 *it,
+bool _qsIterator2_bumpIts(struct QsIterator2 *it,
     const struct QsSource *s0,
     const struct QsSource *s1)
 {
@@ -254,7 +254,7 @@ gboolean _qsIterator2_bumpIts(struct QsIterator2 *it,
 
     ++it->i0;
     ++it->i1;
-    return TRUE; // got a new pair!
+    return true; // got a new pair!
   }
   if(s1->timeIndex[it->i1 + 1] != s1->timeIndex[it->i1] &&
       s0->timeIndex[it->i0 + 1] == s0->timeIndex[it->i0])
@@ -266,7 +266,7 @@ gboolean _qsIterator2_bumpIts(struct QsIterator2 *it,
     QS_ASSERT(s0->timeIndex[it->i0 + 1] == s0->timeIndex[it->i0]);
 
     ++it->i0;
-    return TRUE; // got a new pair!
+    return true; // got a new pair!
   }
   if(s1->timeIndex[it->i1 + 1] == s1->timeIndex[it->i1] &&
       s0->timeIndex[it->i0 + 1] != s0->timeIndex[it->i0])
@@ -278,7 +278,7 @@ gboolean _qsIterator2_bumpIts(struct QsIterator2 *it,
     QS_ASSERT(s0->timeIndex[it->i0 + 1] == s0->timeIndex[it->i0] + 1);
 
     ++it->i1;
-    return TRUE; // got a new pair!
+    return true; // got a new pair!
   }
   if(s1->timeIndex[it->i1 + 1] == s1->timeIndex[it->i1] &&
       s0->timeIndex[it->i0 + 1] == s0->timeIndex[it->i0])
@@ -294,11 +294,11 @@ gboolean _qsIterator2_bumpIts(struct QsIterator2 *it,
 
     ++it->i0;
     ++it->i1;
-    return TRUE; // got a new pair!
+    return true; // got a new pair!
   }
   
   QS_VASSERT(0, "Got iterator problems in qsIterator_get2()\n");
-  return FALSE;
+  return false;
 }
 
 #define PRINT()    /* empty */
@@ -383,10 +383,10 @@ gboolean _qsIterator2_bumpIts(struct QsIterator2 *it,
 #endif
 
 // Read 2 particular sources and channels
-// Returns TRUE if there is a value, else
-// returns FALSE if there is no value.
+// Returns true if there is a value, else
+// returns false if there is no value.
 static inline
-gboolean qsIterator2_get(struct QsIterator2 *it,
+bool qsIterator2_get(struct QsIterator2 *it,
     float *x0, float *x1, long double *t)
 {
   QS_ASSERT(it);
@@ -406,7 +406,7 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
 
   if(_qsSource_checkWithMaster(s0, master) ||
     _qsSource_checkWithMaster(s1, master))
-    return FALSE;
+    return false;
 
 
   int wrapDiff, mi;
@@ -464,12 +464,12 @@ gboolean qsIterator2_get(struct QsIterator2 *it,
       wrapDiff1 < 0 || (wrapDiff1 == 0 && it->i1 >= s1->i))
   {
 PRINT();
-    return FALSE; // We have nothing to read at this point.
+    return false; // We have nothing to read at this point.
   }
   QS_ASSERT(wrapDiff0 == 0 || wrapDiff0 == 1);
   QS_ASSERT(wrapDiff1 == 0 || wrapDiff1 == 1);
 
-  gboolean didIncrement = FALSE;
+  bool didIncrement = false;
 
   // Align the iterator timeIndexes by incrementing
   // i0 and/or i1 if we can.
@@ -478,7 +478,7 @@ PRINT();
       && (s0->timeIndex[it->i0] < s1->timeIndex[it->i1]))
   {
     if(!didIncrement)
-      didIncrement = TRUE;
+      didIncrement = true;
     ++it->i0;
     if(wrapDiff0 && wrapDiff1 && it->i0 > s0->iMax)
     {
@@ -499,7 +499,7 @@ PRINT();
       && (s1->timeIndex[it->i1] < s0->timeIndex[it->i0]))
   {
     if(!didIncrement)
-      didIncrement = TRUE;
+      didIncrement = true;
     ++it->i1;
     if(wrapDiff0 && wrapDiff1 && it->i1 > s1->iMax)
     {
@@ -521,7 +521,7 @@ PRINT();
     // The two iterators are not at the at the same timestamp
     // and we cannot increment the iterators to get them there.
 PRINT();
-    return FALSE;
+    return false;
   }
   // Now we have the same timestamp for both iterators
   
@@ -556,7 +556,7 @@ PRINT();
           if(_qsIterator2_bumpIts(it, s0, s1))
             goto ret;
 PRINT();
-          return FALSE;
+          return false;
         }
       
         QS_ASSERT(it->i1 == s1->iMax);
@@ -567,7 +567,7 @@ PRINT();
         if(wrapDiff0)
           goto ret;
 PRINT(); 
-        return FALSE; // i0 is looking forward in source 0
+        return false; // i0 is looking forward in source 0
       }
 
       // We cannot increment i1.
@@ -577,7 +577,7 @@ PRINT();
       if(s0->timeIndex[it->i0] == s1->timeIndex[it->i1])
         goto ret;
 PRINT();
-      return FALSE;
+      return false;
     }
     else
     {
@@ -592,7 +592,7 @@ PRINT();
       if(wrapDiff1)
         goto ret;
 PRINT();
-      return FALSE; // it1 is looking forward in source 1
+      return false; // it1 is looking forward in source 1
     }
   }
   else if(wrapDiff1 || it->i1 < s1->i)
@@ -608,7 +608,7 @@ PRINT();
       if(s0->timeIndex[it->i0] == s1->timeIndex[it->i1])
         goto ret;
 PRINT();
-      return FALSE;
+      return false;
     }
 
     // We can increment i1 with a wrap count change
@@ -619,12 +619,12 @@ PRINT();
     it->i0 = it->i1 = 0;
     ++it->wrapCount;
 PRINT();
-    return FALSE; // i0 is looking forward in source 0
+    return false; // i0 is looking forward in source 0
   }
   else
   {
 PRINT();
-    return FALSE; // We cannot increment i0 or i1
+    return false; // We cannot increment i0 or i1
   }
 
 ret:
@@ -649,7 +649,7 @@ ret:
 
   it->lastT = *t;
 PRINT();
-  return TRUE;
+  return true;
 }
 
 // Sets frame at index based on an iterator which was read with

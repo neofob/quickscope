@@ -242,14 +242,14 @@ void _qsWin_drawTracePoint(struct QsWin *win, int x, int y,
 
 // This gets called regularly to fade the beam points.
 // Beam lines are just lots of points.
-gboolean _qsWin_fadeDraw(struct QsWin *win)
+bool _qsWin_fadeDraw(struct QsWin *win)
 {
   QS_ASSERT(win);
 
   if(!win->gc || !win->fadeFront)
     // wait until configure event and something
     // is in the list:
-    return TRUE;
+    return true;
 
   QS_ASSERT(win->fade && win->fadeSurface);
   QS_ASSERT((win->fadeFront && win->fadeRear) ||
@@ -269,7 +269,7 @@ gboolean _qsWin_fadeDraw(struct QsWin *win)
   if(w != win->width || h != win->height)
     /* We need to wait for a resize configure.
      * Yes, this was a fix for a nasty BUG. */
-    return TRUE;
+    return true;
 
   struct QsFadingColor *fc, *FC, *prev;
   long double t;
@@ -338,7 +338,7 @@ gboolean _qsWin_fadeDraw(struct QsWin *win)
     _qsWin_drawPoints(win);
     win->fadeFront = win->fadeRear = fc;
     // All traces are completely faded away.
-    return TRUE;
+    return true;
   }
 
   if(I < 1.0F)
@@ -390,7 +390,7 @@ gboolean _qsWin_fadeDraw(struct QsWin *win)
   // There is no need to redraw unfaded pixels with I >= 1
   // because they are drawn already.
 
-  return TRUE;
+  return true;
 }
 
 // Draw pixels from the fading color buffer.

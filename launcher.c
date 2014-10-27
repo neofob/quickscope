@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <string.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 
 static const char *const programs[] =
@@ -145,7 +146,7 @@ void setLabelString(struct Run *run)
   g_free(text);
 }
 
-static gboolean run_cb(GtkWidget *button, struct Run *run)
+static bool run_cb(GtkWidget *button, struct Run *run)
 {
   fprintf(stderr, "running:");
   char **arg;
@@ -164,7 +165,7 @@ static gboolean run_cb(GtkWidget *button, struct Run *run)
     exit(1);
   }
 
-  return TRUE;
+  return true;
 }
 
 static void addButton(char *const *args, GtkContainer *vbox)
@@ -174,13 +175,13 @@ static void addButton(char *const *args, GtkContainer *vbox)
   run->button = gtk_button_new_with_label(" ");
   run->args = (char **) args;
   g_signal_connect(run->button, "clicked", G_CALLBACK(run_cb), (void *) run);
-  gtk_box_pack_start(GTK_BOX(vbox), run->button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), run->button, false, false, 0);
   gtk_widget_show(run->button);
   setLabelString(run);
 }
 
 static
-gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, void* data)
+bool ecb_keyPress(GtkWidget *w, GdkEvent *e, void* data)
 {
   switch(e->key.keyval)
   {
@@ -188,10 +189,10 @@ gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, void* data)
     case GDK_KEY_q:
     case GDK_KEY_Escape:
       gtk_main_quit();
-      return TRUE;
+      return true;
       break;
   }
-  return FALSE;
+  return false;
 }
 
 static void makeWidgets(const char *title)
@@ -210,7 +211,7 @@ static void makeWidgets(const char *title)
 
   button = gtk_button_new_with_label("Quit");
   g_signal_connect(button, "clicked", G_CALLBACK(gtk_main_quit), NULL);
-  gtk_box_pack_start(GTK_BOX(vbox), button, FALSE, FALSE, 0);
+  gtk_box_pack_start(GTK_BOX(vbox), button, false, false, 0);
   gtk_widget_show(button);
   
   gtk_container_add(GTK_CONTAINER(window), vbox);
@@ -236,7 +237,7 @@ int main(int argc, char **argv)
   if(argc > 1)
   {
     printf("Usage: %s [--help|-h]\n\n"
-        "   A simple button launcher program with built in list\n"
+        "   A simple button launcher program with a built-in list\n"
         " of programs to launch.  This launcher does not manage the\n"
         " programs that it launches, so quiting this launcher will\n"
         " not terminate all the launched programs.  If you terminate\n"

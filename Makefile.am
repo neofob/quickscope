@@ -55,7 +55,7 @@ lib_LTLIBRARIES = libquickscope.la
 libquickscope_la_SOURCES =\
  adjuster.c\
  adjuster.h\
- adjusterBoolean.c\
+ adjusterBool.c\
  adjusterType.c\
  adjusterGroup.c\
  adjusterSelector.c\

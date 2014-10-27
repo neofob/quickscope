@@ -5,7 +5,7 @@
 #include <quickscope.h>
 
 
-static gboolean
+static bool
 SpewSource(struct QsSource *s, struct QsIterator2 *it)
 {
   static int count = 0;
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
       5/*samplesPerPeriod*/, s0/*source group*/);
 
   qsSource_addChangeCallback(s1,
-      (gboolean (*)(struct QsSource *, void *)) SpewSource,
+      (bool (*)(struct QsSource *, void *)) SpewSource,
       qsIterator2_create(s0, s1, 0/*channel0*/, 0/*channel1*/));
 
   qsApp_main();

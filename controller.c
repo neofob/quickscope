@@ -63,7 +63,7 @@ void _qsController_destroy(struct QsController *c)
   g_free(c);
 }
 
-gboolean _qsController_run(struct QsController *c)
+bool _qsController_run(struct QsController *c)
 {
   GSList *l;
   long double t;
@@ -89,7 +89,7 @@ gboolean _qsController_run(struct QsController *c)
   if(sourceChanged && c->changedSource)
     c->changedSource(c, c->sources);
 
-  return TRUE;
+  return true;
 }
 
 void *_qsController_create(

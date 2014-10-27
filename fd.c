@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -56,25 +57,25 @@ int check_fd_in(int fd)
 }
 
 static
-gboolean prepare(GSource *gsource, gint *timeout)
+bool prepare(GSource *gsource, gint *timeout)
 {
   *timeout = -1; /* block */
-  return FALSE;
+  return false;
 }
 
 static
-gboolean check(struct QsFdGSource *fd)
+bool check(struct QsFdGSource *fd)
 {
   if(fd->pfd.revents & G_IO_IN)
   {
     //fd.revents = 0;
-    return TRUE;
+    return true;
   }
-  return FALSE;
+  return false;
 }
 
 static
-gboolean dispatch(struct QsFdGSource *fD, GSourceFunc callback, gpointer data)
+bool dispatch(struct QsFdGSource *fD, GSourceFunc callback, gpointer data)
 {
   struct QsFd *fd;
   fd = fD->fd;
@@ -82,7 +83,7 @@ gboolean dispatch(struct QsFdGSource *fD, GSourceFunc callback, gpointer data)
     _qsController_run((struct QsController *)fd);
   while(check_fd_in(fD->pfd.fd));
 
-  return TRUE;
+  return true;
 }
 
 void qsFd_destroy(struct QsFd *fd)
@@ -119,7 +120,7 @@ struct QsController *qsFd_create(int fD, size_t size)
    * because glib requires it. */
   static GSourceFuncs source_funcs =
   {
-    prepare,
+    (gboolean (*)(GSource *, gint *)) prepare,
     (gboolean (*)(GSource *)) check,
     (gboolean (*)(GSource *, GSourceFunc, gpointer)) dispatch,
     0, 0, 0

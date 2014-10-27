@@ -21,7 +21,7 @@ struct QsTrace
   float xScalePix, yScalePix, xShiftPix, yShiftPix;
 
   float red, green, blue;
-  gboolean lines, isSwipe;
+  bool lines, isSwipe;
   float prevX, prevY; /* for line and point drawing */
   float prevPrevX, prevPrevY; /* for line drawing */
 

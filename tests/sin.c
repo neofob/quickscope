@@ -14,7 +14,7 @@ int main(int argc, char **argv)
   qsApp->op_fade = qsApp_bool("fade", true);
   qsApp->op_fadePeriod = 4.0F;
   qsApp->op_fadeDelay =  0.6F;
-  qsApp->op_doubleBuffer = TRUE;
+  qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
 
   sin = qsSin_create( 500 /* maxNumFrames */,

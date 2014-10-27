@@ -62,7 +62,7 @@ void _qsWin_reconfigure(struct QsWin *win)
   }
   else if(win->fadeSurface)
   {
-    // win->fade == FALSE
+    // win->fade == false
 #ifdef QS_DEBUG
     memset(win->fadeSurface, 0, sizeof(struct QsFadingColor)*w*h);
 #endif
@@ -77,7 +77,7 @@ void _qsWin_reconfigure(struct QsWin *win)
 }
 
 /* This gets called on window resize before drawing. */
-gboolean _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
+bool _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
                         struct QsWin *win)
 {
   int w, h;
@@ -87,7 +87,7 @@ gboolean _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
 
   if(win->width == w && win->height == h)
     // Why was this called???
-    return TRUE;
+    return true;
 
   win->width = w;
   win->height = h;
@@ -175,6 +175,6 @@ gboolean _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
     _qsWin_drawBackground(win);
 
 
-  return TRUE; /* TRUE means the event is handled. */
+  return true; /* true means the event is handled. */
 }
 

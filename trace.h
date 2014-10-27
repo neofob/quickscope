@@ -22,10 +22,10 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
       //    2. lines
       // TODO: Only thing to consider missing different color
       // for points and lines, but that maybe resource expensive.
-      gboolean lines, // or just points
+      bool lines, // or just points
       float red, float green, float blue);
 extern
-void qsTrace_setSwipeX(struct QsTrace *trace, gboolean on);
+void qsTrace_setSwipeX(struct QsTrace *trace, bool on);
 
 /* destroying the QsWin will destroy the QsTrace unless
  * you call qsTrace_destroy() before you destroy the

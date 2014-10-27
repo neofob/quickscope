@@ -67,8 +67,8 @@ struct QsAdjuster *qsAdjusterInt_create(struct QsAdjusterList *adjs,
     int *value, int min, int max,
     void (*valueChangeCallback)(void *data), void *data);
 extern
-struct QsAdjuster *qsAdjusterBoolean_create(struct QsAdjusterList *adjs,
-    const char *description, gboolean *value,
+struct QsAdjuster *qsAdjusterBool_create(struct QsAdjusterList *adjs,
+    const char *description, bool *value,
     void (*valueChangeCallback)(void *data), void *data);
 extern
 struct QsAdjuster *qsAdjusterSelector_create(struct QsAdjusterList *adjs,

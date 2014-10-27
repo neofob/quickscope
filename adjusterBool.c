@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -14,15 +15,15 @@
 #include "adjuster_priv.h"
 
 
-struct QsAdjusterBoolean
+struct QsAdjusterBool
 {
   struct QsAdjuster adjuster;
-  gboolean *value;
+  bool *value;
 };
 
 
 static
-void getTextRender(struct QsAdjusterBoolean *adj, char *str,
+void getTextRender(struct QsAdjusterBool *adj, char *str,
     size_t maxLen, size_t *len)
 {
   *len += snprintf(str, maxLen,
@@ -33,34 +34,34 @@ void getTextRender(struct QsAdjusterBoolean *adj, char *str,
 }
 
 static
-gboolean inc(struct QsAdjusterBoolean *adj, struct QsWidget *w)
+bool inc(struct QsAdjusterBool *adj, struct QsWidget *w)
 {
   QS_ASSERT(adj);
   if(!(*adj->value))
   {
-    *adj->value = TRUE;
-    return TRUE;
+    *adj->value = true;
+    return true;
   }
-  return FALSE; // no change
+  return false; // no change
 }
 
 static
-gboolean dec(struct QsAdjusterBoolean *adj, struct QsWidget *w)
+bool dec(struct QsAdjusterBool *adj, struct QsWidget *w)
 {
   QS_ASSERT(adj);
   if((*adj->value))
   {
-    *adj->value = FALSE;
-    return TRUE;
+    *adj->value = false;
+    return true;
   }
-  return FALSE; // no change
+  return false; // no change
 }
 
-struct QsAdjuster *qsAdjusterBoolean_create(struct QsAdjusterList *adjs,
-    const char *description, gboolean *value,
+struct QsAdjuster *qsAdjusterBool_create(struct QsAdjusterList *adjs,
+    const char *description, bool *value,
     void (*changeValueCallback)(void *data), void *data)
 {
-  struct QsAdjusterBoolean *adj;
+  struct QsAdjusterBool *adj;
   QS_ASSERT(value);
 
   adj = _qsAdjuster_create(adjs, description,
@@ -69,9 +70,9 @@ struct QsAdjuster *qsAdjusterBoolean_create(struct QsAdjusterList *adjs,
   adj->adjuster.getTextRender =
     (void (*)(void *obj, char *str, size_t maxLen, size_t *len))
     getTextRender;
-  adj->adjuster.inc        = (gboolean (*)(void *, struct QsWidget *)) inc;
-  adj->adjuster.dec        = (gboolean (*)(void *, struct QsWidget *)) dec;
-  // adj->adjuster.reset not needed for this boolean thingy
+  adj->adjuster.inc        = (bool (*)(void *, struct QsWidget *)) inc;
+  adj->adjuster.dec        = (bool (*)(void *, struct QsWidget *)) dec;
+  // adj->adjuster.reset not needed for this bool thingy
 
   return (struct QsAdjuster *) adj;
 }

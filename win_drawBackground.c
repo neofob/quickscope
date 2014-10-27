@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>
@@ -401,13 +402,13 @@ void DrawTickRec(struct QsWin *win,
 void _qsWin_drawBackground(struct QsWin *win)
 {
   int w, h;
-  gboolean noGrid;
+  bool noGrid;
   
   QS_ASSERT(win);
   // This should not be called unless we are drawing something
   QS_ASSERT(_qsWin_isGridStuff(win));
 
-  noGrid = (win->grid)?FALSE:TRUE;
+  noGrid = (win->grid)?false:true;
   
   w = win->width;
   h = win->height;

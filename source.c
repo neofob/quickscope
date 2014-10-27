@@ -39,7 +39,7 @@ _qsGroup_removeSource(struct QsGroup *g, struct QsSource *s);
 
 struct ChangeCallback
 {
-  gboolean (*callback)(struct QsSource *, void *);
+  bool (*callback)(struct QsSource *, void *);
   void *data;
 };
 
@@ -48,7 +48,7 @@ QS_BASE_DEFINE(qsSource, struct QsSource)
 
 
 void *qsSource_addChangeCallback(struct QsSource *s,
-    gboolean (*callback)(struct QsSource *, void *), void *data)
+    bool (*callback)(struct QsSource *, void *), void *data)
 {
   QS_ASSERT(s);
   QS_ASSERT(callback);
@@ -253,7 +253,7 @@ void *qsSource_create(QsSource_ReadFunc_t read,
   {
     QS_ASSERT(maxNumFrames > 0);
     // This is the master source
-    s->isMaster = TRUE;
+    s->isMaster = true;
     group = s->group = _qsGroup_create(s, maxNumFrames);
     s->iMax = s->i = maxNumFrames - 1;
     s->wrapCount = -1;

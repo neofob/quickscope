@@ -66,22 +66,22 @@ struct QsApp
   // with more than one value for each channel.
   float op_bufferFactor;
 
-  gboolean op_doubleBuffer, /* with XPixmap */
+  bool op_doubleBuffer, /* with XPixmap */
         op_grid, /* draw background grid */
         op_axis, /* draw X and Y axis */
         op_subGrid, /* draw grid in the grid */
         op_ticks, /* draw axis ticks or not */
-        op_fade; /* beam lines and points don't fade if FALSE */
+        op_fade; /* beam lines and points don't fade if false */
   
-  gboolean op_fullscreen, op_showWindowBorder,
+  bool op_fullscreen, op_showWindowBorder,
            op_showMenubar, op_showStatusbar;
 
-  gboolean opSourceRequireController; // require this in qsApp_main()
+  bool opSourceRequireController; // require this in qsApp_main()
 
   // Use gtk_widget_add_tick_callback() if true
-  gboolean op_syncFadeDraw; // or uses g_timeout_add_full()
+  bool op_syncFadeDraw; // or uses g_timeout_add_full()
 
-  gboolean inAppLevel; // to see where we are in gtk_main(),
+  bool inAppLevel; // to see where we are in gtk_main(),
     // qsApp_main() and qsApp_destroy();
 
   int sourceCreateCount;

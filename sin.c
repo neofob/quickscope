@@ -61,7 +61,7 @@ int cb_sin_read(struct QsSin *s, long double tf, long double prevT)
   struct QsSource *source;
   source = (struct QsSource *) s;
   int nFrames;
-  gboolean isMaster;
+  bool isMaster;
   isMaster = qsSource_isMaster(source);
  
   nFrames = qsSource_getRequestedSamples(source, tf, prevT);

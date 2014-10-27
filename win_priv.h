@@ -84,7 +84,7 @@ struct QsWin
   float fadeAlpha;
 #endif
 
-  gboolean fade; /* beam trace lines and points fade in time or not */
+  bool fade; /* beam trace lines and points fade in time or not */
 
 
   Pixmap pixmap; /* if double buffered */
@@ -124,11 +124,11 @@ struct QsWin
          tickLineLength, subGridLineWidth,
          axisLineWidth; // all in pixels
 
-  gboolean grid, ticks, subGrid, axis;
+  bool grid, ticks, subGrid, axis;
 
-  gboolean freezeDisplay; /* adds pause/resume or trace plotting */
+  bool freezeDisplay; /* adds pause/resume or trace plotting */
 
-  gboolean needPostPointDraw; // stupid internal flag
+  bool needPostPointDraw; // stupid internal flag
 
   unsigned long bg; /* X11 pixel color of background color */
 
@@ -215,24 +215,24 @@ void _qsWin_drawBackground(struct QsWin *win);
 extern
 void _qsWin_reconfigure(struct QsWin *win);
 extern
-gboolean _qsWin_cb_configure(GtkWidget *da, GdkEvent *e, struct QsWin *win);
+bool _qsWin_cb_configure(GtkWidget *da, GdkEvent *e, struct QsWin *win);
 extern
 void _qsWin_drawTracePoint(struct QsWin *win, int x, int y,
     float r, float g, float b, long double t);
 extern
-gboolean _qsWin_fadeDraw(struct QsWin *win);
+bool _qsWin_fadeDraw(struct QsWin *win);
 extern
-gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win);
+bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win);
 extern
-gboolean cb_savePNG(GtkWidget *w, struct QsWin *win);
+bool cb_savePNG(GtkWidget *w, struct QsWin *win);
 extern
-gboolean cb_quit(GtkWidget *w, gpointer data);
+bool cb_quit(GtkWidget *w, gpointer data);
 extern
-gboolean cb_viewFullscreen(GtkWidget *w, GtkWidget *win);
+bool cb_viewFullscreen(GtkWidget *w, GtkWidget *win);
 extern
-gboolean cb_viewMenuItem(GtkWidget *menuItem, GtkWidget *w);
+bool cb_viewMenuItem(GtkWidget *menuItem, GtkWidget *w);
 extern
-gboolean cb_viewWindowBorder(GtkWidget *menuItem, GtkWidget *win);
+bool cb_viewWindowBorder(GtkWidget *menuItem, GtkWidget *win);
 extern
 void _qsWin_makeGtkWidgets(struct QsWin *win);
 extern
@@ -292,14 +292,14 @@ void _qsWin_drawPoints(struct QsWin *win)
         win->points, win->npoints, CoordModeOrigin);
     //printf("%d\n", win->npoints);
 
-    win->needPostPointDraw = TRUE;
+    win->needPostPointDraw = true;
     win->npoints = 0;
 #endif
   }
 }
 
 extern
-gboolean _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win);
+bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win);
 
 static inline
 void _qsWin_postTraceDraw(struct QsWin *win, long double t)
@@ -318,7 +318,7 @@ void _qsWin_postTraceDraw(struct QsWin *win, long double t)
     if(win->pixmap)
       XCopyArea(win->dsp, win->pixmap, win->xwin, win->gc,
         0, 0, win->width, win->height, 0, 0);
-    win->needPostPointDraw = FALSE;
+    win->needPostPointDraw = false;
   }
 }
 
@@ -425,7 +425,7 @@ void colorStr(char str[8], float r, float g, float b)
 }
 
 static inline
-gboolean _qsWin_isGridStuff(struct QsWin *win)
+bool _qsWin_isGridStuff(struct QsWin *win)
 {
   return (win->grid || win->subGrid ||
       win->ticks || win->axis);

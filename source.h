@@ -131,7 +131,7 @@ struct QsSource
 
   int id; // Unique ID so we know this source object from all others.
 
-  gboolean isMaster; // set to TRUE if this is the source that is
+  bool isMaster; // set to true if this is the source that is
   // setting the write pace and hopefully the time stamps.
   // Sources that fall behind in writing by a buffer length or more
   // of the master will get reset (??) to writing to the masters
@@ -143,7 +143,7 @@ struct QsSource
   // statement to see if we have the master.
   // Who is the master? (??) The QsSource that is writing the fastest.
   // TODO: Can we have the master change?  Maybe not.
-  gboolean isSwipable;
+  bool isSwipable;
 };
 
 
@@ -162,13 +162,13 @@ void *qsSource_create(QsSource_ReadFunc_t read,
 extern
 void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read);
 static inline
-gboolean qsSource_isSwipable(struct QsSource *s)
+bool qsSource_isSwipable(struct QsSource *s)
 {
   QS_ASSERT(s);
   return s->isSwipable;
 }
 static inline
-void qsSource_setIsSwipable(struct QsSource *s, gboolean isSwipable)
+void qsSource_setIsSwipable(struct QsSource *s, bool isSwipable)
 {
   QS_ASSERT(s);
   s->isSwipable = isSwipable;
@@ -202,8 +202,8 @@ extern
 void qsSource_initIterator(struct QsSource *s, struct QsIterator *it);
 extern
 void *qsSource_addChangeCallback(struct QsSource *s,
-    // return FALSE to remove the callback
-    gboolean (*callback)(struct QsSource *, void *), void *data);
+    // return false to remove the callback
+    bool (*callback)(struct QsSource *, void *), void *data);
 extern
 void qsSource_removeChangeCallback(struct QsSource *s, void *ref);
 // changes source (to) to be at the same frame as (from)
@@ -217,11 +217,11 @@ long double qsSource_lastTime(struct QsSource *s);
 // returned by qsSource_getSampleRate(),
 // will be set to the maximum of qsSource_setMinSampleRate()
 // which can be called on behalf of each source, not just the
-// master.  Returns TRUE if the group rate changed, returns FALSE
+// master.  Returns true if the group rate changed, returns false
 // otherwise.
 // This may be used to increase or decrease the rate.
 static inline
-gboolean qsSource_setMinSampleRate(struct QsSource *s, float rate/*Hz*/)
+bool qsSource_setMinSampleRate(struct QsSource *s, float rate/*Hz*/)
 {
   QS_ASSERT(rate >= 0);
   QS_ASSERT(s);
@@ -232,12 +232,12 @@ gboolean qsSource_setMinSampleRate(struct QsSource *s, float rate/*Hz*/)
   if(rate > g->sampleRate)
   {
     s->minSampleRate = g->sampleRate = rate;
-    return TRUE;
+    return true;
   }
   if(rate > s->minSampleRate) // && rate <= s->group->sampleRate
   {
     s->minSampleRate = rate;
-    return FALSE;
+    return false;
   }
 
   if(rate != s->minSampleRate)
@@ -259,10 +259,10 @@ gboolean qsSource_setMinSampleRate(struct QsSource *s, float rate/*Hz*/)
       if(q->minSampleRate > g->sampleRate)
         g->sampleRate = q->minSampleRate;
     }
-    return (g->sampleRate != oldRate)?TRUE:FALSE;
+    return (g->sampleRate != oldRate)?true:false;
   }
 
-  return FALSE;
+  return false;
 }
 
 static inline
@@ -341,7 +341,7 @@ int qsSource_getRequestedSamples(const struct QsSource *s,
 }
 
 static inline
-gboolean qsSource_isMaster(const struct QsSource *s)
+bool qsSource_isMaster(const struct QsSource *s)
 {
   QS_ASSERT(s);
   QS_ASSERT(s->group);
@@ -360,13 +360,13 @@ void qsSource_emptyIterators(struct QsSource *s);
 // Makes sure that the source is within a lap of the master.
 // Time stamps are only valid within a lap behind the master.
 static inline
-gboolean _qsSource_checkWithMaster(struct QsSource *s,
+bool _qsSource_checkWithMaster(struct QsSource *s,
     const struct QsSource *master)
 {
   QS_ASSERT(master);
 
   if(s == master)
-    return FALSE; // there may be data to read
+    return false; // there may be data to read
 
   int wrapDiff;
 
@@ -400,10 +400,10 @@ gboolean _qsSource_checkWithMaster(struct QsSource *s,
         "source id=%d maxNumFrames=%d\n",
         __func__, master->id, master->group->maxNumFrames);
 #endif
-    return TRUE; // there is no data to read
+    return true; // there is no data to read
   }
 
-  return FALSE; // there may be data to read
+  return false; // there may be data to read
 }
 
 // TODO: Add auto-resizing of the source framePtr buffer.

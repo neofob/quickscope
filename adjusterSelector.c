@@ -6,6 +6,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -35,27 +36,27 @@ void getTextRender(struct QsAdjusterSelector *adj, char *str,
 }
 
 static
-gboolean inc(struct QsAdjusterSelector *adj, struct QsWidget *w)
+bool inc(struct QsAdjusterSelector *adj, struct QsWidget *w)
 {
   QS_ASSERT(adj);
   if(adj->index < adj->len - 1)
   {
     *adj->value = adj->values[++adj->index];
-    return TRUE;
+    return true;
   }
-  return FALSE; // no change
+  return false; // no change
 }
 
 static
-gboolean dec(struct QsAdjusterSelector *adj, struct QsWidget *w)
+bool dec(struct QsAdjusterSelector *adj, struct QsWidget *w)
 {
   QS_ASSERT(adj);
   if(adj->index > 0)
   {
     *adj->value = adj->values[--adj->index];
-    return TRUE;
+    return true;
   }
-  return FALSE; // no change
+  return false; // no change
 }
 
 static
@@ -114,8 +115,8 @@ struct QsAdjuster *qsAdjusterSelector_create(struct QsAdjusterList *adjs,
   adj->adjuster.getTextRender =
     (void (*)(void *obj, char *str, size_t maxLen, size_t *len))
     getTextRender;
-  adj->adjuster.inc     = (gboolean (*)(void *, struct QsWidget *)) inc;
-  adj->adjuster.dec     = (gboolean (*)(void *, struct QsWidget *)) dec;
+  adj->adjuster.inc     = (bool (*)(void *, struct QsWidget *)) inc;
+  adj->adjuster.dec     = (bool (*)(void *, struct QsWidget *)) dec;
   _qsAdjuster_addSubDestroy(adj, destroy);
   return (struct QsAdjuster *) adj;
 }

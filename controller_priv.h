@@ -28,5 +28,5 @@ void *_qsController_create(
 extern
 void _qsController_destroy(struct QsController *c);
 /* protected */
-/* Always returns TRUE for super class QsInternal g_timeout thingy. */
-gboolean _qsController_run(struct QsController *c);
+/* Always returns true for super class QsInternal g_timeout thingy. */
+bool _qsController_run(struct QsController *c);

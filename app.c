@@ -130,9 +130,9 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
    * initialization of options *
    *****************************/
 
-  qsApp->opSourceRequireController = TRUE;
+  qsApp->opSourceRequireController = true;
   
-  qsApp->op_fade = TRUE;
+  qsApp->op_fade = true;
   qsApp->op_fadePeriod = 1;
   qsApp->op_fadeDelay = 0;
 
@@ -175,16 +175,16 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
 
   qsApp->op_bufferFactor = 1.5F;
 
-  qsApp->op_doubleBuffer = TRUE; /* use XPixmap to double buffer */
-  qsApp->op_grid = TRUE; /* background grid */
-  qsApp->op_axis = TRUE; /* draw X and Y axis */
-  qsApp->op_subGrid = TRUE; /* background sub grid */
-  qsApp->op_ticks = TRUE;
+  qsApp->op_doubleBuffer = true; /* use XPixmap to double buffer */
+  qsApp->op_grid = true; /* background grid */
+  qsApp->op_axis = true; /* draw X and Y axis */
+  qsApp->op_subGrid = true; /* background sub grid */
+  qsApp->op_ticks = true;
 
-  qsApp->op_fullscreen = FALSE;
-  qsApp->op_showWindowBorder = TRUE;
-  qsApp->op_showMenubar = FALSE;
-  qsApp->op_showStatusbar = TRUE;
+  qsApp->op_fullscreen = false;
+  qsApp->op_showWindowBorder = true;
+  qsApp->op_showMenubar = false;
+  qsApp->op_showStatusbar = true;
 
   qsApp->op_defaultIntervalPeriod = 1.0/60.0;
   

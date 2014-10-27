@@ -13,6 +13,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -96,7 +97,7 @@ struct ADJ_TYPE
       index,  // index relative to decimal point being edited
       valLen; // length of strValue[] string
   TYPE min, max;
-  gboolean setValue; // flag that we need to setup strValue.
+  bool setValue; // flag that we need to setup strValue.
 };
 
 
@@ -184,7 +185,7 @@ void setValue(struct ADJ_TYPE *adj, TYPE val)
   adj->valLen = snprintf(adj->strValue, CHAR_LEN, "%s%*.*"FM,
         sign, len, len, val);
   *adj->value = val;
-  adj->setValue = FALSE;
+  adj->setValue = false;
 
 #else // #ifdef INT_TYPE
 
@@ -234,7 +235,7 @@ void setValue(struct ADJ_TYPE *adj, TYPE val)
     adj->index = adj->valLen - adj->pIndex - 1;
 
   *adj->value = val;
-  adj->setValue = FALSE;
+  adj->setValue = false;
 
 # if 0
 printf("adjuster %s \"%s\" %s i=%d\n",
@@ -269,15 +270,15 @@ void getTextRender(struct ADJ_TYPE *adj, char *str,
 }
 
 static 
-gboolean reset(struct ADJ_TYPE *adj)
+bool reset(struct ADJ_TYPE *adj)
 {
   adj->strValue[0] = 0;
-  adj->setValue = TRUE;
-  return TRUE;
+  adj->setValue = true;
+  return true;
 }
 
 static
-gboolean shiftLeft(struct ADJ_TYPE *adj)
+bool shiftLeft(struct ADJ_TYPE *adj)
 {
   if(adj->index + adj->pIndex > 0)
   {
@@ -286,13 +287,13 @@ gboolean shiftLeft(struct ADJ_TYPE *adj)
     if(adj->index == 0)
       adj->index = -1;
 #endif
-    return TRUE; // rerender widget
+    return true; // rerender widget
   }
-  return FALSE; // no rendering needed
+  return false; // no rendering needed
 }
 
 static
-gboolean shiftRight(struct ADJ_TYPE *adj)
+bool shiftRight(struct ADJ_TYPE *adj)
 {
   if(adj->index + adj->pIndex < adj->valLen - 1)
   {
@@ -301,25 +302,25 @@ gboolean shiftRight(struct ADJ_TYPE *adj)
     if(adj->index == 0)
       adj->index = 1;
 #endif
-    return TRUE; // rerender widget
+    return true; // rerender widget
   }
-  return FALSE; // no rendering needed
+  return false; // no rendering needed
 }
 
 static inline
-gboolean incDec_return(struct ADJ_TYPE *adj, TYPE val)
+bool incDec_return(struct ADJ_TYPE *adj, TYPE val)
 {
   val = clipValue(adj, val);
   if(val != *adj->value)
   {
     *adj->value = val;
-    return (adj->setValue = TRUE);
+    return (adj->setValue = true);
   }
   return adj->setValue;
 }
 
 static
-gboolean inc(struct ADJ_TYPE *adj, struct QsWidget *w)
+bool inc(struct ADJ_TYPE *adj, struct QsWidget *w)
 {
   int i, j;
   char s[CHAR_LEN];
@@ -438,7 +439,7 @@ gboolean inc(struct ADJ_TYPE *adj, struct QsWidget *w)
 }
 
 static
-gboolean dec(struct ADJ_TYPE *adj, struct QsWidget *w)
+bool dec(struct ADJ_TYPE *adj, struct QsWidget *w)
 {
   int i, j;
   char s[CHAR_LEN];
@@ -636,17 +637,17 @@ struct QsAdjuster *ADJUSTER_CREATE(struct QsAdjusterList *adjs,
   adj->max = max;
   adj->index = CHAR_MAX;
   adj->value = value;
-  adj->setValue = TRUE;
+  adj->setValue = true;
   adj->units = g_strdup(units);
   _qsAdjuster_addSubDestroy(adj, destroy);
   adj->adjuster.getTextRender =
     (void (*)(void *obj, char *str, size_t maxLen, size_t *len))
     getTextRender;
-  adj->adjuster.shiftLeft  = (gboolean (*)(void *)) shiftLeft;
-  adj->adjuster.shiftRight = (gboolean (*)(void *)) shiftRight;
-  adj->adjuster.inc        = (gboolean (*)(void *, struct QsWidget *)) inc;
-  adj->adjuster.dec        = (gboolean (*)(void *, struct QsWidget *)) dec;
-  adj->adjuster.reset      = (gboolean (*)(void *)) reset;
+  adj->adjuster.shiftLeft  = (bool (*)(void *)) shiftLeft;
+  adj->adjuster.shiftRight = (bool (*)(void *)) shiftRight;
+  adj->adjuster.inc        = (bool (*)(void *, struct QsWidget *)) inc;
+  adj->adjuster.dec        = (bool (*)(void *, struct QsWidget *)) dec;
+  adj->adjuster.reset      = (bool (*)(void *)) reset;
 
   init_qs_decPoint();
 

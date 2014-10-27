@@ -106,7 +106,7 @@ cairo_surface_t *_qsWin_savePNGwithAphas(struct QsWin *win,
 {
   QS_ASSERT(win && win->gc);
 
-  gboolean allSwipingTraces = FALSE;
+  bool allSwipingTraces = false;
 
   if(feedbackStr)
     *feedbackStr = NULL;
@@ -116,11 +116,11 @@ cairo_surface_t *_qsWin_savePNGwithAphas(struct QsWin *win,
   if(!win->fade && win->traces)
   {
     GSList *l;
-    allSwipingTraces = TRUE;
+    allSwipingTraces = true;
     for(l = win->traces; l; l = l->next)
       if(!((struct QsTrace *) l->data)->swipe)
       {
-        allSwipingTraces = FALSE;
+        allSwipingTraces = false;
         break;
       }
   }

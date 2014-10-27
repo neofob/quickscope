@@ -46,7 +46,7 @@ struct QsSweep
   int id; // this sweep createCount
   int sourceInID;
   enum STATE state; // sweep state when not free run
-  gboolean wasHoldoff; // holdoff change any number of
+  bool wasHoldoff; // holdoff change any number of
   // times in a cycle, which means we can't tell if
   // there was a holdoff by looking at the value of holdoff,
   // so we use this wasHoldoff flag.
@@ -155,7 +155,7 @@ int cb_sweep(struct QsSweep *sw,
           while(qsIterator_get(tit, &y, &t)); // read
 
         if(checkT != t)
-          sw->wasHoldoff = TRUE;
+          sw->wasHoldoff = true;
 
         if(state == HELD)
           break;
@@ -171,7 +171,7 @@ int cb_sweep(struct QsSweep *sw,
             {
               state = TRIGGERED;
               // reset flag
-              sw->wasHoldoff = FALSE;
+              sw->wasHoldoff = false;
               // linearly interpolate a start time
               startT = prevT +
                 (level - prevValueRead)*(t - prevT)/(y - prevValueRead)
@@ -192,7 +192,7 @@ int cb_sweep(struct QsSweep *sw,
             {
               state = TRIGGERED;
               // reset flag
-              sw->wasHoldoff = FALSE;
+              sw->wasHoldoff = false;
               // linearly interpolate a start time
               startT = prevT +
                 (level - prevValueRead)*(t - prevT)/(y - prevValueRead)
@@ -212,7 +212,7 @@ int cb_sweep(struct QsSweep *sw,
         if(sw->wasHoldoff)
         {
           startT = t + sw->delay;
-          sw->wasHoldoff = FALSE;
+          sw->wasHoldoff = false;
         }
       }
 
@@ -416,7 +416,7 @@ static
 void cb_changePeriod(struct QsSweep *sweep)
 {
   QS_ASSERT(sweep);
-  //gboolean free;
+  //bool free;
   //free = !sweep->slope && !sweep->holdOff && !sweep->delay;
   _qsSweep_setContStart(sweep);
 }
@@ -425,7 +425,7 @@ static
 void cb_changeSlope(struct QsSweep *sweep)
 {
   QS_ASSERT(sweep);
-  gboolean free, wasFree;
+  bool free, wasFree;
   free = !sweep->slope && !sweep->holdOff && !sweep->delay;
   wasFree = !sweep->oldSlope && !sweep->holdOff && !sweep->delay;
 
@@ -462,7 +462,7 @@ static
 void cb_changeHoldOff(struct QsSweep *sweep)
 {
   QS_ASSERT(sweep);
-  gboolean free, wasFree;
+  bool free, wasFree;
   free = !sweep->slope && !sweep->holdOff && !sweep->delay;
   wasFree = !sweep->slope && !sweep->oldHoldOff && !sweep->delay;
 
@@ -561,7 +561,7 @@ struct QsSource *qsSweep_create(
   sweep->timeIt = qsIterator_create(sourceIn, channelNum);
   qsSource_initIterator((struct QsSource *) sweep, sweep->timeIt);
   sweep->state = HELD;
-  qsSource_setIsSwipable((struct QsSource *)sweep, TRUE);
+  qsSource_setIsSwipable((struct QsSource *)sweep, true);
 
   // More of struct sweep gets initialized in cb_sweep_init()
   // above.

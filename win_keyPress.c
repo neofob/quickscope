@@ -29,15 +29,15 @@
 #include "swipe_priv.h"
 
 
-gboolean cb_quit(GtkWidget *w, gpointer data)
+bool cb_quit(GtkWidget *w, gpointer data)
 {
   while(qsApp->wins)
     qsWin_destroy((struct QsWin *)qsApp->wins->data);
   gtk_main_quit();
-  return TRUE;
+  return true;
 }
 
-gboolean cb_savePNG(GtkWidget *w, struct QsWin *win)
+bool cb_savePNG(GtkWidget *w, struct QsWin *win)
 {
   // GTK+ kind of sucks!!!  Here's why ...
 
@@ -58,7 +58,7 @@ gboolean cb_savePNG(GtkWidget *w, struct QsWin *win)
   {
     fprintf(stderr, "mkstemp(\"%s\") failed: errno=%d: %s\n",
         tempfilename, errno, strerror(errno));
-    return TRUE;
+    return true;
   }
   // We don't know the filename yet, so we use a temp file.
   // Popping up the dialog fucks up the cairo_surface so we
@@ -69,7 +69,7 @@ gboolean cb_savePNG(GtkWidget *w, struct QsWin *win)
     unlink(tempfilename);
     fprintf(stderr, "cairo_surface_write_to_png(,\"%s\") failed:"
           " errno=%d: %s\n", tempfilename, errno, strerror(errno));
-    return TRUE;
+    return true;
   }
   cairo_surface_destroy(surface);
 
@@ -99,7 +99,7 @@ gboolean cb_savePNG(GtkWidget *w, struct QsWin *win)
 
 
   gtk_file_chooser_set_do_overwrite_confirmation(
-      GTK_FILE_CHOOSER(dialog), TRUE);
+      GTK_FILE_CHOOSER(dialog), true);
   //gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), name);
   // We assume that GTK+ will not call ecb_keyPress() while
   // we are in this function.  Should be a good assumption.
@@ -166,54 +166,54 @@ gboolean cb_savePNG(GtkWidget *w, struct QsWin *win)
   if(data)
     g_free(data);
 
-  return TRUE;
+  return true;
 }
 
 static inline
-gboolean flipViewCheckMenuItem(GtkWidget *w)
+bool flipViewCheckMenuItem(GtkWidget *w)
 {
   gtk_check_menu_item_set_active(
     GTK_CHECK_MENU_ITEM(w),
     gtk_check_menu_item_get_active(
-      GTK_CHECK_MENU_ITEM(w))?FALSE:TRUE);
-  return TRUE;
+      GTK_CHECK_MENU_ITEM(w))?false:true);
+  return true;
 }
 
 static inline
-gboolean checkViewMenuItem(GtkWidget *w)
+bool checkViewMenuItem(GtkWidget *w)
 {
   return gtk_check_menu_item_get_active(
       GTK_CHECK_MENU_ITEM(w));
 }
 
-gboolean cb_viewMenuItem(GtkWidget *menuItem, GtkWidget *w)
+bool cb_viewMenuItem(GtkWidget *menuItem, GtkWidget *w)
 {
   if(checkViewMenuItem(menuItem))
     gtk_widget_show(w);
   else
     gtk_widget_hide(w);
-  return TRUE;
+  return true;
 }
 
-gboolean cb_viewFullscreen(GtkWidget *menuItem, GtkWidget *win)
+bool cb_viewFullscreen(GtkWidget *menuItem, GtkWidget *win)
 {
   if(checkViewMenuItem(menuItem))
     gtk_window_fullscreen(GTK_WINDOW(win));
   else
      gtk_window_unfullscreen(GTK_WINDOW(win));
-  return TRUE;
+  return true;
 }
 
-gboolean cb_viewWindowBorder(GtkWidget *menuItem, GtkWidget *win)
+bool cb_viewWindowBorder(GtkWidget *menuItem, GtkWidget *win)
 {
   if(checkViewMenuItem(menuItem))
-    gtk_window_set_decorated(GTK_WINDOW(win), TRUE);
+    gtk_window_set_decorated(GTK_WINDOW(win), true);
   else
-    gtk_window_set_decorated(GTK_WINDOW(win), FALSE);
-  return TRUE;
+    gtk_window_set_decorated(GTK_WINDOW(win), false);
+  return true;
 }
 
-gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
+bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
 {
   switch(e->key.keyval)
   {
@@ -226,7 +226,7 @@ gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_d:
       if(qsApp->wins->next) // more than one in list
         qsWin_destroy(win);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_F:
     case GDK_KEY_f:
@@ -236,7 +236,7 @@ gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_I:
     case GDK_KEY_i:
       cb_savePNG(NULL, win);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_n:
     case GDK_KEY_N:
@@ -244,7 +244,7 @@ gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_j:
       if(checkViewMenuItem(win->viewStatusbar))
         _qsWidget_next(win->adjsWidget);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_m:
     case GDK_KEY_M:
@@ -260,45 +260,45 @@ gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_p:
       if(checkViewMenuItem(win->viewStatusbar))
         _qsWidget_prev(win->adjsWidget);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_Z:
     case GDK_KEY_z:
-      win->freezeDisplay = win->freezeDisplay?FALSE:TRUE;
+      win->freezeDisplay = win->freezeDisplay?false:true;
       if(!win->freezeDisplay)
         _qsWin_unfreeze(win);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_Q:
     case GDK_KEY_q:
       cb_quit(NULL, NULL);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_Left:
     case GDK_KEY_leftarrow:
       if(checkViewMenuItem(win->viewStatusbar))
         _qsWidget_shiftLeft(win->adjsWidget);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_Right:
     case GDK_KEY_rightarrow:
       if(checkViewMenuItem(win->viewStatusbar))
           _qsWidget_shiftRight(win->adjsWidget);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_Up:
     case GDK_KEY_uparrow:
       if(checkViewMenuItem(win->viewStatusbar))
         _qsWidget_inc(win->adjsWidget);
-      return TRUE;
+      return true;
       break;
     case GDK_KEY_Down:
     case GDK_KEY_downarrow:
       if(checkViewMenuItem(win->viewStatusbar))
         _qsWidget_dec(win->adjsWidget);
-      return TRUE;
+      return true;
       break;
   }
-  return FALSE;
+  return false;
 }
 

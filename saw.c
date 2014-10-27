@@ -68,7 +68,7 @@ int cb_saw(struct QsSaw *s, long double tf,
   struct QsSource *source;
   source = (struct QsSource *) s;
   int nFrames;
-  gboolean isMaster;
+  bool isMaster;
   isMaster = qsSource_isMaster(source);
 
   nFrames = qsSource_getRequestedSamples(source, tf, prevT);

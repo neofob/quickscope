@@ -31,7 +31,7 @@
 
 
 static
-gboolean cb_close(GtkWidget *w, GdkEvent *e, struct QsWin *win)
+bool cb_close(GtkWidget *w, GdkEvent *e, struct QsWin *win)
 {
   QS_ASSERT(win);
   qsWin_destroy(win);
@@ -41,13 +41,13 @@ gboolean cb_close(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     // answer question.
     gtk_main_quit();
 
-  return TRUE;
+  return true;
 }
 
 // This is just call when the drawing area is exposed or resized.
 // It's a redraw or initial draw.  The animation drawing happens
 // from trace.c.
-gboolean _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
+bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
 {
   if(win->pixmap)
   {
@@ -84,7 +84,7 @@ static int64_t frameCount = 0;
 #endif
 
 
-  return TRUE; /* TRUE means the event is handled. */
+  return true; /* true means the event is handled. */
 }
 
 static inline
@@ -111,7 +111,7 @@ GtkWidget *create_menu_item(GtkWidget *menu,
 	 const char *pixmap[], const gchar *STOCK,
 	 guint key, const char *mnemonic,
 	 void (*callback)(GtkWidget*, void*),
-	 gpointer data, gboolean is_sensitive)
+	 gpointer data, bool is_sensitive)
 {
 
   /* TODO: BUG: How do we get rid of the space before the menu item? */
@@ -129,18 +129,18 @@ GtkWidget *create_menu_item(GtkWidget *menu,
     image = gtk_image_new_from_icon_name(STOCK, GTK_ICON_SIZE_MENU);
 
   if(image)
-    gtk_box_pack_start(GTK_BOX(hbox), image, FALSE, FALSE, 1);
+    gtk_box_pack_start(GTK_BOX(hbox), image, false, false, 1);
 
   QS_ASSERT(label);
   l = gtk_label_new(NULL);
   gtk_label_set_markup(GTK_LABEL(l), label);
-  gtk_box_pack_start(GTK_BOX(hbox), l, FALSE, TRUE, 1);
+  gtk_box_pack_start(GTK_BOX(hbox), l, false, true, 1);
 
   if(mnemonic)
   {
     l = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(l), mnemonic);
-    gtk_box_pack_end(GTK_BOX(hbox), l, FALSE, FALSE, 1);
+    gtk_box_pack_end(GTK_BOX(hbox), l, false, false, 1);
   }
  
   //printf("gtk_bin_get_child(GTK_BIN(mi))=%p\n", gtk_bin_get_child(GTK_BIN(mi)));
@@ -168,7 +168,7 @@ void create_menu_item_seperator(GtkWidget *menu)
 
 static
 GtkWidget *create_check_menu_item(GtkWidget *menu, const char *label,
-    guint key, gboolean is_checked,
+    guint key, bool is_checked,
     void (*callback)(GtkWidget*, void*),
     gpointer data)
 {
@@ -238,7 +238,7 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       gtk_menu_bar_set_pack_direction(GTK_MENU_BAR(menubar),
           GTK_PACK_DIRECTION_LTR);
 
-      gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX(vbox), menubar, false, false, 0);
     
       /************************************************************************
        *              File Menu 
@@ -248,12 +248,12 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
           "Save PNG <span underline=\"single\">I</span>mage File",
           imgSaveImage, NULL, GDK_KEY_I, "I",
           (void (*)(GtkWidget*, gpointer)) cb_savePNG,
-          win, TRUE);
+          win, true);
       create_menu_item(menu,
           "<span underline=\"single\">Q</span>uit",
           NULL, "quit", GDK_KEY_Q, "Q",
           (void (*)(GtkWidget*, gpointer)) cb_quit,
-          NULL, TRUE);
+          NULL, true);
       create_menu_item_seperator(menu);
 
       /************************************************************************
@@ -294,13 +294,13 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
     {
       GtkWidget *da;
       win->da = da = gtk_drawing_area_new();
-      gtk_widget_set_double_buffered(da, FALSE);
+      gtk_widget_set_double_buffered(da, false);
       g_signal_connect(G_OBJECT(da),"configure-event",
           G_CALLBACK(_qsWin_cb_configure), win);
       g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(_qsWin_cbDraw), win);
-      //gtk_widget_set_app_paintable(da, TRUE);
+      //gtk_widget_set_app_paintable(da, true);
       //gtk_widget_override_background_color(da, 0xFF, &win->bgColor);
-      gtk_box_pack_start(GTK_BOX(vbox), da, TRUE, TRUE, 0);
+      gtk_box_pack_start(GTK_BOX(vbox), da, true, true, 0);
       gtk_widget_show(da);
     }
     /**************************************************************************
@@ -313,7 +313,7 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       //win->statusbar = gtk_label_new("");
       
       gtk_label_set_ellipsize(GTK_LABEL(win->statusbar), PANGO_ELLIPSIZE_END);
-      gtk_label_set_use_markup(GTK_LABEL(win->statusbar), TRUE);
+      gtk_label_set_use_markup(GTK_LABEL(win->statusbar), true);
       pfd = pango_font_description_from_string("Monospace 11");
       if(pfd)
       {
@@ -321,7 +321,7 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
        pango_font_description_free(pfd);
       }
       gtk_label_set_markup(GTK_LABEL(win->statusbar), "status bar");
-      gtk_box_pack_start(GTK_BOX(vbox), win->statusbar, FALSE, FALSE, 0);
+      gtk_box_pack_start(GTK_BOX(vbox), win->statusbar, false, false, 0);
       if(qsApp->op_showStatusbar)
         gtk_widget_show(win->statusbar);
     }
@@ -336,7 +336,7 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
   if(qsApp->op_fullscreen)
     gtk_window_fullscreen(GTK_WINDOW(w));
   if(!qsApp->op_showWindowBorder)
-    gtk_window_set_decorated(GTK_WINDOW(w), FALSE);
+    gtk_window_set_decorated(GTK_WINDOW(w), false);
   gtk_widget_show(w);
 }
 

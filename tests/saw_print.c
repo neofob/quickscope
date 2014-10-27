@@ -5,7 +5,7 @@
 #include <quickscope.h>
 
 
-static gboolean
+static bool
 SpewSource(struct QsSource *s, struct QsIterator *it)
 {
   static int count = 0;
@@ -21,7 +21,7 @@ SpewSource(struct QsSource *s, struct QsIterator *it)
   if(count > 300)
     qsApp_destroy();
 
-  return TRUE;
+  return true;
 }
 
 
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
       20/*samplesPerPeriod*/, NULL/*source group*/);
 
   qsSource_addChangeCallback(s,
-      (gboolean (*)(struct QsSource *, void *)) SpewSource,
+      (bool (*)(struct QsSource *, void *)) SpewSource,
       qsIterator_create(s, 0));
 
   qsApp_main();
