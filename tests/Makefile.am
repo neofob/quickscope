@@ -6,7 +6,10 @@
 # This directory has source code for
 # development test programs.
 # They are not so useful for regular
-# quickscope users.
+# quickscope users. 
+
+EXTRA_DIST =\
+ quickplot.bash
 
 noinst_PROGRAMS =\
  tests_launcher\
@@ -19,7 +22,6 @@ noinst_PROGRAMS =\
 
 noinst_SCRIPTS =\
  quickplot.bash
-
 
 
 qs_LDADD = ../libquickscope.la
