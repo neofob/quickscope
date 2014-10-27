@@ -52,13 +52,20 @@ convert_generated_images =\
  quickscope_32.xpm\
  quickscope.ico
 
+examples =\
+ examples/README\
+ examples/GNUmakefile\
+ examples/sin.c
+
+
 EXTRA_DIST =\
  imgSaveImage.png\
  quickscope.png\
  bootstrap\
  Repo_clean\
  $(quickscope_headers)\
- $(convert_generated_images)
+ $(convert_generated_images)\
+ $(examples)
 
 
 BUILT_SOURCES =\

@@ -1,0 +1,30 @@
+This directory contains example programs that build with
+an installed quickscope package and does not use GNU autotools
+to build.  You will need the pkg-config to be able to get
+libquickscope installation information, maybe by setting the
+environment variable PKG_CONFIG_PATH to include the directory
+where quickscope.pc in installed.  For example in a bash shell
+
+
+   export PKG_CONFIG_PATH=/home/joe/installed/lib/pkgconfig
+
+
+given that the quickscope installation prefix was
+/home/joe/installed
+
+Run make:
+
+
+    make
+
+
+and then run a program like:
+
+
+    ./sin
+
+
+for example.
+
+The simplest coded example to start with is sin.c
+

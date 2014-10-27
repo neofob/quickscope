@@ -104,6 +104,11 @@ function remove_files()
   rm -f *.o *.la *.so *.lo stamp-h* *.a Makefile Makefile.in
   rm -f tests_launcher hello circle saw_print non_master_print source sin
 
+  # directory exmaples/
+
+  cd ../examples || exit 1
+
+  rm -f *.o sin
 
 ######################################################################
 }
