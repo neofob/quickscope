@@ -216,7 +216,7 @@ quickscope.h: Makefile $(quickscope_headers)
 	echo "/* This is a generated file */" > $@
 	for i in $(quickscope_headers) ; do \
            echo "/*************** Start from file: $$i **************/" >> $@; \
-           cat $$i >> $@; \
+           cat $(srcdir)/$$i >> $@; \
            echo "/*************** End from file: $$i ****************" >> $@; \
            echo " *******************************************************/" >> $@; \
         done
