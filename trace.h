@@ -1,8 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
-
 /* All drawing will be time faded. So if your
  * source data read rate is higher than the
  * monitor refresh rate you will still see traces

@@ -26,7 +26,8 @@ EXTRA_DIST =\
  quickscope.xpm\
  quickscope.png\
  bootstrap\
- Repo_clean
+ Repo_clean\
+ top_quickscope.h
 
 SUBDIRS = . bin
 
@@ -72,7 +73,6 @@ libquickscope_la_SOURCES =\
  controller_priv.h\
  debug.h\
  drawsync.c\
- drawsync_priv.h\
  fd.c\
  fd.h\
  imgSaveImage.xpm\
@@ -150,10 +150,10 @@ include_HEADERS = quickscope.h
 quickscope_headers =\
  top_quickscope.h\
  debug.h\
+ assert.h\
  base.h\
  adjuster.h\
  app.h\
- assert.h\
  drawsync.h\
  controller.h\
  fd.h\
@@ -212,7 +212,11 @@ endif
 
 quickscope.h: Makefile $(quickscope_headers)
 	echo "/* This is a generated file */" > $@
-	cat $(quickscope_headers) >> $@
+	for i in $(quickscope_headers) ; do \
+           echo "/****** from file: $$i *******/" >> $@; \
+           cat $$i >> $@; \
+           echo "/****** end file: $$i ********/" >> $@; \
+        done
 
 hash: sha1 sha256 sha512
 sha1:   $(gzfile).sha1   $(bz2file).sha1   $(xzfile).sha1

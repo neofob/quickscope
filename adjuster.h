@@ -1,8 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
-
 /* QsAdjuster and it's manager class QsAdjusterList is a method to adjust any
  * number of parameters.  Each parameter you wish to control has a
  * corresponding QsAdjuster.  All the QsAdjuster(s) are managed as a group

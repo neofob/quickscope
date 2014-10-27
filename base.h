@@ -1,8 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
-
 // Butt ugly macros used to define and declare functions
 // to an "QS class" object that may be inherited.
 // 

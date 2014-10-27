@@ -1,7 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
 /* This is a "C-class object" that makes the things that are shared
  * by a group of QsSources.  All QsSources 
  *

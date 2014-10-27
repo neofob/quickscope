@@ -1,8 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
-
 struct QsController;
 struct QsSource;
 

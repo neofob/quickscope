@@ -1,7 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
 /* QsIterator and QsIterator2 are "C-Classes"
  * for reading (not writing) the source frame ring-buffers.
  */

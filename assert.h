@@ -1,8 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
-
 #ifndef _QS_DEBUG_H_
 #  error  "You must include debug.h before this file"
 #endif

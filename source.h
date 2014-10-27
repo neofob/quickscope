@@ -1,8 +1,3 @@
-/* Quickscope - a software oscilloscope
- * Copyright (C) 2012-2014  Lance Arsenault
- * GNU General Public License version 3
- */
-
 // We use this 1 special float value
 #define QS_LIFT   (NAN)  /* lift pen */
 
