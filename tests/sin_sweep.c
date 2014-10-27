@@ -16,14 +16,16 @@ int main(int argc, char **argv)
   qsApp->op_doubleBuffer = TRUE;
   qsApp->op_grid = 0;
 
-  sin = qsSin_create( 200 /* maxNumFrames */,
+  sin = qsSin_create( 500 /* maxNumFrames */,
         0.45F /*amplitude*/, 0.5F /*period*/,
-        0.0F*M_PI /*phaseShift*/, 40 /*samplesPerPeriod*/,
+        0.0F*M_PI /*phaseShift*/,
+        qsApp_int("samples-per-period", 100),
         NULL /* group */);
 
   sweep = qsSweep_create(2.7F /*period*/,
       0.0F/*level*/, 1/*slope 0==free*/, 0.0F/*holdOff*/,
-      -1.125F/*delay*/, sin/*source*/, 0/*sourceChannelNum*/);
+      qsApp_float("delay", 0.0F),
+      sin/*source*/, 0/*sourceChannelNum*/);
 
   qsTrace_create(NULL /* QsWin, NULL to make a default Win */,
       sweep, 0, sin, 0, /* x/y source and channels */

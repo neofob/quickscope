@@ -62,6 +62,7 @@ libquickscope_la_SOURCES =\
  adjuster_priv.h\
  app.c\
  app.h\
+ app_arg.c\
  assert.c\
  assert.h\
  base.h\

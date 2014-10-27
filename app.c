@@ -64,6 +64,20 @@ void logHandler(const gchar *log_domain,
 }
 #endif
 
+static void
+_qsApp_freeArgv(void)
+{
+  if(qsApp && qsApp->argv)
+  {
+    char **argv;
+    argv = qsApp->argv;
+    while(*argv)
+      g_free(*argv++);
+    g_free(qsApp->argv);
+    qsApp->argv = NULL;
+  }
+}
+
 struct QsApp *qsApp_init(int *argc, char ***argv)
 {
 #ifdef QS_DEBUG
@@ -98,12 +112,15 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
     qsApp = g_malloc0(sizeof(*qsApp));
     qsApp->timer = _qsTimer_create();
   }
-#ifdef QS_DEBUG
   else
+  {
+    _qsApp_freeArgv();
+#ifdef QS_DEBUG
     // We don't re-initialize the timer, because
     // we don't like time to go backwards.
     memset(qsApp, 0, sizeof(*qsApp));
 #endif
+  }
 
   QS_ASSERT(qsApp);
   QS_ASSERT(qsApp->timer);
@@ -171,6 +188,15 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
   qsApp->op_defaultIntervalPeriod = 1.0/60.0;
   
   /*****************************/
+
+  if(argc && *argc && argv && *argv)
+  {
+    qsApp->argv = g_malloc(sizeof(char *)*(*argc+1));
+    int i;
+    for(i=0; i<(*argc); ++i)
+      qsApp->argv[i] = g_strdup((*argv)[i]);
+    qsApp->argv[i] = NULL;
+  }
 
   if(gtk_main_level() == 0 &&
       !gtk_init_check(argc, argv))
@@ -368,6 +394,8 @@ void qsApp_destroy(void)
 
   while(qsApp->wins)
     qsWin_destroy((struct QsWin *) qsApp->wins->data);
+
+  _qsApp_freeArgv();
 
   _qsTimer_destroy(qsApp->timer);
 

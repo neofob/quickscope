@@ -11,6 +11,8 @@ struct QsApp
   GSList *sources; /* list of all QsSource objects */
   struct QsTimer *timer;
 
+  char **argv; // We use NULL termination
+
 
   /* After op_fadeDelay seconds the beam colors start to
    * fade so beams are not seen op_fadePeriod seconds +
@@ -101,3 +103,11 @@ void qsApp_main(void);
 extern
 void qsApp_destroy(void);
 
+extern
+float qsApp_float(const char *name, float dflt);
+extern
+double qsApp_double(const char *name, double dflt);
+extern
+const char *qsApp_string(const char *name, const char *dflt);
+extern
+int qsApp_int(const char *name, int dflt);

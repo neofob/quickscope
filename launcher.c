@@ -22,13 +22,16 @@ static const char *const programs[] =
 #else
   // tests/ code
   "hello", NULL,
-  "quickplot.bash", "./source", NULL,
+  "quickplot.bash", "source", NULL,
   "circle", NULL,
-  "quickplot.bash", "./saw_print", NULL,
-  "quickplot.bash", "./non_master_print", NULL,
+  "quickplot.bash", "saw_print", NULL,
+  "quickplot.bash", "non_master_print", NULL,
   "sin_sweep", NULL,
+  "sin_sweep", "--delay=2.125", NULL,
+  "sin_sweep", "--delay=-2.125", NULL,
+  "sin_sweep", "--samples-per-period=11", NULL,
 #endif
-  NULL
+  NULL // Null terminator
 };
 
 struct Run
@@ -135,7 +138,12 @@ void setLabelString(struct Run *run)
 
 static gboolean run_cb(GtkWidget *button, struct Run *run)
 {
-  printf("running: %s\n", *run->args);
+  fprintf(stderr, "running:");
+  char **arg;
+  arg = run->args;
+  while(*arg)
+    fprintf(stderr, " %s", *arg++);
+  fprintf(stderr, "\n");
 
   setLabelString(run);
 
@@ -162,6 +170,7 @@ static void addButton(char *const *args, GtkContainer *vbox)
   setLabelString(run);
 }
 
+static
 gboolean ecb_keyPress(GtkWidget *w, GdkEvent *e, void* data)
 {
   switch(e->key.keyval)
