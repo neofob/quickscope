@@ -301,4 +301,3 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
   }
   return false;
 }
-
