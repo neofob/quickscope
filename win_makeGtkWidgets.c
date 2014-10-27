@@ -12,6 +12,7 @@
 #define _GNU_SOURCE
 #include <errno.h> // for program_invocation_short_name
 #include <inttypes.h>
+#include <stdbool.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include "debug.h"

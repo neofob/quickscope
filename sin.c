@@ -12,6 +12,7 @@
 #ifdef ISET___USE_GNU
 #undef __USE_GNU
 #endif
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"

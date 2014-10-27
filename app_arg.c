@@ -2,11 +2,11 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
-
 #include <errno.h>
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -76,5 +76,25 @@ int qsApp_int(const char *name, int dflt)
   char *val = getString(name, qsApp->argv);
   if(val)
     return (int) strtol(val, NULL, 10);
+  return dflt;
+}
+
+bool qsApp_bool(const char *name, bool dflt)
+{
+  char *val = getString(name, qsApp->argv);
+
+  if(val)
+  {
+    if(*val == 'f' || *val == 'F' ||
+        *val == '0' ||
+        *val == 'n' || *val == 'N' ||
+        ((*val == 'o' || *val == 'O') && (val[1] == 'f' || val[1] == 'F')))
+      // false, 0, no, neg, off
+      return false;
+    else
+      // true, 1, yes, affirmative, on, asdf
+      return true;
+  }
+
   return dflt;
 }

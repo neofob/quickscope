@@ -111,3 +111,5 @@ extern
 const char *qsApp_string(const char *name, const char *dflt);
 extern
 int qsApp_int(const char *name, int dflt);
+extern
+bool qsApp_bool(const char *name, bool dflt);

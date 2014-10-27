@@ -6,6 +6,7 @@
 #include <X11/Xlib.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <cairo.h>
 #include <cairo-xlib.h>
 #include <gdk/gdkx.h>

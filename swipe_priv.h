@@ -304,7 +304,7 @@ void _qsWin_swipeRemove(struct QsWin *win, struct QsTrace *trace,
 }
 
 static inline
-void _bumpCounters(struct QsWin *win, struct QsSwipe *swipe,
+void bumpCounters(struct QsWin *win, struct QsSwipe *swipe,
     struct QsSwipeColor *sc, int x)
 {
   swipe->pointCount = ++win->swipePointCount;
@@ -356,7 +356,7 @@ void _qsWin_swipeAddFrozenPoint(struct QsWin *win,
   {
     if(swipe->lastValueAdded < x)
       ++swipe->freezeLapCount;
-    _bumpCounters(win, swipe, NULL, x);
+    bumpCounters(win, swipe, NULL, x);
   }
 }
 
@@ -373,7 +373,7 @@ void _qsWin_swipeAddPoint(struct QsWin *win, struct QsTrace *trace,
 
   if(y < 0 || y >= win->height)
   {
-    _bumpCounters(win, swipe, NULL, x);
+    bumpCounters(win, swipe, NULL, x);
     return; // we can't draw it
   }
 
@@ -389,21 +389,20 @@ void _qsWin_swipeAddPoint(struct QsWin *win, struct QsTrace *trace,
     QS_ASSERT(sc->next || (sc == swipe->end && !sc->next));
     return;
   }
-  else // It's not in the list.
-  {
-    // Now put it at the end of the list
-    if(!swipe->start)
-    {
-      QS_ASSERT(!swipe->end);
-      swipe->start = sc;
-    }
-    else if(swipe->end)
-      swipe->end->next = sc;
-    swipe->end = sc;
-    sc->next = NULL;
+  // It's not in the list.
 
-    _bumpCounters(win, swipe, sc, x);
+  // Now put it at the end of the list
+  if(!swipe->start)
+  {
+    QS_ASSERT(!swipe->end);
+    swipe->start = sc;
   }
+  else if(swipe->end)
+    swipe->end->next = sc;
+  swipe->end = sc;
+  sc->next = NULL;
+
+  bumpCounters(win, swipe, sc, x);
 
   QS_ASSERT(x >= swipe->lastValueAdded || x < swipe->xMid);
 }

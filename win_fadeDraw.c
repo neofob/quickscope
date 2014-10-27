@@ -5,6 +5,7 @@
 #include <math.h>
 #include <limits.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include "debug.h"

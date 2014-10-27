@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include <math.h>
 #include <string.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"

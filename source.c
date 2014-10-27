@@ -6,6 +6,7 @@
 #include <math.h>
 #include <X11/Xlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"

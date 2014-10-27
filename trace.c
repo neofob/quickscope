@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <X11/Xlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
@@ -329,10 +330,9 @@ void makeAdjuster(struct  QsTrace *trace, const char *text,
 }
 
 static
-void _qsTrace_cb_swipe(struct  QsTrace *trace, void *data)
+void _qsTrace_cb_swipe(struct  QsTrace *trace)
 {
-  printf("%s(trace=%p, data=%p) isSwipe=%d\n",
-      __func__, trace, data, trace->isSwipe);
+  qsTrace_setSwipeX(trace, trace->isSwipe);
 }
 
 struct QsTrace *qsTrace_create(struct QsWin *win,

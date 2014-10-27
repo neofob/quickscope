@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
 #include <gtk/gtk.h>
-

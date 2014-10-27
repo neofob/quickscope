@@ -68,8 +68,10 @@ void _qsTrace_reallocSwipe(struct QsTrace *trace)
   if(!trace->swipe)
     trace->swipe = swipe = g_malloc0(sizeof(*swipe));
   else
+  {
     swipe = trace->swipe;
-
+    memset(swipe, 0, sizeof(*swipe));
+  }
 
   if(!win->gc)
     // We need the drawing area width and height
@@ -83,13 +85,22 @@ void _qsTrace_reallocSwipe(struct QsTrace *trace)
   swipe->xMid = 2*win->width/3;
 #endif
 
-  swipe->surface = g_malloc(sizeof(*swipe->surface) * win->width * win->height);
+  swipe->surface = g_malloc0(sizeof(*swipe->surface) *
+      win->width * win->height);
+
+  trace->isSwipe = TRUE;
 }
 
 void _qsTrace_cleanupSwipe(struct QsTrace *trace)
 {
   QS_ASSERT(trace && trace->win);
   QS_ASSERT(trace->swipe && trace->swipe->surface);
+
+#ifdef QS_DEBUG
+  memset(trace->swipe->surface, 0,
+      sizeof(*trace->swipe->surface) *
+      trace->win->width * trace->win->height);
+#endif
 
   g_free(trace->swipe->surface);
 
@@ -99,6 +110,7 @@ void _qsTrace_cleanupSwipe(struct QsTrace *trace)
 
   g_free(trace->swipe);
   trace->swipe = NULL;
+  trace->isSwipe = FALSE;
 }
 
 void qsTrace_setSwipeX(struct QsTrace *trace, gboolean on)
@@ -108,16 +120,15 @@ void qsTrace_setSwipeX(struct QsTrace *trace, gboolean on)
   if((trace->swipe && on) || (!trace->swipe && !on))
     return;
 
-  if(!on)
-  {
-    _qsTrace_cleanupSwipe(trace);
-    return;
-  }
-  else
+  if(on)
   {
     // Make a swipe thingy
     _qsTrace_reallocSwipe(trace);
     _qsWin_reconfigure(trace->win);
+  }
+  else
+  {
+    _qsTrace_cleanupSwipe(trace);
   }
 }
 

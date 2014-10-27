@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <paths.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkx.h>

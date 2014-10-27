@@ -16,20 +16,29 @@
 static const char *const programs[] =
 {
 #ifndef TESTS
+
   // bin/ installed qs_launcher code
+
   "qs_circle", NULL,
   "qs_sin", NULL,
+
 #else
+
   // tests/ code
+
   "hello", NULL,
   "quickplot.bash", "source", NULL,
   "circle", NULL,
   "quickplot.bash", "saw_print", NULL,
   "quickplot.bash", "non_master_print", NULL,
-  "sin_sweep", NULL,
-  "sin_sweep", "--delay=2.125", NULL,
-  "sin_sweep", "--delay=-2.125", NULL,
-  "sin_sweep", "--samples-per-period=11", NULL,
+  "sin", NULL,
+  "sin", "--delay=2.125", NULL,
+  "sin", "--delay=-2.125", NULL,
+  "sin", "--samples-per-period=11", NULL,
+  "sin", "--slope=0", "--swipe=1", NULL,
+  "sin", "--slope=0", "--swipe=1", "--fade=0", NULL,
+  "sin", "--slope=0", "--swipe=1", "--fade=0", "--cos=1", NULL,
+
 #endif
   NULL // Null terminator
 };

@@ -15,7 +15,7 @@ noinst_PROGRAMS =\
  circle\
  saw_print\
  non_master_print\
- sin_sweep
+ sin
 
 noinst_SCRIPTS =\
  quickplot.bash
@@ -43,5 +43,5 @@ saw_print_LDADD = $(qs_LDADD)
 non_master_print_SOURCES = non_master_print.c
 non_master_print_LDADD = $(qs_LDADD)
 
-sin_sweep_SOURCES = sin_sweep.c
-sin_sweep_LDADD = $(qs_LDADD)
+sin_SOURCES = sin.c
+sin_LDADD = $(qs_LDADD)
