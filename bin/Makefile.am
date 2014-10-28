@@ -12,7 +12,7 @@ AM_CFLAGS = -I.. $(gtk_3_CFLAGS)
 bin_PROGRAMS = qs_launcher qs_circle qs_sin
 
 qs_launcher_SOURCES = $(srcdir)/../launcher.c
-qs_launcher_LDADD = $(gtk_3_LIBS)
+qs_launcher_LDADD = $(gtk_3_LIBS) -ldl
 
 qs_circle_SOURCES = circle.c
 qs_circle_LDADD = $(qs_LDADD)

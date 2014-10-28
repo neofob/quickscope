@@ -46,6 +46,7 @@ quickscope_headers =\
 
 # The .xpm files are built but come in a tarball.
 # .xpm files are not checked into the repository.
+# Same for .ico files.
 
 convert_generated_images =\
  imgSaveImage.xpm\
@@ -135,10 +136,12 @@ libquickscope_la_SOURCES =\
  win_savePNG.c\
  win_setGrid.c
 
-# automake has no per-object spectfic flags, so making
-# a library for each object that requires spectfic
-# CPP flags is a workaround that gets us per-object
-# spectfic flags on these special objects.
+# automake (as of version 1.14.1) has no per-object
+# spectfic flags, so making a library for each object
+# that requires spectfic CPP flags is a workaround
+# that gets us per-object spectfic flags on these
+# special objects.
+
 # adjusterType.c is a marco template source file,
 # so to speak.  It's default Type is float.
 noinst_LTLIBRARIES = libadjD.la libadjLD.la libadjInt.la
@@ -153,8 +156,15 @@ libadjLD_la_CFLAGS = -DLONG_DOUBLE $(gtk_3_CFLAGS)
 libadjInt_la_CFLAGS = -DINT $(gtk_3_CFLAGS)
 
 libquickscope_la_SHORTNAME = qs
-libquickscope_la_LIBADD = libadjD.la libadjLD.la libadjInt.la $(gtk_3_LIBS) $(sndfile_LIBS) -lX11 -ldl
-libquickscope_la_CFLAGS = $(gtk_3_CFLAGS)
+libquickscope_la_LIBADD =\
+ libadjD.la\
+ libadjLD.la\
+ libadjInt.la\
+ $(gtk_3_LIBS)\
+ $(sndfile_LIBS)\
+ -lX11\
+ -ldl
+libquickscope_la_CFLAGS = $(gtk_3_CFLAGS) $(sndfile_CFLAGS)
 libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
 
 
@@ -265,4 +275,3 @@ $(bz2file):
 
 $(xzfile):
 	$(MAKE) dist-xz
-

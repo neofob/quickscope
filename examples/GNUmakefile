@@ -7,18 +7,24 @@ CFLAGS = -g -Werror -Wall
 QS_CFLAGS = $(shell pkg-config --cflags quickscope)
 QS_LFLAGS = $(shell pkg-config --libs quickscope)
 
-programs = $(patsubst %.c, %, $(wildcard *.c))
+programs =$(sort $(patsubst %.c, %,\
+ $(filter-out run_list.c, $(wildcard *.c))))
 
-.c.o:
-	$(CC) -c $(CFLAGS) $(QS_CFLAGS) $< -o $@
+.SUFFIXES: .c .o .so
 
 build: $(programs)
+
+.c.o:
+	$(CC) -fPIC -c $(CFLAGS) $(QS_CFLAGS) $< -o $@
+
+.o.so:
+	$(CC) -shared $(CFLAGS) $(QS_CFLAGS) $< -o $@
 
 
 $(programs): %:%.o
 	$(CC) $(CFLAGS) $^ -o $@ $(QS_LFLAGS)
 
 clean:
-	rm -f *.o $(programs)
+	rm -f *.o *.so $(programs)
 
 cleaner: clean

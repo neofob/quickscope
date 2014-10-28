@@ -163,7 +163,8 @@ source        we read data from a source, source callback
 
 
 group         a group of sources.  Has no public interfaces
-              and is used internally only.
+              and is used internally only.  Is managed by the
+              sources that belong to the group
 
 
 sweep         is a source that acts like a scope sweep with
@@ -225,17 +226,18 @@ selector     -- like radio selector, ex: sweep slope
 Shell notes:
 
 
-Class      On-the-fly Changeable Parameters
+Class      On-the-fly Changeable Parameters ??
 ---------  ---------------------------------
 
 win        fadeDrawPeriod fadePeriod drawPeriod
-           backgroundColor gridColor
+           backgroundColor gridColor showGrid
+           showAxis show...
 
 trace      points lines pointColor lineColor xScale xShift yScale yShift
 
 interval   period
 
-controller sources
+controller add or remove sources
 
 sweep      period level slope holdOff
            sourceIn channelNumIn freeRun
@@ -258,7 +260,7 @@ We write Quickscope is C for many reasons.
 writing C code.
 
 2. Making bindings to others languages is easiest if Quickscope is written
-in C.
+in C, or so we imagine.
 
 3. The compile time is much faster than if it where written in C++ or D.
 
@@ -266,10 +268,12 @@ in C.
 
 5. X11 and GTK+ are written in C and have good C interfaces.
 
-6. Less dependencies.
+6. Less dependencies, which is a major plus.
 
 7. Easier access to input devices given the operating system is written
 in C.
+
+8. None of these reasons are overwhelming, C++ would be okay too.
 
 
 

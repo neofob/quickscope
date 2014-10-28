@@ -1,0 +1,11 @@
+This directory contains test programs build with autotools.
+You must run the ../configure script with the --enable-tests
+to build these test programs.  These test programs are not
+necessarily good quickscope user example programs.
+
+For good short and long user example programs see the files
+in directory ../examples that came with the quickscope source
+tarball or the quickscope source git repository files.  The
+examples in ../examples do not use GNU autotools to build, but
+instead use a single makefile (GNUmakefile) and assumes that
+the quickscope library is installed.

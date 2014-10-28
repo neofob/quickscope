@@ -28,7 +28,7 @@ qs_LDADD = ../libquickscope.la
 AM_CFLAGS = -I.. $(gtk_3_CFLAGS)
 
 tests_launcher_SOURCES = $(srcdir)/../launcher.c
-tests_launcher_LDADD = $(gtk_3_LIBS)
+tests_launcher_LDADD = $(gtk_3_LIBS) -ldl
 tests_launcher_CFLAGS = -DTESTS $(gtk_3_CFLAGS)
 
 hello_SOURCES = hello.c

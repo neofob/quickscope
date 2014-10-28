@@ -20,7 +20,7 @@ int main(int argc, char **argv)
          * If this is too small you may miss seeing
          * some of the data that is created in the
          * QsSource in a given read cycle. */
-        0.45F /*amplitude*/, 0.131F /*period*/,
+        0.45F /*amplitude*/, 0.061F /*period*/,
         0.0F*M_PI /*phase shift*/,
         40 /*samples-per-period*/,
         NULL /* source group, NULL => create one */);
@@ -28,7 +28,7 @@ int main(int argc, char **argv)
   /* create a source that uses the sin source to
    * make a sweep that we will use as the X input
    * into the trace. */
-  sweep = qsSweep_create(0.5F /*sweep period*/,
+  sweep = qsSweep_create(0.2F /*sweep period*/,
       0.0F /*trigger level*/,
       1 /*slope may be  -1, 0, 1   0 => free run */,
       0.3F /*trigger hold off*/,
