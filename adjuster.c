@@ -540,3 +540,11 @@ void _qsAdjusterList_remove(struct QsAdjusterList *adjL,
   // We can't here because we don't know the state of the
   // Widgets and there may be more changes to come.
 }
+
+void qsAdjuster_setIconStrFunc(struct QsAdjuster *adj,
+    size_t (*iconText)(char *, size_t, void *),
+    void *data)
+{
+  adj->icon = iconText;
+  adj->iconData = data;
+}

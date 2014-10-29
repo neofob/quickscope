@@ -43,6 +43,7 @@ static const char *const default_programs[] =
   "sin", "--slope=0", "--swipe=1", NULL,
   "sin", "--slope=0", "--swipe=1", "--fade=0", NULL,
   "sin", "--slope=0", "--swipe=1", "--fade=0", "--cos=1", NULL,
+  "quickplot.bash", "soundFile", "/usr/share/tuxpaint/sounds/bleep.wav", NULL,
 
 #endif
   NULL // Null terminator

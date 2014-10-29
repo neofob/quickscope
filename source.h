@@ -152,7 +152,7 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     // The maxNumFrames will only be set for the first source
     // made in the group (checked that it is the same in QS_DEBUG).
     // It is also the ring buffer length.
-    struct QsSource *group /* group=NULL to make a new group */,
+    const struct QsSource *group /* group=NULL to make a new group */,
     size_t objectSize);
 extern
 void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read);
@@ -161,6 +161,12 @@ bool qsSource_isSwipable(struct QsSource *s)
 {
   QS_ASSERT(s);
   return s->isSwipable;
+}
+static inline
+int qsSource_numChannels(struct QsSource *s)
+{
+  QS_ASSERT(s);
+  return s->numChannels;
 }
 static inline
 void qsSource_setIsSwipable(struct QsSource *s, bool isSwipable)

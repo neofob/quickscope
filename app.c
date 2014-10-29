@@ -14,6 +14,7 @@
 #include "base.h"
 #include "timer_priv.h"
 #include "app.h"
+#include "app_priv.h"
 #include "controller.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
@@ -130,7 +131,7 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
    * initialization of options *
    *****************************/
 
-  qsApp->opSourceRequireController = true;
+  qsApp->op_sourceRequireController = true;
   
   qsApp->op_fade = true;
   qsApp->op_fadePeriod = 1;
@@ -187,6 +188,7 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
   qsApp->op_showStatusbar = true;
 
   qsApp->op_defaultIntervalPeriod = 1.0/60.0;
+  qsApp->op_exitOnNoSourceWins = true;
   
   /*****************************/
 
@@ -231,7 +233,7 @@ void qsApp_main(void)
   qsApp->inAppLevel |= QS_APP_INAPPMAIN;
 
 
-  if(qsApp->opSourceRequireController)
+  if(qsApp->op_sourceRequireController)
   {
     // Make sure we have at least one QsController
     if(!qsApp->controllers && qsApp->sources)
@@ -362,10 +364,10 @@ void qsApp_main(void)
 void qsApp_destroy(void)
 {
   if(!qsApp)
-    // Let the user call qsApp_destroy() many times.
+    // Let qsApp_destroy() be called many times.
     return;
 
-  if((qsApp->inAppLevel & QS_APP_INGTKMAIN))
+  if(qsApp->inAppLevel & QS_APP_INGTKMAIN)
   {
     // We are calling qsApp_destroy() from within
     // gtk_main() within qsApp_main().
@@ -407,3 +409,18 @@ void qsApp_destroy(void)
   qsApp = NULL;
 }
 
+void _qsApp_checkDestroy()
+{
+  QS_ASSERT(qsApp);
+  if(qsApp->inAppLevel & QS_APP_INGTKMAIN)
+  {
+    // we are in a call to gtk_main()
+    // in a call to qsApp_main()
+    if(!qsApp->sources && !qsApp->wins &&
+        qsApp->op_exitOnNoSourceWins)
+    {
+      // We have no sources or windows
+      qsApp_destroy();
+    }
+  }
+}

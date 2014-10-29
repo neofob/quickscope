@@ -78,3 +78,7 @@ struct QsAdjuster *qsAdjusterGroup_start(struct QsAdjusterList *adjs,
 extern
 void qsAdjusterGroup_end(struct QsAdjuster *start);
 
+extern
+void qsAdjuster_setIconStrFunc(struct QsAdjuster *adj,
+    size_t (*iconText)(char *, size_t, void *),
+    void *data);

@@ -12,10 +12,8 @@
 #include "base.h"
 #include "app.h"
 #include "adjuster.h"
-#include "adjuster_priv.h"
 #include "group.h"
 #include "source.h"
-#include "source_priv.h"
 #include "iterator.h"
 #include "sweep.h"
 
@@ -393,11 +391,11 @@ size_t iconText(char *buf, size_t len, struct QsSweep *t)
 }
 
 static inline
-void addIcon(struct QsAdjuster *adj, struct QsSweep *t)
+void addIcon(struct QsAdjuster *adj, struct QsSweep *sw)
 {
-  adj->icon =
-    (size_t (*)(char *, size_t, void *)) iconText;
-  adj->iconData = t;
+  qsAdjuster_setIconStrFunc(adj,
+      (size_t (*)(char *, size_t, void *)) iconText,
+      sw);
 }
 
 static inline

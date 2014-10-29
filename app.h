@@ -71,8 +71,9 @@ struct QsApp
   
   bool op_fullscreen, op_showWindowBorder,
            op_showMenubar, op_showStatusbar;
+  bool op_exitOnNoSourceWins; // exit if no sources and no wins
 
-  bool opSourceRequireController; // require this in qsApp_main()
+  bool op_sourceRequireController; // require this in qsApp_main()
 
   // Use gtk_widget_add_tick_callback() if true
   bool op_syncFadeDraw; // or uses g_timeout_add_full()

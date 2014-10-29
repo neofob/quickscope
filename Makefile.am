@@ -40,6 +40,7 @@ quickscope_headers =\
  interval.h\
  source.h\
  iterator.h\
+ soundFile.h\
  sweep.h\
  trace.h\
  win.h
@@ -91,6 +92,7 @@ libquickscope_la_SOURCES =\
  adjuster_priv.h\
  app.c\
  app.h\
+ app_priv.h\
  app_arg.c\
  assert.c\
  assert.h\
@@ -115,6 +117,8 @@ libquickscope_la_SOURCES =\
  group.h\
  saw.c\
  sin.c\
+ soundFile.c\
+ soundFile.h\
  swipe.c\
  swipe_priv.h\
  sweep.c\

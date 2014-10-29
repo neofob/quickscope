@@ -15,6 +15,7 @@ noinst_PROGRAMS =\
  tests_launcher\
  hello\
  source\
+ soundFile\
  circle\
  saw_print\
  non_master_print\
@@ -47,3 +48,6 @@ non_master_print_LDADD = $(qs_LDADD)
 
 sin_SOURCES = sin.c
 sin_LDADD = $(qs_LDADD)
+
+soundFile_SOURCES = soundFile.c
+soundFile_LDADD = $(qs_LDADD)

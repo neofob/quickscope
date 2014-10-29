@@ -12,6 +12,7 @@
 #include "assert.h"
 #include "base.h"
 #include "app.h"
+#include "app_priv.h"
 #include "timer_priv.h"
 #include "trace.h"
 #include "trace_priv.h"
@@ -199,6 +200,8 @@ void qsSource_destroy(struct QsSource *s)
   /* now destroy this and the base object
    * if it's not being destroyed now. */
   _qsSource_internalDestroy(s, g);
+
+  _qsApp_checkDestroy();
 }
 
 void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read)
@@ -210,7 +213,7 @@ void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read)
 
 void *qsSource_create(QsSource_ReadFunc_t read,
     int numChannels, int maxNumFrames /* max num frames buffered */,
-    struct QsSource *groupSource /* groupSource=NULL to make a new group */,
+    const struct QsSource *groupSource /* groupSource=NULL to make a new group */,
     size_t objectSize)
 {
   struct QsSource *s;

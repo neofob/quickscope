@@ -1,6 +1,3 @@
-struct QsSweep; // QsSweep is opaque 
- 
-
 /* This makes a QsSource that is a triggered sweep */
 struct QsSource *qsSweep_create(
     float period, float level, int slope, float holdOff,
