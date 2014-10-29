@@ -9,7 +9,7 @@
 # quickscope users. 
 
 EXTRA_DIST =\
- quickplot.bash
+ Quickplot.bash
 
 noinst_PROGRAMS =\
  tests_launcher\
@@ -22,7 +22,10 @@ noinst_PROGRAMS =\
  sin
 
 noinst_SCRIPTS =\
- quickplot.bash
+ Quickplot
+
+BUILT_SOURCES =\
+ Quickplot
 
 
 qs_LDADD = ../libquickscope.la
@@ -51,3 +54,9 @@ sin_LDADD = $(qs_LDADD)
 
 soundFile_SOURCES = soundFile.c
 soundFile_LDADD = $(qs_LDADD)
+
+Quickplot: Quickplot.bash Makefile
+	echo "#!/bin/bash" > $@
+	echo "# This is a generated file" >> $@
+	cat $< >> $@
+	chmod 755 $@
