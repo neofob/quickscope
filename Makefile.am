@@ -57,7 +57,9 @@ convert_generated_images =\
 examples =\
  examples/README\
  examples/GNUmakefile\
- examples/sin.c
+ examples/sin.c\
+ examples/demo_launcher\
+ examples/run_list
 
 
 EXTRA_DIST =\
