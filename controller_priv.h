@@ -11,8 +11,8 @@ struct QsController
 
   /* set this in objects that inherit QsController */
   /* to notify super object of a source addition or removal */
-  void (*changedSource)(struct QsController *c, GSList *sources);
-  void (*destroy)(void *);   /* to destroy super object */
+  void (*changedSource)(struct QsController *c, const GSList *sources);
+  void (*destroy)(void *);   /* to destroy inheriting object */
 
 #ifdef QS_DEBUG
   size_t objectSize;
@@ -23,7 +23,7 @@ QS_BASE_DECLARE(_qsController);
 
 extern
 void *_qsController_create(
-    void (*changedSource)(struct QsController *c, GSList *sources),
+    void (*changedSource)(struct QsController *c, const GSList *sources),
     size_t objectSize);
 extern
 void _qsController_destroy(struct QsController *c);

@@ -29,7 +29,7 @@ struct QsInterval
 };
 
 static
-void _qsInterval_changedSource(struct QsInterval *in, GSList *sources)
+void _qsInterval_changedSource(struct QsInterval *in, const GSList *sources)
 {
   QS_ASSERT(in);
   
@@ -73,7 +73,7 @@ void *qsInterval_create(float period)
     period = 0.001;
 
   in = _qsController_create(
-      (void (*)(struct QsController *c, GSList *sources))
+      (void (*)(struct QsController *c, const GSList *sources))
       _qsInterval_changedSource, sizeof(*in));
   in->period = period;
   _qsController_addSubDestroy(in, _qsInterval_destroy);

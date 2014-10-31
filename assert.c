@@ -15,6 +15,16 @@
 #include "assert.h"
 
 #ifdef QS_DEBUG
+void qsSpew(const char *file, int line,
+    const char *func, const char *format, ...)
+{
+  fprintf(stderr, "%s:%s():%d: ", file, func, line);
+  va_list ap;
+  va_start(ap, format);
+  vfprintf(stderr, format, ap);
+  va_end(ap);
+}
+
 void qsAssert(const char *file, int line,
     const char *func, long bool_arg,
     const char *arg, const char *format, ...)

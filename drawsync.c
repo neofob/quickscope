@@ -46,7 +46,7 @@ static bool _gtkTickCallback(GtkWidget *widget,
 }
 
 static
-void _qsDrawSync_changedSource(struct QsDrawSync *ds, GSList *sources)
+void _qsDrawSync_changedSource(struct QsDrawSync *ds, const GSList *sources)
 {
   QS_ASSERT(ds);
   QS_ASSERT(ds->win);
@@ -92,7 +92,7 @@ void *qsDrawSync_create(struct QsWin *win)
   QS_ASSERT(win);
 
   ds = _qsController_create(
-      (void (*)(struct QsController *c, GSList *sources))
+      (void (*)(struct QsController *c, const GSList *sources))
       _qsDrawSync_changedSource, sizeof(*ds));
   ds->win = win;
   _qsController_addSubDestroy(ds, _qsDrawSync_destroy);

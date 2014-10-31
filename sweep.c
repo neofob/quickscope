@@ -136,7 +136,6 @@ int cb_sweep(struct QsSweep *sw,
 
       if(state == HELD)
       {
-
         do
           {
             if(t >= holdoffUntilT)
@@ -146,6 +145,7 @@ int cb_sweep(struct QsSweep *sw,
               else if(slope < 0)
                 prevValueRead = -INFINITY;
               state = ARMED;
+              startT = holdoffUntilT;
               break;
             }
             prevT = t;
@@ -174,6 +174,7 @@ int cb_sweep(struct QsSweep *sw,
               startT = prevT +
                 (level - prevValueRead)*(t - prevT)/(y - prevValueRead)
                 + sw->delay;
+               prevValueOut = -INFINITY;
               break;
             }
             prevValueRead = y;
@@ -195,6 +196,7 @@ int cb_sweep(struct QsSweep *sw,
               startT = prevT +
                 (level - prevValueRead)*(t - prevT)/(y - prevValueRead)
                 + sw->delay;
+              prevValueOut = -INFINITY;
               break;
             }
             
@@ -212,13 +214,19 @@ int cb_sweep(struct QsSweep *sw,
           startT = t + sw->delay;
           sw->wasHoldoff = false;
         }
+        prevValueOut = -INFINITY;
       }
 
       if(state == ARMED)
         break;
 
 
-      if(state == TRIGGERED && sw->delay > 0)
+      if(state == TRIGGERED && sw->delay == 0)
+      {
+        state = RUN;
+      }
+
+      else if(state == TRIGGERED && sw->delay > 0)
       {
         do
           {
@@ -232,8 +240,10 @@ int cb_sweep(struct QsSweep *sw,
           while(qsIterator_get(tit, &y, &t));
       }
 
-      else if(state == TRIGGERED && sw->delay < 0)
+      else if(state == TRIGGERED) // sw->delay < 0
       {
+        QS_ASSERT(sw->delay < 0);
+
         if(qsIterator_poll(sw->backIt, &y, &t))
           // TODO: make a time finding iterator function.
           // backup the iterator to an older time
@@ -260,9 +270,6 @@ int cb_sweep(struct QsSweep *sw,
           while(qsIterator_get(tit, &y, &t));
       }
 
-      else if(state == TRIGGERED)
-        state = RUN;
-
       if(state == TRIGGERED)
         break;
 
@@ -281,7 +288,6 @@ int cb_sweep(struct QsSweep *sw,
       QS_ASSERT(*tOut == t);
       // We start by writing to this valueOut frame.
 
-      
 
     //if(state == RUN)
         do
@@ -316,6 +322,7 @@ int cb_sweep(struct QsSweep *sw,
               break;
             }
 
+        
             *valueOut = (prevValueOut = val);
 
             prevT = t;

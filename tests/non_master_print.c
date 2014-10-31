@@ -21,7 +21,7 @@ SpewSource(struct QsSource *s, struct QsIterator2 *it)
   if(count > 1000)
     qsApp_destroy();
 
-  return TRUE;
+  return true;
 }
 
 

@@ -4,40 +4,54 @@
  */
 #include <quickscope.h>
 
-
-static void
-SpewSource(struct QsSource *s, struct QsIterator2 *it)
-{
-  float x, y;
-  long double t;
-
-  while(qsIterator2_get(it, &x, &y, &t))
-    printf("%Lg %g %g\n", t, x, y);
-}
-
-
 int main(int argc, char **argv)
 {
   if(!argv[1])
   {
-    fprintf(stderr, "Usage: %s SND_FILE\n", argv[0]);
+    fprintf(stderr, "Usage: %s SND_FILE [SND_FILE ...]\n",
+        argv[0]);
     return 1;
   }
 
-  struct QsSource *snd;
+  struct QsSource *snd, *sweep;
+  struct QsTrace *trace;
 
-  snd = qsSoundFile_create(argv[1],
-    0/*scope frames per scope source read call*/,
-    0, /* play back rate, 0 for same as file play rate*/
-    NULL/*source group*/); 
-  
-  qsSource_addChangeCallback(snd,
-      (bool (*)(struct QsSource *, void *)) SpewSource,
-      qsIterator2_create(snd, snd, 0/*channel0*/,
-        (qsSource_numChannels(snd) < 2) ? 0: 1/*channel1*/));
+  qsApp_init(&argc, &argv);
+
+  qsApp->op_fade = qsApp_bool("fade", false);
+  qsApp->op_fadePeriod = 1.0F;
+  qsApp->op_fadeDelay =  1.0F;
+  qsApp->op_doubleBuffer = true;
+  qsApp->op_grid = 0;
+  ++argv;
+
+  snd = qsSoundFile_create(*argv/*filename*/, 20000/*maxNumFrames*/,
+        0.0F/*sampleRate Hz*/, NULL/*source Group*/);
+
+  sweep = qsSweep_create(0.01F /*period*/,
+      qsApp_float("level", 0.0F),
+      qsApp_int("slope", 1),
+      qsApp_float("holdoff", 0.0F),
+      qsApp_float("delay", 0.0F),
+      snd/*source*/, 0/*sourceChannelNum*/);
+
+  int numChannels;
+  numChannels = qsSource_numChannels(snd);
+
+  while(numChannels)
+  {
+    int r, g, b;
+    r = (numChannels & 01)?1:0;
+    g = (numChannels & 02)?1:0;
+    b = (numChannels & 04)?1:0;
+    trace = qsTrace_create(NULL /* QsWin, NULL to make a default Win */,
+      sweep, 0, snd, --numChannels, /* x/y source and channels */
+      1.0F, 0.8F, 0, 0, /* xscale, yscale, xshift, yshift */
+      true, /* lines */ r, g, b /* RGB line color */);
+    qsTrace_setSwipeX(trace, qsApp_bool("swipe", true));
+  }
 
   qsApp_main();
-
   qsApp_destroy();
 
   return 0;

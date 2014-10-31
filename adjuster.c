@@ -56,10 +56,10 @@ void _qsWidget_display(struct QsWidget *w)
       adj->getTextRender(adj, &text[len], TEXTLEN - len, &len);
 
     // TODO: the counts will be wrong if any adjusters are destroyed
+    // Seems to work now.
     snprintf(&text[len], TEXTLEN - len,
         " <span fgcolor=\"#777777\">%dof%d</span> [np]",
         w->adjCount, w->adjs->count);
-
   }
   else // no adjuster available
   {
@@ -70,7 +70,7 @@ void _qsWidget_display(struct QsWidget *w)
       w->displayCallback(w, adj, text, w->displayCallbackData);
 #ifdef QS_DEBUG
   else
-    printf("%s() without callback set text=\"%s\"\n", __func__, text);
+    QS_SPEW("without callback set text=\"%s\"\n", text);
 #endif
 }
 
@@ -410,6 +410,7 @@ bool check_listEmpty(struct QsAdjusterList *actL)
   return false;
 }
 
+#if 0
 void _qsAdjusterList_append(struct QsAdjusterList *adjL,
     struct QsAdjusterList *apL)
 {
@@ -465,6 +466,7 @@ void _qsAdjusterList_append(struct QsAdjusterList *adjL,
   // We can't here because we don't know the state of the
   // Widgets and there may be more changes to come.
 }
+#endif
 
 void _qsAdjusterList_prepend(struct QsAdjusterList *adjL,
     struct QsAdjusterList *ppL)

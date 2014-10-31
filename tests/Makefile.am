@@ -15,11 +15,12 @@ noinst_PROGRAMS =\
  tests_launcher\
  hello\
  source\
- soundFile\
+ soundFile_print\
  circle\
  saw_print\
  non_master_print\
- sin
+ sin\
+ soundFile
 
 noinst_SCRIPTS =\
  Quickplot
@@ -54,6 +55,10 @@ sin_LDADD = $(qs_LDADD)
 
 soundFile_SOURCES = soundFile.c
 soundFile_LDADD = $(qs_LDADD)
+
+soundFile_print_SOURCES = soundFile_print.c
+soundFile_print_LDADD = $(qs_LDADD)
+
 
 Quickplot: Quickplot.bash Makefile
 	echo "#!/bin/bash" > $@

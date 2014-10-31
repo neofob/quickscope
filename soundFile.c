@@ -29,17 +29,50 @@ struct QsSoundFile
   struct QsSource source;
   SNDFILE *sf;
   float sampleRate; /*Hz*/
-  int id, frames; // frames left to read
+  int id;
+  int64_t frames; // frames left to read
 };
 
+static inline
+int sfRead(SNDFILE *sf, float *values, int64_t n, int numChannels)
+{
+  const int BLOCK = 512;
+
+  while(n)
+  {
+    int rd, req;
+    req = BLOCK;
+    if(req > n)
+      req = n;
+    rd = sf_readf_float(sf, values, req);
+    QS_VASSERT(rd >= 1, "sf_readf_float(,,%d)=%d failed\n", req, rd);
+    if(rd < 1) return 1; // fail
+    n -= rd;
+
+#if 0
+    {
+      int i;
+      for(i=0; i<rd; ++i)
+        fprintf(stderr, "%g ", *(values + 2*i));
+    }
+#endif
+
+    values += numChannels*rd;
+  }
+  return 0; // success
+}
 
 static
 int cb_sound_read(struct QsSoundFile *snd,
     long double tf, long double prevT, void *data)
 {
+  if(snd->frames == 0)
+    // We are done tell the caller
+    return -1; // destroy this source
+
   struct QsSource *s;
   s = (struct QsSource *) snd;
-  int nFrames = 0;
+  int nFrames;
   QS_ASSERT(s);
   bool isMaster;
   isMaster = qsSource_isMaster(s);
@@ -50,16 +83,13 @@ int cb_sound_read(struct QsSoundFile *snd,
   // set with qsSource_setMinSampleRate() in each
   // source create function or other function.
   nFrames = qsSource_getRequestedSamples(s, tf, prevT);
-  QS_ASSERT(nFrames >= 0);
-  
-  if(nFrames == 0) return 0;
 
-  if(snd->frames == 0)
-    // We are done tell the caller
-    return -1; // destroy this source
+  if(nFrames == 0) return 0;
 
   long double dt;
   dt = (tf - prevT)/nFrames;
+
+  //fprintf(stderr, "%"PRId64" ", snd->frames);
  
   if(nFrames > snd->frames)
   {
@@ -72,24 +102,20 @@ int cb_sound_read(struct QsSoundFile *snd,
   else
     snd->frames -= nFrames;
 
+  int numChannels;
+  numChannels = qsSource_numChannels(s);
+
   while(nFrames)
   {
-    float *frames;
+    float *values;
     long double *t;
-    sf_count_t req, read;
     int n;
     n = nFrames;
-    frames = qsSource_setFrames(s, &t, &n);
-    req = n;
-    QS_ASSERT(frames);
+    values = qsSource_setFrames(s, &t, &n);
+    QS_ASSERT(values);
     QS_ASSERT(n>0);
-    if((read = sf_read_float(snd->sf, frames, req)) != req)
-    {
-      fprintf(stderr, "libsndfile fail to read %ld frames, read only %ld\n",
-          req, read);
-      QS_ASSERT(0);
+    if(sfRead(snd->sf, values, n, numChannels))
       return -1; // destroy this source
-    }
     if(isMaster)
     {
       // Only the master source can write the time stamps
@@ -175,7 +201,7 @@ struct QsSource *qsSoundFile_create(const char *filename,
 
   if(maxNumFrames == 0)
     maxNumFrames = 1000;
-  if(sampleRate == 0.0F)
+  if(sampleRate <= 0.0F)
     sampleRate = info.samplerate;
 
   float maxRate;
@@ -196,7 +222,6 @@ struct QsSource *qsSoundFile_create(const char *filename,
 
   qsSource_setMinSampleRate((struct QsSource *) snd,
     snd->sampleRate);
-
 
   // A QsSoundFile is a QsSource is an QsAdjusterList.
   // Ain't inheritance fun!!

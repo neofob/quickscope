@@ -17,7 +17,7 @@ int main(int argc, char **argv)
   qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
 
-  sin = qsSin_create( 500 /* maxNumFrames */,
+  sin = qsSin_create( 5000 /* maxNumFrames */,
         0.45F /*amplitude*/, 0.5F /*period*/,
         0.0F*M_PI /*phaseShift*/,
         qsApp_int("samples-per-period", 100),
@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
   if(qsApp_bool("cos", false))
   {
-    cos = qsSin_create( 500 /* maxNumFrames */,
+    cos = qsSin_create(0 /* maxNumFrames */,
         0.45F /*amplitude*/, 0.5F /*period*/,
         0.5F*M_PI /*phaseShift*/,
         qsApp_int("samples-per-period", 100),

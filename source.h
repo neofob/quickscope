@@ -332,7 +332,9 @@ int qsSource_getRequestedSamples(const struct QsSource *s,
     // but we should not like things get too large.
     QS_VASSERT(n <= qsSource_maxNumFrames(s),
         "The number of frames in the source buffer is too small\n"
-        "We have %d but need %d.",  qsSource_maxNumFrames(s), n);
+        "We have %d but need %d, tPrev=%Lg tF=%Lg deltaT=%Lg\n"
+        "s->group->sampleRate=%g\n",  qsSource_maxNumFrames(s), n,
+        tPrev, tF, tF - tPrev, s->group->sampleRate);
 
     if(n > qsSource_maxNumFrames(s))
       n = qsSource_maxNumFrames(s);
@@ -396,11 +398,10 @@ bool _qsSource_checkWithMaster(struct QsSource *s,
     // The source s buffer has no valid data in it, so
     // we empty all the iterators that use this source s.
     qsSource_emptyIterators(s);
-#ifdef QS_DEBUG
-    QS_VASSERT(0, "%s() had to reset source buffer that may be too small\n"
+
+    QS_SPEW("had to reset source buffer that may be too small\n"
         "source id=%d maxNumFrames=%d\n",
-        __func__, master->id, master->group->maxNumFrames);
-#endif
+        s->id, master->group->maxNumFrames);
     return true; // there is no data to read
   }
 

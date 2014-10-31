@@ -67,33 +67,53 @@ bool _qsController_run(struct QsController *c)
 {
   GSList *l;
   long double t;
-  int sourceChanged = 0;
+  int changeSource = 0;
 
   QS_ASSERT(c);
 
-  /* we will go through the list of QsSources */
-  l = c->sources;
   t = _qsTimer_get(qsApp->timer);
-
-  do
+  
+  /* we will go through the list of QsSources */
+  for(l=c->sources; l; l=l->next)
   {
     struct QsSource *s;
     s = l->data;
-    l = l->next;
-
-    /* This may remove and destroy the QsSource */
-    sourceChanged |= _qsSource_read(s, t, s->callbackData);
+    changeSource |= _qsSource_read(s, t, s->callbackData);
   }
-  while(l);
 
-  if(sourceChanged && c->changedSource)
-    c->changedSource(c, c->sources);
+  if(changeSource)
+  {
+    while(true)
+    {
+      for(l=c->sources; l; l=l->next)
+      {
+        struct QsSource *s;
+        s = l->data;
+        if(!s->controller)
+        {
+          s->controller = c;
+          qsSource_destroy(s);
+          // We must start over because
+          // qsSource_destroy(s) can edit this
+          // list by removing many sources
+          // from c->sources.
+          break;
+        }
+      }
+      if(!l)
+        // We made it through the whole list
+        break;
+    }
+
+    if(c->changedSource)
+      c->changedSource(c, c->sources);
+  }
 
   return true;
 }
 
 void *_qsController_create(
-    void (*changedSource)(struct QsController *c, GSList *sources),
+    void (*changedSource)(struct QsController *c, const GSList *sources),
     size_t size)
 {
   struct QsController *c;
@@ -161,8 +181,23 @@ void qsController_removeSource(struct QsController *c, struct QsSource *s)
 {
   QS_ASSERT(c);
   QS_ASSERT(s);
+
   _qsController_changeSource(c, s, NULL,
       (GSList *(*)(GSList *, gpointer data)) g_slist_remove);
   s->controller = NULL;
+
+#ifdef QS_DEBUG
+{
+  QS_SPEW("s->id=%d c->sources=%p\n", s->id, c->sources);
+  GSList *l;
+  int i = 0;
+  for(l=c->sources; l; l = l->next)
+  {
+    struct QsSource *ss;
+    ss = l->data;
+    fprintf(stderr, "%d: s->id=%d\n", i++, ss->id);
+  }
+}
+#endif
 }
 

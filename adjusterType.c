@@ -163,10 +163,10 @@ void setValue(struct ADJ_TYPE *adj, TYPE val)
   val = clipValue(adj, val);
 #ifdef QS_DEBUG
   if(val == adj->max)
-    printf("%s value is maxed out at %10.10"FM" %s\n",
+    QS_SPEW("%s value is maxed out at %10.10"FM" %s\n",
         ((struct QsAdjuster *)adj)->description, val, adj->units);
   else if(val == adj->min)
-    printf("%s value is minimumized at %10.10"FM" %s\n",
+    QS_SPEW("%s value is minimumized at %10.10"FM" %s\n",
         ((struct QsAdjuster *)adj)->description, val, adj->units);
 #endif
 

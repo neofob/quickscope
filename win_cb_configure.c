@@ -42,11 +42,10 @@ void _qsWin_reconfigure(struct QsWin *win)
   {
     setTraceColor(win, win->bg);
     XFillRectangle(win->dsp, win->pixmap, win->gc, 0, 0, w, h);
-    if(_qsWin_isGridStuff(win))
-      /* we need to draw the grid and other background things
-       * on the pixmap, but if there is no pixmap the grid is
-       * drawn in cb_draw() */
-      _qsWin_drawBackground(win);
+    /* we need to draw the grid and other background things
+     * on the pixmap, but if there is no pixmap the grid is
+     * drawn in cb_draw() */
+    _qsWin_drawBackground(win);
   }
 
   if(win->fade)
@@ -169,7 +168,7 @@ bool _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
   _qsWin_setGridX(win);
   _qsWin_setGridY(win);
 
-  if(_qsWin_isGridStuff(win) && win->pixmap)
+  if(win->pixmap)
     /* we need to draw the grid on the pixmap, but if
      * there is no pixmap the grid is drawn in cb_draw() */
     _qsWin_drawBackground(win);

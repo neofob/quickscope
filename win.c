@@ -207,7 +207,7 @@ struct QsWin *qsWin_create(void)
   qsAdjusterGroup_end(adjG);
  
   // This is called in qsApp_main()
-  //_qsAdjusters_display(&win->adjusters);
+  //_qsAdjusterList_display(&win->adjusters);
 
   qsApp->wins = g_slist_prepend(qsApp->wins, win); 
   

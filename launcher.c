@@ -43,7 +43,11 @@ static const char *const default_programs[] =
   "sin", "--slope=0", "--swipe=1", NULL,
   "sin", "--slope=0", "--swipe=1", "--fade=0", NULL,
   "sin", "--slope=0", "--swipe=1", "--fade=0", "--cos=1", NULL,
-  "Quickplot", "soundFile", "/usr/share/tuxpaint/sounds/bleep.wav", NULL,
+  "Quickplot", "soundFile_print", "/usr/share/tuxpaint/sounds/bleep.wav", NULL,
+  "soundFile", "/home/lanceman/Music/Alanis Morissette/Jagged"
+      " Little Pill/02. You Oughta Know.ogg", NULL,
+  "soundFile", "/usr/share/tuxpaint/sounds/mirror.wav", NULL,
+
 
 #endif
   NULL // Null terminator
@@ -105,19 +109,18 @@ void setLabelString(struct Run *run)
   label = GTK_LABEL(gtk_bin_get_child(GTK_BIN(run->button)));
   arg = run->args;
   char *color;
+  switch(run->run_count)
+  {
+    case 0:
+      color = "#000";
+      break;
+    default:
+      color = "#f55";
+      break;
+  }
 
   while(*arg)
   {
-    switch(run->run_count)
-    {
-      case 0:
-        color = "#000";
-        break;
-      default:
-        color = "#f55";
-        break;
-    }
-
     if(text)
     {
       char *old;

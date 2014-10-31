@@ -402,14 +402,9 @@ void DrawTickRec(struct QsWin *win,
 void _qsWin_drawBackground(struct QsWin *win)
 {
   int w, h;
-  bool noGrid;
   
   QS_ASSERT(win);
-  // This should not be called unless we are drawing something
-  QS_ASSERT(_qsWin_isGridStuff(win));
 
-  noGrid = (win->grid)?false:true;
-  
   w = win->width;
   h = win->height;
 
@@ -419,13 +414,21 @@ void _qsWin_drawBackground(struct QsWin *win)
     n = w*h;
     for(i=0; i<n; ++i)
     {
+      // blank background
       win->r[i] =  win->bgR;
       win->g[i] =  win->bgG;
       win->b[i] =  win->bgB;
     }
   }
 
+  if(!_qsWin_isGridStuff(win))
+    // Nothing but the blank background
+    return;
 
+
+  bool noGrid;
+  noGrid = (win->grid)?false:true;
+  
   /* THE ORDER OF THINGS DRAW HERE:
    *
    * We draw the

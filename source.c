@@ -171,6 +171,7 @@ void qsSource_destroy(struct QsSource *s)
   g = s->group;
   QS_ASSERT(g);
   QS_ASSERT(g->master);
+  QS_SPEW("source->id=%d\n", s->id);
 
   if(s->isMaster)
   {
@@ -470,7 +471,8 @@ int _qsSource_read(struct QsSource *s, long double time, void *data)
   }
   else // if(ret == -1)
   {
-    qsSource_destroy(s);
+    // Mark this source for destruction
+    s->controller = NULL;
     return 1;
   }
 

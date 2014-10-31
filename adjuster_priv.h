@@ -108,9 +108,11 @@ void *_qsAdjuster_create(struct QsAdjusterList *adjs,
     size_t objSize);
 extern
 void _qsAdjuster_destroy(struct QsAdjuster *adj);
+#if 0
 extern
 void _qsAdjusterList_append(struct QsAdjusterList *adjL,
     struct QsAdjusterList *appendL);
+#endif
 extern
 void _qsAdjusterList_prepend(struct QsAdjusterList *adjL,
     struct QsAdjusterList *prependL);

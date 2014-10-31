@@ -7,10 +7,17 @@
 
 #  define QS_ASSERT(x)        /* empty macro */
 #  define QS_VASSERT(x, ...)  /* empty macro */
+#  define QS_SPEW(x, ...)     /* empty macro */
 
 #else
 
 #  define __printf(a,b)  __attribute__((format(printf,a,b)))
+
+extern
+void qsSpew(const char *file, int line,
+    const char *func, const char *format, ...) __printf(4,5);
+#  define QS_SPEW(fmt, ...)      qsSpew(__FILE__, __LINE__, \
+                               __func__, fmt, ##__VA_ARGS__)
 
 extern
 void qsAssert(const char *file, int line,

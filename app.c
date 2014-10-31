@@ -309,10 +309,7 @@ void qsApp_main(void)
           GSList *l;
           for(l = xs->controller->sources; l; l = l->next)
             if(l->data == xs || l->data == ys)
-            {
               newestSource = l->data;
-              break;
-            }
 
           QS_ASSERT(newestSource);
           qsSource_addTraceDraw(newestSource, trace);

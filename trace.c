@@ -639,10 +639,10 @@ void qsTrace_destroy(struct QsTrace *trace)
   // sources.   We make sure that the source in the list is the same
   // source that we started with.  If not that source must have been
   // destroyed a little before now.  Other traces may have used
-  // one or both or these sources, so removing the source
+  // one or both of these sources, so removing the source
   // adjusters is really just decrementing reference counter.
   if(g_slist_find(qsApp->sources, trace->it->source0) &&
-      trace->xID == trace->it->source1->id)
+      trace->xID == trace->it->source0->id)
     // The x source has not been destroyed yet so we dereference
     // its' adjusters.
     _qsAdjusterList_remove(&win->adjusters, &trace->it->source0->adjusters);
@@ -677,5 +677,9 @@ void qsTrace_destroy(struct QsTrace *trace)
 #endif
 
   g_free(trace);
+
+  /* Redisplay the windows adjusters widget after we removed
+   * adjusters above. */
+  _qsAdjusterList_display((struct QsAdjusterList *) win);
 }
 

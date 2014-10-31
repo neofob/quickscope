@@ -26,7 +26,7 @@ struct QsAdjusterList
 
   // List of adjuster(s) and widget(s)
   GList *adjusters, *widgets;
-  int count; // number of adjuster(s)
+  int count; // number of adjuster(s) in the list
   int changeCount; // counting changes to adjusterList
 
   void (*destroy)(void *);

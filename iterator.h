@@ -420,6 +420,9 @@ bool qsIterator2_get(struct QsIterator2 *it,
     // We set it to the first invalid index so that the next
     // one we read will be valid.
 
+    QS_SPEW("QsInterator2 1 or 2 sources (id=%d,%d) "
+        "got lapped by the master source\n", s0->id, s1->id);
+
     it->i0 = ++mi;
     it->i1 = mi;
     it->wrapCount = master->wrapCount - 1;
@@ -641,9 +644,9 @@ ret:
       "Time went from (it->lastT=) %Lg to (*t=) %Lg\n"
       "timeIndex0[%d]=timeIndex1[%d]=%d",
       it->lastT, *t, it->i0, it->i1, s0->timeIndex[it->i0]);
+  it->lastT = *t;
 #endif
 
-  it->lastT = *t;
 PRINT();
   return true;
 }

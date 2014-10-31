@@ -59,8 +59,7 @@ bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
     setTraceColor(win, win->bg);
     XFillRectangle(win->dsp, win->xwin, win->gc, 0, 0,
         win->width, win->height);
-    if(_qsWin_isGridStuff(win))
-      _qsWin_drawBackground(win);
+    _qsWin_drawBackground(win);
 
     if(win->fade)
       // Draw traces from the fading color buffer
