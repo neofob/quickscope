@@ -22,7 +22,8 @@ noinst_PROGRAMS =\
  sin\
  soundFile\
  rk4_print\
- lorenz_print
+ lorenz_print\
+ lorenz
 
 noinst_SCRIPTS =\
  Quickplot
@@ -67,6 +68,10 @@ rk4_print_LDADD = $(qs_LDADD)
 
 lorenz_print_SOURCES = lorenz_print.c
 lorenz_print_LDADD = $(qs_LDADD)
+
+lorenz_SOURCES = lorenz.c
+lorenz_LDADD = $(qs_LDADD)
+
 
 
 

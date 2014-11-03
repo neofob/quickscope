@@ -23,6 +23,7 @@ struct QsLorenz
   // inherit source
   struct QsSource s;
   struct QsRungeKutta4 *rk4;
+  long double lastT;
   float x[3];
 
   float rate, sigma, rho, beta;
@@ -48,10 +49,10 @@ void cb_setParameters(struct QsLorenz *l)
   if(max < l->beta)
     max = l->beta;
   
-  qsRungeKutta4_setTStep(l->rk4, 1.0L/(max * 10.0L));
+  qsRungeKutta4_setTStep(l->rk4, 1.0L/(max * 5.0L));
 
   qsSource_setMinSampleRate((struct QsSource *) l,
-      (1.0F/qsRungeKutta4_getTStep(l->rk4)) * l->rate);
+      (l->rate/qsRungeKutta4_getTStep(l->rk4)));
 }
 
 static
@@ -77,8 +78,11 @@ int cb_sourceRead(struct QsLorenz *l, long double tf,
   QS_ASSERT(nFrames >= 0);
   if(nFrames == 0) return 0;
 
-  long double dt;
+  long double dt, lt;
+  float rate;
+  rate = l->rate;
   dt = (tf - prevT)/nFrames;
+  lt = l->lastT;
 
   while(nFrames)
   {
@@ -91,8 +95,14 @@ int cb_sourceRead(struct QsLorenz *l, long double tf,
     for(i=0; i<n; ++i)
     {
       if(isMaster)
+        // We are assuming that time changes at a uniform rate,
+        // but that may not be true.
         *t = (prevT += dt);
-      qsRungeKutta4_go(l->rk4, l->x, *t++);
+      ++t;
+      // lorenz system time changes at a scaled rate.
+      // lt += (dt * rate);
+      lt += dt * rate;
+      qsRungeKutta4_go(l->rk4, l->x, lt);
       frames[0] = l->x[0];
       frames[1] = l->x[1];
       frames[2] = l->x[2];
@@ -101,6 +111,9 @@ int cb_sourceRead(struct QsLorenz *l, long double tf,
 
     nFrames -= n;
   }
+
+  l->lastT = lt;
+  
   return 1;
 }
 
