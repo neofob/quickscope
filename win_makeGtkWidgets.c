@@ -188,6 +188,17 @@ GtkWidget *create_check_menu_item(GtkWidget *menu, const char *label,
   return mi;
 }
 
+static inline void getRootWindowSize(void)
+{
+  GdkWindow *root;
+  root = gdk_get_default_root_window();
+  QS_ASSERT(root);
+  qsApp->rootWindowWidth = gdk_window_get_width(root);
+  qsApp->rootWindowHeight = gdk_window_get_height(root);
+  QS_ASSERT(qsApp->rootWindowWidth > 0);
+  QS_ASSERT(qsApp->rootWindowHeight > 0);
+}
+
 void _qsWin_makeGtkWidgets(struct QsWin *win)
 {
   /*******************************************************************
@@ -206,7 +217,43 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
   gtk_window_set_icon(GTK_WINDOW(win->win),
 	      pixbuf = gdk_pixbuf_new_from_xpm_data(quickscope_32));
   g_object_unref(G_OBJECT(pixbuf));
-  gtk_window_set_default_size(GTK_WINDOW(w), 600, 460);
+  gtk_window_set_default_size(GTK_WINDOW(w), qsApp->op_width, qsApp->op_height);
+
+  if(qsApp->op_x != INT_MAX && qsApp->op_y != INT_MAX)
+  {
+    if(qsApp->rootWindowWidth < 1)
+      getRootWindowSize();
+
+    int x, y;
+    x = qsApp->op_x;
+    y = qsApp->op_y;
+
+    if(x >= qsApp->rootWindowWidth)
+      x = qsApp->rootWindowWidth - 1;
+    else if(x <= -qsApp->rootWindowWidth && x != INT_MIN)
+      x = -qsApp->rootWindowWidth - 1;
+
+    if(y >= qsApp->rootWindowHeight)
+      y = qsApp->rootWindowHeight - 1;
+    else if(y <= -qsApp->rootWindowHeight && y != INT_MIN)
+      y = -qsApp->rootWindowHeight - 1;
+
+    if(x == INT_MIN) /* like example: --geometry=600x600-0+0 */
+      x = qsApp->rootWindowWidth - qsApp->op_width;
+    else if(x < 0)
+      x = qsApp->rootWindowWidth - qsApp->op_width + x;
+  
+    if(y == INT_MIN) /* like example: --geometry=600x600+0-0 */
+      y = qsApp->rootWindowHeight - qsApp->op_height;
+    else if(y < 0)
+      y = qsApp->rootWindowHeight - qsApp->op_height + y;
+
+    QS_SPEW("moving WINDOW to (%d,%d)\n", x, y);
+
+    gtk_window_move(GTK_WINDOW(w), x, y);
+  }
+
+
   g_signal_connect(w, "delete_event", G_CALLBACK(cb_close), win);
   g_signal_connect(G_OBJECT(w), "key-press-event",
       G_CALLBACK(ecb_keyPress), win);

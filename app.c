@@ -189,6 +189,12 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
 
   qsApp->op_defaultIntervalPeriod = 1.0/60.0;
   qsApp->op_exitOnNoSourceWins = true;
+
+  // win geometry
+  qsApp->op_x = INT_MAX;
+  qsApp->op_x = INT_MAX;
+  qsApp->op_width = 600;
+  qsApp->op_height = 460;
   
   /*****************************/
 

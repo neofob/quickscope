@@ -390,8 +390,7 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
   trace->prevY = NAN;
   trace->prevPrevX = NAN;
   trace->prevPrevY = NAN;
-  trace->id = win->traceCount;
-  ++win->traceCount;
+  trace->id = win->traceCount++;
   _qsTrace_scale(trace);
 
   win->traces = g_slist_prepend(win->traces, trace);

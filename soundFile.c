@@ -217,7 +217,7 @@ struct QsSource *qsSoundFile_create(const char *filename,
 
   snd->sf = sf;
   snd->sampleRate = sampleRate;
-  snd->id = ++createCount;
+  snd->id = createCount++;
   snd->frames = info.frames;
 
   qsSource_setMinSampleRate((struct QsSource *) snd,

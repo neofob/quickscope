@@ -37,7 +37,7 @@ struct QsSin
 {
   struct QsSource source; // inherit QsSource
   float amp, period, phaseShift, omega;
-  int count, samplesPerPeriod;
+  int id, samplesPerPeriod;
 };
 
 static
@@ -107,7 +107,7 @@ size_t iconText(char *buf, size_t len, struct QsSin *s)
   return snprintf(buf, len,
       "<span bgcolor=\"#CF86A5\" fgcolor=\"#97C81F\">["
       "<span fgcolor=\"#3F3A21\">sine%d</span>"
-      "]</span> ", s->count);
+      "]</span> ", s->id);
 }
 
 
@@ -127,7 +127,7 @@ struct QsSource *qsSin_create(int maxNumFrames,
   s->amp = amp;
   s->period = period;
   s->phaseShift = phaseShift/M_PI;
-  s->count = ++createCount;
+  s->id = createCount++;
   s->samplesPerPeriod = samplesPerPeriod;
 
   struct QsAdjuster *adjG;

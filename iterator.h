@@ -97,16 +97,16 @@ void qsIterator2_reInit(struct QsIterator2 *it)
 }
 
 // private to libquickscope
+//
 static inline
-bool _qsIterator_checkWithMaster(struct QsIterator *it,
+void _qsIterator_checkWithMaster(struct QsIterator *it,
     const struct QsSource *master)
 {
   int wrapDiff;
   wrapDiff = master->wrapCount - it->wrapCount;
 
   while(wrapDiff > 1 || (wrapDiff == 1 &&
-        (it->source->timeIndex[it->i] <= master->i ||
-         it->i <= master->i)))
+        (it->source->timeIndex[it->i] <= master->i)))
   {
     // The iterator is a lap or more behind the master source
     // at an invalid (nonexistent) old point in the ring buffer.
@@ -121,14 +121,10 @@ bool _qsIterator_checkWithMaster(struct QsIterator *it,
       it->wrapCount = master->wrapCount;
     }
 
-#ifdef QS_DEBUG
-    QS_VASSERT(0, "%s() had to reset iterator buffer that may be too small\n"
+    QS_SPEW("%s() had to reset iterator buffer that may be too small\n"
         "maxNumFrames=%d\n",
         __func__, master->group->maxNumFrames);
-#endif
-    return true;
   }
-  return false;
 }
 
 static inline
@@ -141,8 +137,9 @@ bool qsIterator_check(struct QsIterator *it)
   s = it->source;
   master = s->group->master;
 
-  if(_qsSource_checkWithMaster(s, master) ||
-    _qsIterator_checkWithMaster(it, master))
+  _qsIterator_checkWithMaster(it, master);
+  
+  if(_qsSource_checkWithMaster(s, master))
     return false; // no data to read
 
   int wrapDiff;
@@ -412,16 +409,13 @@ bool qsIterator2_get(struct QsIterator2 *it,
 
   if(wrapDiff > 1 ||
       (wrapDiff == 1 && 
-       (s0->timeIndex[it->i0] < mi ||
-        s1->timeIndex[it->i1] < mi)))
+       (s0->timeIndex[it->i0] <= mi ||
+        s1->timeIndex[it->i1] <= mi)))
   {
     // The iterator is a lap or more behind the master source.
     // The buffer is only valid from within one lap of the master.
     // We set it to the first invalid index so that the next
     // one we read will be valid.
-
-    QS_SPEW("QsInterator2 1 or 2 sources (id=%d,%d) "
-        "got lapped by the master source\n", s0->id, s1->id);
 
     it->i0 = ++mi;
     it->i1 = mi;
@@ -444,12 +438,12 @@ bool qsIterator2_get(struct QsIterator2 *it,
       }
     }
 
-#ifdef QS_DEBUG
-    fprintf(stderr, "%s() had to reset iterator buffer that may be too small\n"
+    QS_SPEW("%s() had to reset iterator buffer that may be too small\n"
         "or some object stopped reading a source, as in freeZe (z-key):\n"
-        "source ids=%d,%d maxNumFrames=%d\n",
+        "source ids=%d,%d maxNumFrames=%d\n"
+        "QsInterator2 one or both sources "
+        "got lapped by the master source\n",
         __func__, s0->id, s1->id, g->maxNumFrames);
-#endif
   }
 
   int wrapDiff0, wrapDiff1;

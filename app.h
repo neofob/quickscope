@@ -75,6 +75,10 @@ struct QsApp
 
   bool op_sourceRequireController; // require this in qsApp_main()
 
+  // window geometry
+  int op_x, op_y, op_width, op_height;
+  int rootWindowWidth, rootWindowHeight;
+
   // Use gtk_widget_add_tick_callback() if true
   bool op_syncFadeDraw; // or uses g_timeout_add_full()
 

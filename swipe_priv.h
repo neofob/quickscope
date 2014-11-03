@@ -9,8 +9,8 @@ struct QsSwipeColor
   /* since the trace can wrap (trace) around the view port any number
    * of times we need to keep a track of what generation the trace is
    * at, so that we can clear traces that wrap many times.  If this counter
-   * gets incremented through INT_MIN it will not matter, it just can't
-   * go through all ints (2^31) in one trace draw cycle. */
+   * gets incremented (wraps) through INT_MIN it will not matter, it just
+   * can't go through all ints (2^31) in one trace draw cycle. */
   int pointCount;
 };
 
@@ -385,8 +385,16 @@ void _qsWin_swipeAddPoint(struct QsWin *win, struct QsTrace *trace,
     // It's already marked.  The trace must
     // be dense in pixels; going up and down
     // in Y at one X value.
-    QS_ASSERT(swipe->lastValueAdded == x);
+#ifdef QS_DEBUG
     QS_ASSERT(sc->next || (sc == swipe->end && !sc->next));
+    if(swipe->lastValueAdded != x)
+    {
+      QS_SPEW("swipe->lastValueAdded != x\n"
+        "swipe->lastValueAdded=%d x=%d y=%d\n",
+        swipe->lastValueAdded, x, y);
+      QS_ASSERT(0);
+    }
+#endif
     return;
   }
   // It's not in the list.

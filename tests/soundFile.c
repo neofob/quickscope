@@ -6,27 +6,50 @@
 
 int main(int argc, char **argv)
 {
-  if(!argv[1])
+  char *filename = NULL;
+  
+  {
+    char **arg;
+    arg = argv;
+    ++arg;
+    while(*arg && **arg == '-')
+      ++arg;
+    if(*arg)
+      filename = *arg;
+  }
+
+  if(!filename)
   {
     fprintf(stderr, "Usage: %s SND_FILE [SND_FILE ...]\n",
         argv[0]);
     return 1;
   }
 
+  printf("filename=\"%s\"\n", filename);
+  
   struct QsSource *snd, *sweep;
   struct QsTrace *trace;
 
   qsApp_init(&argc, &argv);
 
   qsApp->op_fade = qsApp_bool("fade", false);
-  qsApp->op_fadePeriod = 1.0F;
-  qsApp->op_fadeDelay =  1.0F;
+  qsApp->op_fadePeriod = 0.04F;
+  qsApp->op_fadeDelay =  0.04F;
   qsApp->op_doubleBuffer = true;
-  qsApp->op_grid = 0;
-  ++argv;
+  qsApp->op_width = 1200;
+  qsApp->op_height = 400;
 
-  snd = qsSoundFile_create(*argv/*filename*/, 20000/*maxNumFrames*/,
+  qsApp->op_grid = 0;
+
+
+  snd = qsSoundFile_create(filename, 20000/*maxNumFrames*/,
         0.0F/*sampleRate Hz*/, NULL/*source Group*/);
+  if(!snd)
+  {
+    fprintf(stderr, "qsSoundFile_create(\"%s\",,) failed",
+        filename);
+    return 1;
+  }
 
   sweep = qsSweep_create(0.01F /*period*/,
       qsApp_float("level", 0.0F),

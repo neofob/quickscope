@@ -43,11 +43,14 @@ static const char *const default_programs[] =
   "sin", "--slope=0", "--swipe=1", NULL,
   "sin", "--slope=0", "--swipe=1", "--fade=0", NULL,
   "sin", "--slope=0", "--swipe=1", "--fade=0", "--cos=1", NULL,
-  "Quickplot", "soundFile_print", "/usr/share/tuxpaint/sounds/bleep.wav", NULL,
+  "Quickplot", "soundFile_print",
+      "/usr/share/tuxpaint/sounds/bleep.wav", NULL,
   "soundFile", "/home/lanceman/Music/Alanis Morissette/Jagged"
       " Little Pill/02. You Oughta Know.ogg", NULL,
   "soundFile", "/usr/share/tuxpaint/sounds/mirror.wav", NULL,
-
+  "soundFile", "--swipe=0", "--fade=1", "--holdoff=0.03", 
+      "/home/lanceman/Music/Alanis Morissette/Jagged"
+      " Little Pill/02. You Oughta Know.ogg", NULL,
 
 #endif
   NULL // Null terminator

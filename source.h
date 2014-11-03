@@ -329,15 +329,16 @@ int qsSource_getRequestedSamples(const struct QsSource *s,
 
     // TODO: We need to do more for this check:
     // maybe auto resize the sources and iterators,
-    // but we should not like things get too large.
-    QS_VASSERT(n <= qsSource_maxNumFrames(s),
+    // but we should not let things get too large.
+    if(n > qsSource_maxNumFrames(s))
+    {
+      QS_SPEW(
         "The number of frames in the source buffer is too small\n"
         "We have %d but need %d, tPrev=%Lg tF=%Lg deltaT=%Lg\n"
         "s->group->sampleRate=%g\n",  qsSource_maxNumFrames(s), n,
         tPrev, tF, tF - tPrev, s->group->sampleRate);
-
-    if(n > qsSource_maxNumFrames(s))
       n = qsSource_maxNumFrames(s);
+    }
     return n;
   }
   return qsSource_numFrames(s);

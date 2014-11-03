@@ -46,7 +46,7 @@ struct QsSaw
 {
   struct QsSource source; // inherit QsSource
   float amp, period, periodShift, omega, samplesPerPeriod;
-  int count;
+  int id;
 };
 
 static
@@ -113,7 +113,7 @@ size_t iconText(char *buf, size_t len, struct QsSaw *s)
   return snprintf(buf, len,
       "<span bgcolor=\"#CF86A5\" fgcolor=\"#97C81F\">["
       "<span fgcolor=\"#3F3A21\">saw%d</span>"
-      "]</span> ", s->count);
+      "]</span> ", s->id);
 }
 
 
@@ -132,7 +132,7 @@ struct QsSource *qsSaw_create(int maxNumFrames,
   s->amp = amp;
   s->period = period;
   s->periodShift = periodShift;
-  s->count = ++createCount;
+  s->id = createCount++;
   s->samplesPerPeriod = samplesPerPeriod;
 
   struct QsAdjuster *adjG;
