@@ -21,7 +21,8 @@ noinst_PROGRAMS =\
  non_master_print\
  sin\
  soundFile\
- rk4_print
+ rk4_print\
+ lorenz_print
 
 noinst_SCRIPTS =\
  Quickplot
@@ -63,6 +64,10 @@ soundFile_print_LDADD = $(qs_LDADD)
 
 rk4_print_SOURCES = rk4_print.c
 rk4_print_LDADD = $(qs_LDADD)
+
+lorenz_print_SOURCES = lorenz_print.c
+lorenz_print_LDADD = $(qs_LDADD)
+
 
 
 Quickplot: Quickplot.bash Makefile

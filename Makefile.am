@@ -44,7 +44,8 @@ quickscope_headers =\
  sweep.h\
  trace.h\
  win.h\
- rungeKutta.h
+ rungeKutta.h\
+ lorenz.h
 
 # The .xpm files are built but come in a tarball.
 # .xpm files are not checked into the repository.
@@ -143,7 +144,9 @@ libquickscope_la_SOURCES =\
  win_savePNG.c\
  win_setGrid.c\
  rungeKutta.c\
- rungeKutta.h
+ rungeKutta.h\
+ lorenz.c\
+ lorenz.h
 
 # automake (as of version 1.14.1) has no per-object
 # spectfic flags, so making a library for each object

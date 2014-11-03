@@ -19,10 +19,8 @@
 #include "base.h"
 #include "app.h"
 #include "adjuster.h"
-#include "adjuster_priv.h"
 #include "group.h"
 #include "source.h"
-#include "source_priv.h"
 #include "iterator.h"
 
 #define MIN_SAMPLES  (4)
@@ -86,7 +84,7 @@ int cb_sin_read(struct QsSin *s, long double tf, long double prevT)
     n = nFrames;
 
     frames = qsSource_setFrames(source, &t, &n);
-    
+
     for(i=0; i<n; ++i)
     {
       if(isMaster)
@@ -135,8 +133,8 @@ struct QsSource *qsSin_create(int maxNumFrames,
   adjL = (struct QsAdjusterList *) s;
 
   adjG = qsAdjusterGroup_start(adjL, "Sine");
-  adjG->icon = (size_t (*)(char *, size_t, void *)) iconText;
-  adjG->iconData = s;
+  qsAdjuster_setIconStrFunc(adjG,
+    (size_t (*)(char *, size_t, void *)) iconText, s);
 
   qsAdjusterFloat_create(adjL,
       "Sine Period", "sec", &s->period,

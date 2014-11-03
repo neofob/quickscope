@@ -27,10 +27,8 @@
 #include "base.h"
 #include "app.h"
 #include "adjuster.h"
-#include "adjuster_priv.h"
 #include "group.h"
 #include "source.h"
-#include "source_priv.h"
 #include "iterator.h"
 
 #define MIN_SAMPLES  (4)
@@ -140,8 +138,8 @@ struct QsSource *qsSaw_create(int maxNumFrames,
   adjL = (struct QsAdjusterList *) s;
 
   adjG = qsAdjusterGroup_start(adjL, "Saw");
-  adjG->icon = (size_t (*)(char *, size_t, void *)) iconText;
-  adjG->iconData = s;
+  qsAdjuster_setIconStrFunc(adjG,
+    (size_t (*)(char *, size_t, void *)) iconText, s);
 
   qsAdjusterFloat_create(adjL,
       "Saw Period", "sec", &s->period,
