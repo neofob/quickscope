@@ -25,8 +25,6 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  printf("filename=\"%s\"\n", filename);
-  
   struct QsSource *snd, *sweep;
   struct QsTrace *trace;
 

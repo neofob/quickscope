@@ -28,6 +28,7 @@ struct QsSoundFile
   // inherit QsSource
   struct QsSource source;
   SNDFILE *sf;
+  char *filename;
   float sampleRate; /*Hz*/
   int id;
   int64_t frames; // frames left to read
@@ -62,13 +63,19 @@ int sfRead(SNDFILE *sf, float *values, int64_t n, int numChannels)
   return 0; // success
 }
 
+static inline
+int cb_sound_exit(struct QsSoundFile *snd)
+{
+  QS_SPEW("Finished reading: %s\n", snd->filename);
+  return -1; // destroy this source
+}
+
 static
 int cb_sound_read(struct QsSoundFile *snd,
     long double tf, long double prevT, void *data)
 {
   if(snd->frames == 0)
-    // We are done tell the caller
-    return -1; // destroy this source
+    return cb_sound_exit(snd);
 
   struct QsSource *s;
   s = (struct QsSource *) snd;
@@ -83,6 +90,24 @@ int cb_sound_read(struct QsSoundFile *snd,
   // set with qsSource_setMinSampleRate() in each
   // source create function or other function.
   nFrames = qsSource_getRequestedSamples(s, tf, prevT);
+
+  int needFrames;
+  needFrames = (tf - prevT)*snd->sampleRate;
+  if(needFrames > nFrames)
+  {
+    // If we do not keep the sample rate we jump
+    // ahead in the file to what the real time should
+    // be.
+    sf_count_t n;
+    n = needFrames - nFrames;
+    if(n > snd->frames)
+      n = snd->frames;
+    sf_seek(snd->sf, n, SEEK_SET);
+    QS_SPEW("skipped ahead %ld frames\n", n);
+    snd->frames -= n;
+    if(snd->frames == 0)
+      return cb_sound_exit(snd);
+  }
 
   if(nFrames == 0) return 0;
 
@@ -104,7 +129,7 @@ int cb_sound_read(struct QsSoundFile *snd,
 
   int numChannels;
   numChannels = qsSource_numChannels(s);
-
+  
   while(nFrames)
   {
     float *values;
@@ -157,6 +182,7 @@ _qsSoundFile_destroy(struct QsSoundFile *snd)
   QS_ASSERT(snd->sf);
   sf_close(snd->sf);
   snd->sf = NULL;
+  g_free(snd->filename);
 
   // qsSource_checkBaseDestroy(s)
   // Is not needed since user cannot call this
@@ -165,10 +191,9 @@ _qsSoundFile_destroy(struct QsSoundFile *snd)
 }
 
 static
-void cb_sampleRate(struct QsSoundFile *sf)
+void cb_sampleRate(struct QsSoundFile *snd)
 {
-  qsSource_setMinSampleRate((struct QsSource *) sf,
-      sf->sampleRate);
+  qsSource_setMinSampleRate((struct QsSource *) snd, snd->sampleRate);
 }
 
 struct QsSource *qsSoundFile_create(const char *filename,
@@ -219,6 +244,7 @@ struct QsSource *qsSoundFile_create(const char *filename,
   snd->sampleRate = sampleRate;
   snd->id = createCount++;
   snd->frames = info.frames;
+  snd->filename = g_strdup(filename);
 
   qsSource_setMinSampleRate((struct QsSource *) snd,
     snd->sampleRate);
