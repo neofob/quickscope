@@ -20,7 +20,8 @@ noinst_PROGRAMS =\
  saw_print\
  non_master_print\
  sin\
- soundFile
+ soundFile\
+ rk4_print
 
 noinst_SCRIPTS =\
  Quickplot
@@ -29,7 +30,8 @@ BUILT_SOURCES =\
  Quickplot
 
 
-qs_LDADD = ../libquickscope.la
+qs_LDADD = ../libquickscope.la 
+
 AM_CFLAGS = -I.. $(gtk_3_CFLAGS)
 
 tests_launcher_SOURCES = $(srcdir)/../launcher.c
@@ -58,6 +60,9 @@ soundFile_LDADD = $(qs_LDADD)
 
 soundFile_print_SOURCES = soundFile_print.c
 soundFile_print_LDADD = $(qs_LDADD)
+
+rk4_print_SOURCES = rk4_print.c
+rk4_print_LDADD = $(qs_LDADD)
 
 
 Quickplot: Quickplot.bash Makefile

@@ -17,6 +17,4 @@ fi
 scriptdir="$(dirname ${BASH_SOURCE[0]})" || exit 1
 cd $scriptdir || exit 1
 
-echo "fuck"
-
 ./$* | quickplot -

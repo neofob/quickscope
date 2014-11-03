@@ -32,10 +32,10 @@ static const char *const default_programs[] =
   // tests/ code
 
   "hello", NULL,
-  "Quickplot", "source", NULL,
+  "Quickplot", "source", "-", NULL,
   "circle", NULL,
-  "Quickplot", "saw_print", NULL,
-  "Quickplot", "non_master_print", NULL,
+  "Quickplot", "saw_print", "-", NULL,
+  "Quickplot", "non_master_print", "-", NULL,
   "sin", NULL,
   "sin", "--delay=2.125", NULL,
   "sin", "--delay=-2.125", NULL,
@@ -51,6 +51,7 @@ static const char *const default_programs[] =
   "soundFile", "--swipe=0", "--fade=1", "--holdoff=0.03", 
       "/home/lanceman/Music/Alanis Morissette/Jagged"
       " Little Pill/02. You Oughta Know.ogg", NULL,
+  "Quickplot", "rk4_print", NULL,
 
 #endif
   NULL // Null terminator
