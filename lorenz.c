@@ -14,6 +14,7 @@
 #include "group.h"
 #include "source.h"
 #include "rungeKutta.h"
+#include "rk4Source.h"
 #include "lorenz.h"
 
 static int createCount = 0;
@@ -21,11 +22,7 @@ static int createCount = 0;
 struct QsLorenz
 {
   // inherit source
-  struct QsSource s;
-  struct QsRungeKutta4 *rk4;
-  long double lastT;
-  float x[3];
-
+  struct QsRK4Source s;
   float rate, sigma, rho, beta;
   int id;
 };
@@ -48,11 +45,12 @@ void cb_setParameters(struct QsLorenz *l)
     max = l->rho;
   if(max < l->beta)
     max = l->beta;
-  
-  qsRungeKutta4_setTStep(l->rk4, 1.0L/(max * 5.0L));
 
-  qsSource_setMinSampleRate((struct QsSource *) l,
-      (l->rate/qsRungeKutta4_getTStep(l->rk4)));
+  qsRK4Source_setTStep((struct QsRK4Source *) l,
+          1.0L/(max * 5.0L));
+
+  qsRK4Source_setPlayRate((struct QsRK4Source *) l,
+      l->rate);
 }
 
 static
@@ -65,76 +63,25 @@ size_t iconText(char *buf, size_t len, struct QsLorenz *l)
       "]</span> ", l->id);
 }
 
-static
-int cb_sourceRead(struct QsLorenz *l, long double tf,
-    long double prevT, void *data)
-{
-  struct QsSource *s;
-  s = (struct QsSource *) l;
-  int nFrames;
-  bool isMaster;
-  isMaster = qsSource_isMaster(s);
-  nFrames = qsSource_getRequestedSamples(s, tf, prevT);
-  QS_ASSERT(nFrames >= 0);
-  if(nFrames == 0) return 0;
-
-  long double dt, lt;
-  float rate;
-  rate = l->rate;
-  dt = (tf - prevT)/nFrames;
-  lt = l->lastT;
-
-  while(nFrames)
-  {
-    float *frames;
-    long double *t;
-    int i, n;
-    n = nFrames;
-    frames = qsSource_setFrames(s, &t, &n);
-
-    for(i=0; i<n; ++i)
-    {
-      if(isMaster)
-        // We are assuming that time changes at a uniform rate,
-        // but that may not be true.
-        *t = (prevT += dt);
-      ++t;
-      // lorenz system time changes at a scaled rate.
-      // lt += (dt * rate);
-      lt += dt * rate;
-      qsRungeKutta4_go(l->rk4, l->x, lt);
-      frames[0] = l->x[0];
-      frames[1] = l->x[1];
-      frames[2] = l->x[2];
-      frames += 3;
-    }
-
-    nFrames -= n;
-  }
-
-  l->lastT = lt;
-  
-  return 1;
-}
-
-static
-void _qsLorenz_destroy(struct QsLorenz *l)
-{
-  QS_ASSERT(l);
-  QS_ASSERT(l->rk4);
-
-  qsRungeKutta4_destroy(l->rk4);
-}
-
 struct QsSource *qsLorenz_create(int maxNumFrames,
     float rate/*play rate multiplier*/,
     float sigma, float rho, float beta,
+    QsRK4Source_projectionFunc_t projectionCallback,
+    void *cbdata,
+    int numChannels/*number source channels written*/,
     struct QsSource *group)
 {
   struct QsLorenz *l;
+  const float xInit[3] = { 0.2F, 0.32F, 0.37F };
 
-  l = qsSource_create((QsSource_ReadFunc_t) cb_sourceRead,
-      3/*numChannels*/, maxNumFrames, group, sizeof(*l));
+  l = qsRK4Source_create(maxNumFrames, rate,
+      (QsRungeKutta4_ODE_t) ODE, NULL/*ODE_data*/,
+      0.1/*tStep will be reset*/,
+      3/*ODE degrees of freedom*/,
+      projectionCallback, cbdata,
+      xInit,
+      3/*numChannels*/, group, sizeof(*l));
+  qsRK4Source_setODEData((struct QsRK4Source *)l, l);
 
   if(rate < 0)
     rate = 1;
@@ -149,16 +96,8 @@ struct QsSource *qsLorenz_create(int maxNumFrames,
   l->sigma = sigma;
   l->rho = rho;
   l->beta = beta;
-  l->x[0] = 0.19;
-  l->x[1] = 0.23;
-  l->x[2] = 0.37;
   l->id = createCount++;
-  l->rk4 = qsRungeKutta4_create((QsRungeKutta4_ODE_t) ODE,
-      l/*callback data*/,
-      3/*dimensions*/, 0/*tStart*/, 0.1/*tStep*/,
-      0/*object size*/);
   cb_setParameters(l);
-  qsSource_addSubDestroy(l, _qsLorenz_destroy);
 
   struct QsAdjuster *adjG;
   struct QsAdjusterList *adjL;
@@ -189,4 +128,3 @@ struct QsSource *qsLorenz_create(int maxNumFrames,
 
   return (struct QsSource *) l;
 }
-

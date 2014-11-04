@@ -45,6 +45,7 @@ quickscope_headers =\
  trace.h\
  win.h\
  rungeKutta.h\
+ rk4Source.h\
  lorenz.h
 
 # The .xpm files are built but come in a tarball.
@@ -145,6 +146,8 @@ libquickscope_la_SOURCES =\
  win_setGrid.c\
  rungeKutta.c\
  rungeKutta.h\
+ rk4Source.c\
+ rk4Source.h\
  lorenz.c\
  lorenz.h
 

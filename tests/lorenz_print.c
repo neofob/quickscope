@@ -28,11 +28,12 @@ int main(int argc, char **argv)
 {
   struct QsSource *l;
 
-  l = qsLorenz_create(1000/*maxNumFrames*/,
-      1/*play rate multiplier*/,
-      /*-1 will used default*/
-      -1/*sigma*/, -1/*rho*/, -1/*beta*/,
-      NULL/*source group*/); 
+  l = qsLorenz_create( 5000 /* maxNumFrames */,
+      3/*play rate multiplier*/,
+      -1,-1,-1,/*sigma, rho, beta -1 == use default*/
+      NULL/*projectionCallback*/, NULL/*projectionCallback_data*/,
+      3/*numChannels, can be different if projectionCallback*/,
+      NULL /* group */);
 
   qsSource_addChangeCallback(l,
       (bool (*)(struct QsSource *, void *)) SpewSource,

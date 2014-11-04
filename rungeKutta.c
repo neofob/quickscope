@@ -10,9 +10,12 @@
 #include <assert.h>
 #include <rungeKutta.h>
 
-struct QsRungeKutta4 *qsRungeKutta4_create(QsRungeKutta4_ODE_t derivatives,
+
+struct QsRungeKutta4 *qsRungeKutta4_create(
+    QsRungeKutta4_ODE_t derivatives,
     void *data,
-    int n /*dimensions*/, long double t, long double tStep, size_t size)
+    int n /*dimensions*/, long double t,
+    long double tStep, size_t size)
 {
   QS_ASSERT(derivatives);
   QS_ASSERT(n > 0);
@@ -56,7 +59,8 @@ void qsRungeKutta4_destroy(struct QsRungeKutta4 *rk4)
   g_free(rk4);
 }
 
-void qsRungeKutta4_go(struct QsRungeKutta4 *rk4, RK4_TYPE *x, long double to)
+void qsRungeKutta4_go(struct QsRungeKutta4 *rk4,
+    RK4_TYPE *x, long double to)
 {
   QS_ASSERT(rk4);
   QS_ASSERT(rk4->t < to);
