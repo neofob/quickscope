@@ -362,6 +362,7 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
     }
     else
     {
+      // we use the last win created
       QS_ASSERT(qsApp->wins->data);
       win = qsApp->wins->data;
     }
@@ -465,7 +466,7 @@ void _qsTrace_scale(struct QsTrace *trace)
 }
 
 // This drawing function assumes that the x source and the y source
-// have the same time values, so no temperal interpolation is needed.
+// have the same time values, so no temporal interpolation is needed.
 static inline
 void _qsTrace_drawSameXY(struct QsTrace *trace,
     struct QsSwipe *swipe, long double t)

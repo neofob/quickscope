@@ -5,6 +5,8 @@ struct QsApp
   GSList *wins; /* list of all QsWin objects */
   GSList *controllers; /* list of all QsController objects */
   GSList *sources; /* list of all QsSource objects */
+  GSList *widgets; /* list of all QsWidgets */
+
   struct QsTimer *timer;
 
   char **argv; // We use NULL termination

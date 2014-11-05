@@ -104,7 +104,7 @@ function remove_files()
   rm -f *.o *.la *.so *.lo stamp-h* *.a Makefile Makefile.in
   rm -f tests_launcher hello circle saw_print\
   non_master_print source sin soundFile Quickplot\
-  soundFile_print rk4_print lorenz lorenz_print
+  soundFile_print rk4_print ode ode_print ode_3wins
 
   # directory exmaples/
 

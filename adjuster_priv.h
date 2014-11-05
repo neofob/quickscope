@@ -57,6 +57,7 @@ struct QsWidget
   /* current adjuster that this widget is displaying/feeding */
   GList *current;
   int adjCount; // how far into the adjusterList starting at 1
+  bool inDisplay; // stops re entrance into _qsWidget_display()
 
   void (*displayCallback)(struct QsWidget *w,
         const struct QsAdjuster *adj, const char *text, void *data);

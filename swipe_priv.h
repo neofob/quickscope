@@ -28,7 +28,6 @@ struct QsSwipe
        * time of the last trace view port crossing */
       lapCount, freezeLapCount;
 
-
 #ifdef QS_DEBUG
   // Used for testing that x is always increasing or wrapping
   // back through zero.
@@ -390,9 +389,11 @@ void _qsWin_swipeAddPoint(struct QsWin *win, struct QsTrace *trace,
     if(swipe->lastValueAdded != x)
     {
       QS_SPEW("swipe->lastValueAdded != x\n"
-        "swipe->lastValueAdded=%d x=%d y=%d\n",
+        "swipe->lastValueAdded=%d x=%d y=%d\n"
+        "I suspect it is to do with rounding float"
+        " x values to ints giving a decreasing int value.\n",
         swipe->lastValueAdded, x, y);
-      QS_ASSERT(0);
+      //QS_ASSERT(0);
     }
 #endif
     return;

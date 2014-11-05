@@ -22,8 +22,9 @@ noinst_PROGRAMS =\
  sin\
  soundFile\
  rk4_print\
- lorenz_print\
- lorenz
+ ode_print\
+ ode\
+ ode_3wins
 
 noinst_SCRIPTS =\
  Quickplot
@@ -66,11 +67,15 @@ soundFile_print_LDADD = $(qs_LDADD)
 rk4_print_SOURCES = rk4_print.c
 rk4_print_LDADD = $(qs_LDADD)
 
-lorenz_print_SOURCES = lorenz_print.c
-lorenz_print_LDADD = $(qs_LDADD)
+ode_print_SOURCES = ode_print.c
+ode_print_LDADD = $(qs_LDADD)
 
-lorenz_SOURCES = lorenz.c
-lorenz_LDADD = $(qs_LDADD)
+ode_SOURCES = ode.c
+ode_LDADD = $(qs_LDADD)
+
+ode_3wins_SOURCES = ode_3wins.c
+ode_3wins_LDADD = $(qs_LDADD)
+
 
 
 

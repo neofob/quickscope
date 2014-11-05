@@ -10,6 +10,7 @@
 #include <gtk/gtk.h>
 #include "debug.h"
 #include "assert.h"
+#include "app.h"
 #include "base.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"
@@ -38,6 +39,24 @@ GList *_qsWidget_initAdjuster(struct QsWidget *w)
 
 void _qsWidget_display(struct QsWidget *w)
 {
+  GSList *l;
+  // Stops other QsWidgets from calling
+  // _qsWidget_display(w) for this 
+  w->inDisplay = true;
+
+  if(w->current)
+    for(l=qsApp->widgets; l; l=l->next)
+    {
+      // We display all QsWidgets that are currently
+      // showing the adjuster that this QsWidget is.
+      struct QsWidget *wi;
+      wi = l->data;
+
+      if(wi->current && wi->current->data == w->current->data
+          && !wi->inDisplay)
+        _qsWidget_display(wi);
+    }
+
   char text[TEXTLEN];
   struct QsAdjuster *adj = NULL;
 
@@ -72,6 +91,8 @@ void _qsWidget_display(struct QsWidget *w)
   else
     QS_SPEW("without callback set text=\"%s\"\n", text);
 #endif
+
+  w->inDisplay = false;
 }
 
 // _qsWidget_next() and _qsWidget_prev() must be good
@@ -353,6 +374,7 @@ void *_qsWidget_create(struct QsAdjusterList *adjs,
   adjs->widgets = g_list_prepend(adjs->widgets, w);
   w->displayCallback = displayCallback;
   w->displayCallbackData = displayCallbackData;
+  qsApp->widgets =  g_slist_prepend(qsApp->widgets, w);
 #ifdef QS_DEBUG
   w->objSize = objSize;
 #endif
@@ -365,6 +387,7 @@ void _qsWidget_destroy(struct QsWidget *w)
   QS_ASSERT(w->adjs);
   QS_ASSERT(w->adjs->widgets);
   w->adjs->widgets = g_list_remove(w->adjs->widgets, w);
+  qsApp->widgets =  g_slist_remove(qsApp->widgets, w);
 
 #ifdef QS_DEBUG
   memset(w, 0, w->objSize);

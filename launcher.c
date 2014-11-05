@@ -52,10 +52,12 @@ static const char *const default_programs[] =
       "/home/lanceman/Music/Alanis Morissette/Jagged"
       " Little Pill/02. You Oughta Know.ogg", NULL,
   "Quickplot", "rk4_print", NULL,
-  "Quickplot", "lorenz_print", NULL,
-  "lorenz", NULL,
-  "lorenz", "--sweep=1", NULL,
-
+  "Quickplot", "ode_print", "system=lorenz", NULL,
+  "ode", "--system=lorenz", NULL,
+  "ode", "--system=lorenz", "--sweep=1", NULL,
+  "ode", "--system=rossler", NULL,
+  "ode_3wins", NULL,
+ 
 #endif
   NULL // Null terminator
 };
