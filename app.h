@@ -86,6 +86,7 @@ struct QsApp
 
   bool inAppLevel; // to see where we are in gtk_main(),
     // qsApp_main() and qsApp_destroy();
+  bool freezeDisplay; // freeze display of all windows view ports
 
   int sourceCreateCount;
 };

@@ -15,6 +15,7 @@
 #include "debug.h"
 #include "assert.h"
 #include "base.h"
+#include "app.h"
 #include "win.h"
 #include "adjuster.h"
 #include "adjuster_priv.h"

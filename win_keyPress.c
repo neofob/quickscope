@@ -264,9 +264,13 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
       break;
     case GDK_KEY_Z:
     case GDK_KEY_z:
-      win->freezeDisplay = win->freezeDisplay?false:true;
-      if(!win->freezeDisplay)
-        _qsWin_unfreeze(win);
+      qsApp->freezeDisplay = qsApp->freezeDisplay?false:true;
+      if(!qsApp->freezeDisplay)
+      {
+        GSList *l;
+        for(l=qsApp->wins; l; l=l->next)
+          _qsWin_unfreeze((struct QsWin *) l->data);
+      }
       return true;
       break;
     case GDK_KEY_Q:

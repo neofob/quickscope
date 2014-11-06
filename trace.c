@@ -575,7 +575,7 @@ void _qsTrace_draw(struct QsTrace *trace, long double t)
   struct QsSwipe *swipe;
   swipe = trace->swipe;
 
-  if(trace->win->freezeDisplay)
+  if(qsApp->freezeDisplay)
   {
     if(swipe)
     {

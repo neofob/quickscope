@@ -126,8 +126,6 @@ struct QsWin
 
   bool grid, ticks, subGrid, axis;
 
-  bool freezeDisplay; /* adds pause/resume or trace plotting */
-
   bool needPostPointDraw; // stupid internal flag
 
   unsigned long bg; /* X11 pixel color of background color */
@@ -306,7 +304,7 @@ void _qsWin_postTraceDraw(struct QsWin *win, long double t)
 {
   if((win->needPostPointDraw ||
     (win->fadeFront && t >= win->fadeLastTime + win->fadeMaxDrawPeriod)
-    ) && !win->freezeDisplay)
+    ) && !qsApp->freezeDisplay)
   {
     if(win->fade)
        _qsWin_fadeDraw(win);
