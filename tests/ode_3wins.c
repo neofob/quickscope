@@ -29,9 +29,13 @@ int main(int argc, char **argv)
       qsApp_float("delay", 0.0F),
       s/*source*/, 0/*sourceChannelNum*/);
 
-  qsApp->op_width = 1000;
+  qsApp->op_x = 0;
+  qsApp->op_y = 0;
+  qsApp->op_width = 4000;
   qsApp->op_height = 500;
- 
+  qsApp->op_showWindowBorder = false;
+  qsApp->op_showStatusbar =false;
+
   int i;
   for(i=0; i<3; ++i)
   {
@@ -47,11 +51,16 @@ int main(int argc, char **argv)
     qsTrace_setSwipeX(trace, qsApp_bool("swipe", true));
   }
 
+  qsApp->op_x = 0;
+  qsApp->op_y = INT_MIN; // INT_MIN is for -0
+  qsApp->op_width = 822;
+  qsApp->op_height = 522;
 
-  qsApp->op_width = 600;
   qsApp->op_fade = true;
   qsApp->op_fadePeriod = 11.0F;
   qsApp->op_fadeDelay =  5.6F;
+  qsApp->op_showWindowBorder = true;
+  qsApp->op_showStatusbar = true;
 
   // new win for this trace
   qsTrace_create(qsWin_create(),
@@ -61,6 +70,12 @@ int main(int argc, char **argv)
       0, 0,/*xshift, yshift */
       true, /* lines */
       1, 0.2, 1 /* RGB line color */);
+
+
+  qsApp->op_x = INT_MIN; // INT_MIN is for -0
+  qsApp->op_y = INT_MIN; // INT_MIN is for -0
+  qsApp->op_width = 822;
+  qsApp->op_height = 522;
 
   qsApp->op_axis = false;
   qsApp->op_ticks = false;

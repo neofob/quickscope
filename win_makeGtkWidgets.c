@@ -217,13 +217,33 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
   gtk_window_set_icon(GTK_WINDOW(win->win),
 	      pixbuf = gdk_pixbuf_new_from_xpm_data(quickscope_32));
   g_object_unref(G_OBJECT(pixbuf));
-  gtk_window_set_default_size(GTK_WINDOW(w), qsApp->op_width, qsApp->op_height);
+
+  if(qsApp->rootWindowWidth < 1)
+    getRootWindowSize();
+
+  {
+    int width, height;
+    width = qsApp->op_width;
+    height = qsApp->op_height;
+    if(width > qsApp->rootWindowWidth)
+    {
+      QS_SPEW("reducing window width=%d "
+          "to root window width=%d\n", width,
+          qsApp->rootWindowWidth);
+      width = qsApp->rootWindowWidth;
+    }
+    if(height > qsApp->rootWindowHeight)
+    {
+      QS_SPEW("reducing window height=%d "
+          "to root window height=%d\n", height,
+          qsApp->rootWindowHeight);
+       height = qsApp->rootWindowHeight;
+    }
+    gtk_window_set_default_size(GTK_WINDOW(w), width, height);
+  }
 
   if(qsApp->op_x != INT_MAX && qsApp->op_y != INT_MAX)
   {
-    if(qsApp->rootWindowWidth < 1)
-      getRootWindowSize();
-
     int x, y;
     x = qsApp->op_x;
     y = qsApp->op_y;
