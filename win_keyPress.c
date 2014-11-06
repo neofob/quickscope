@@ -73,6 +73,8 @@ bool cb_savePNG(GtkWidget *w, struct QsWin *win)
   }
   cairo_surface_destroy(surface);
 
+QS_SPEW("saved tempfile image: \"%s\"\n", tempfilename);
+
 
   GtkWidget *dialog;
   GtkFileFilter *filter;
@@ -81,10 +83,9 @@ bool cb_savePNG(GtkWidget *w, struct QsWin *win)
   dialog = gtk_file_chooser_dialog_new ("Save PNG File",
 		  GTK_WINDOW(win->win),
 		  GTK_FILE_CHOOSER_ACTION_SAVE,
-                  ("_Cancel"), GTK_RESPONSE_CANCEL,
-		  //GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-		  //GTK_STOCK_SAVE, GTK_RESPONSE_ACCEPT,
-		  NULL);
+                  "_Cancel", GTK_RESPONSE_CANCEL,
+                  "_Save", GTK_RESPONSE_ACCEPT,
+                  NULL);
   
   filter = gtk_file_filter_new();
   gtk_file_filter_set_name(filter, "PNG Image File");
@@ -116,39 +117,49 @@ bool cb_savePNG(GtkWidget *w, struct QsWin *win)
     filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
   gtk_widget_destroy(dialog);
 
+QS_SPEW("coping \"%s\" to \"%s\"\n", tempfilename, filename);
+
   if(filename)
   {
     // copy tempfilename to filename
-    int fd = open(filename, O_WRONLY, O_CREAT|O_TRUNC);
+    int fd = open(filename, O_WRONLY|O_CREAT|O_TRUNC,
+        S_IRUSR|S_IWUSR |S_IRGRP|S_IWGRP |S_IROTH|S_IWOTH);
     if(fd < 0)
-      fprintf(stderr, "open(\"%s\", O_WRONLY, O_CREAT|O_TRUNC) failed:"
+      fprintf(stderr, "open(\"%s\", O_WRONLY|O_CREAT|O_TRUNC) failed:"
           " errno=%d: %s\n", filename, errno, strerror(errno));
     else
     {
       char buf[4096];
       while (1)
       {
-        ssize_t result = read(tmpFD, &buf[0], sizeof(buf));
-        if(result == 0)
+        ssize_t nrd = read(tmpFD, buf, sizeof(buf));
+        if(nrd == 0)
         {
           fprintf(stderr, "Wrote PNG file \"%s\" %s\n",
               filename, feedbackStr);
           break;
         }
-        else if(result < 0)
+        else if(nrd < 0)
         {
-          fprintf(stderr, "read(\"%s\", O_WRONLY) failed:"
-              " errno=%d: %s\n", tempfilename, errno, strerror(errno));
+          fprintf(stderr, "read(\"%s\" fd=%d,,) failed:"
+              " errno=%d: %s\n", tempfilename, tmpFD,
+              errno, strerror(errno));
           unlink(filename);
           break;
         }
-        if(write(fd, &buf[0], result) != result)
-        {
-          fprintf(stderr, "open(\"%s\", O_WRONLY) failed:"
-            " errno=%d: %s\n", filename, errno, strerror(errno));
-          unlink(filename);
-          break;
-        }
+
+        ssize_t n, nwr;
+        for(n = nrd; n; n -= nwr)
+          if((nwr = write(fd, &buf[nrd - n], n)) < 1)
+          {
+            fprintf(stderr, "write(\"%s\" fd=%d,,)=%zd "
+                "failed to write a byte:"
+                " errno=%d: %s\n", filename, fd, nwr,
+                errno, strerror(errno));
+            unlink(filename);
+            break;
+          }
+        if(n) break; // failed to write all n
       }
       close(fd);
     }
