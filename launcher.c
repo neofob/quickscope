@@ -57,7 +57,8 @@ static const char *const default_programs[] =
   "ode", "--system=lorenz", "--sweep=1", NULL,
   "ode", "--system=rossler", NULL,
   "ode_3wins", NULL,
- 
+  "urandom", NULL,
+
 #endif
   NULL // Null terminator
 };

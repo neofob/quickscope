@@ -24,7 +24,8 @@ noinst_PROGRAMS =\
  rk4_print\
  ode_print\
  ode\
- ode_3wins
+ ode_3wins\
+ urandom
 
 noinst_SCRIPTS =\
  Quickplot
@@ -75,6 +76,10 @@ ode_LDADD = $(qs_LDADD)
 
 ode_3wins_SOURCES = ode_3wins.c
 ode_3wins_LDADD = $(qs_LDADD)
+
+urandom_SOURCES = urandom.c
+urandom_LDADD = $(qs_LDADD)
+
 
 
 

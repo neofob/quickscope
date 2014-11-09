@@ -117,7 +117,7 @@ QS_SPEW("saved tempfile image: \"%s\"\n", tempfilename);
     filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
   gtk_widget_destroy(dialog);
 
-QS_SPEW("coping \"%s\" to \"%s\"\n", tempfilename, filename);
+  QS_SPEW("coping \"%s\" to \"%s\"\n", tempfilename, filename);
 
   if(filename)
   {
