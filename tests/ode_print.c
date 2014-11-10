@@ -17,8 +17,8 @@ SpewSource(struct QsSource *s, struct QsIterator2 *it)
     ++count;
   }
 
-  //if(count > 1000)
-    //qsApp_destroy();
+  if(count > 1000)
+    qsApp_destroy();
 
   return true;
 }
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
 
   l = attractor_create( 5000 /* maxNumFrames */,
-      3/*play rate multiplier*/,
+      60/*play rate multiplier*/,
       -1,-1,-1,/*sigma, rho, beta -1 == use default*/
       NULL/*projectionCallback*/, NULL/*projectionCallback_data*/,
       3/*numChannels, can be different if projectionCallback*/,

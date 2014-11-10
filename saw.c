@@ -30,6 +30,8 @@
 #include "group.h"
 #include "source.h"
 #include "iterator.h"
+#include "rungeKutta.h"
+#include "sourceTypes.h"
 
 #define MIN_SAMPLES  (4)
 #define MAX_SAMPLES  (10000)

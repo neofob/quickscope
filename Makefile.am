@@ -45,9 +45,7 @@ quickscope_headers =\
  trace.h\
  win.h\
  rungeKutta.h\
- rk4Source.h\
- lorenz.h\
- rossler.h
+ sourceTypes.h
 
 # The .xpm files are built but come in a tarball.
 # .xpm files are not checked into the repository.
@@ -118,6 +116,7 @@ libquickscope_la_SOURCES =\
  iterator.h\
  source.c\
  source.h\
+ sourceTypes.h\
  source_priv.h\
  group.c\
  group.h\
@@ -148,11 +147,9 @@ libquickscope_la_SOURCES =\
  rungeKutta.c\
  rungeKutta.h\
  rk4Source.c\
- rk4Source.h\
  lorenz.c\
- lorenz.h\
  rossler.c\
- rossler.h
+ urandom.c
 
 # automake (as of version 1.14.1) has no per-object
 # spectfic flags, so making a library for each object

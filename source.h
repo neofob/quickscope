@@ -144,7 +144,6 @@ struct QsSource
 
 QS_BASE_DECLARE(qsSource);
 
-
 extern // Declaring this void * make is easier to  use this to make
   // an inheriting object.  It's a GTK+ learned trick. 
 void *qsSource_create(QsSource_ReadFunc_t read,
@@ -180,14 +179,6 @@ void qsSource_setIsSwipable(struct QsSource *s, bool isSwipable)
 // groups.  Currently we only support traces with 2 sources from the
 // same group which means that the 2 sources use the same time stamps.
 
-extern
-struct QsSource *qsSin_create(int maxNumFrames,
-    float amp, float period, float phaseShift, int samplesPerPeriod,
-    struct QsSource *group);
-extern
-struct QsSource *qsSaw_create(int maxNumFrames,
-    float amp, float period, float periodShift, float samplesPerSecond,
-    struct QsSource *group);
 extern
 void qsSource_destroy(struct QsSource *source);
 extern

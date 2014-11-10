@@ -15,7 +15,7 @@
 #include "group.h"
 #include "source.h"
 #include "rungeKutta.h"
-#include "rk4Source.h"
+#include "sourceTypes.h"
 
 
 static
