@@ -107,7 +107,7 @@ function remove_files()
   soundFile_print rk4_print ode ode_print ode_3wins\
   urandom
 
-  # directory exmaples/
+  # directory examples/
 
   cd ../examples || exit 1
 
