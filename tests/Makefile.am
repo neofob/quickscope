@@ -9,7 +9,10 @@
 # quickscope users. 
 
 EXTRA_DIST =\
- Quickplot.bash
+ Quickplot
+
+BUILT_SOURCES =\
+ rossler3Wins.c
 
 noinst_PROGRAMS =\
  tests_launcher\
@@ -24,13 +27,10 @@ noinst_PROGRAMS =\
  rk4_print\
  ode_print\
  ode\
- ode_3wins\
+ rossler3Wins\
  urandom
 
 noinst_SCRIPTS =\
- Quickplot
-
-BUILT_SOURCES =\
  Quickplot
 
 
@@ -76,19 +76,12 @@ ode_print_LDADD = $(qs_LDADD)
 ode_SOURCES = ode.c
 ode_LDADD = $(qs_LDADD)
 
-ode_3wins_SOURCES = ode_3wins.c
-ode_3wins_LDADD = $(qs_LDADD)
+rossler3Wins_SOURCES = rossler3Wins.c
+rossler3Wins_LDADD = $(qs_LDADD)
 
 urandom_SOURCES = urandom.c
 urandom_LDADD = $(qs_LDADD)
 
 
-
-
-
-
-Quickplot: Quickplot.bash Makefile
-	echo "#!/bin/bash" > $@
-	echo "# This is a generated file" >> $@
-	cat $< >> $@
-	chmod 755 $@
+rossler3Wins.c: $(top_srcdir)/bin/rossler3Wins.c
+	$(LN_S) $< $@

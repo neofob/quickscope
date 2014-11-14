@@ -25,10 +25,7 @@ if QS_TESTS
 SUBDIRS += tests
 endif
 
-
-quickscope_headers =\
- top_quickscope.h\
- debug.h\
+quickscope_lastheaders =\
  assert.h\
  base.h\
  adjuster.h\
@@ -46,6 +43,7 @@ quickscope_headers =\
  win.h\
  rungeKutta.h\
  sourceTypes.h
+
 
 # The .xpm files are built but come in a tarball.
 # .xpm files are not checked into the repository.
@@ -67,9 +65,9 @@ examples =\
 EXTRA_DIST =\
  imgSaveImage.png\
  quickscope.png\
+ top_quickscope.h\
  bootstrap\
  Repo_clean\
- $(quickscope_headers)\
  $(convert_generated_images)\
  $(examples)
 
@@ -105,8 +103,8 @@ libquickscope_la_SOURCES =\
  controller.c\
  controller.h\
  controller_priv.h\
- debug.h\
  drawsync.c\
+ drawsync.h\
  fd.c\
  fd.h\
  imgSaveImage.xpm\
@@ -150,6 +148,9 @@ libquickscope_la_SOURCES =\
  lorenz.c\
  rossler.c\
  urandom.c
+
+nodist_libquickscope_la_SOURCES =\
+ debug.h
 
 # automake (as of version 1.14.1) has no per-object
 # spectfic flags, so making a library for each object
@@ -245,22 +246,24 @@ else
 	echo "/*  QS_DEBUG is not defined in this build */" >> $@
 endif
 
-quickscope.h: Makefile $(quickscope_headers)
+
+quickscope.h: Makefile $(srcdir)/top_quickscope.h debug.h $(quickscope_lastheaders)
 	echo "/* This is a generated file */" > $@
-	for i in $(quickscope_headers) ; do \
-           echo "/*************** Start from file: $$i **************/" >> $@; \
+	cat $(srcdir)/top_quickscope.h >> $@
+	cat debug.h >> $@
+	for i in $(quickscope_lastheaders) ; do \
+           echo "/*********** Start from file: $$i **************/" >> $@; \
            cat $(srcdir)/$$i >> $@; \
-           echo "/*************** End from file: $$i ****************" >> $@; \
-           echo " *******************************************************/" >> $@; \
+           echo "/*********** End from file: $$i ****************" >> $@; \
+           echo " ***************************************************/" >> $@; \
         done
+
 
 hash: sha1 sha256 sha512
 sha1:   $(gzfile).sha1   $(bz2file).sha1   $(xzfile).sha1
 sha256: $(gzfile).sha256 $(bz2file).sha256 $(xzfile).sha256
 sha512: $(gzfile).sha512 $(bz2file).sha512 $(xzfile).sha512
 
-dist-hook:
-	rm -f *.sha1 *.sha256 *.sha512
  
 .gz.gz.sha1:
 	sha1sum $< > $@

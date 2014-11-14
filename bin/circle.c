@@ -18,14 +18,14 @@ int main(int argc, char **argv)
   qsApp->op_grid = 0;
 
 
-  sinSource = qsSin_create( 100 /* maxNumFrames */,
+  sinSource = qsSin_create( 1000 /* maxNumFrames */,
         0.4F /*amplitude*/, 3.2348F /*period*/,
-        0.0F /*phaseShift*/, 35 /*samplesPerPeriod*/,
+        0.0F /*phaseShift*/, 90 /*samplesPerPeriod*/,
         NULL /* group */);
 
-  cosSource = qsSin_create( 100 /* maxNumFrames */,
+  cosSource = qsSin_create( 1000 /* maxNumFrames */,
         0.4F /*amplitude*/, 3.2348F /*period*/,
-        M_PI/2.0F /*phaseShift*/, 35 /*samplesPerPeriod*/,
+        M_PI/2.0F /*phaseShift*/, 90 /*samplesPerPeriod*/,
         sinSource /* group is same as sinSource group */);
 
   qsTrace_create(NULL /* QsWin, NULL to make a default */,

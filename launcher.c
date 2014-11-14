@@ -24,10 +24,16 @@ static const char *const default_programs[] =
 
   // bin/ installed qs_launcher code
 
+  "qs_rossler3Wins", NULL,
   "qs_circle", NULL,
   "qs_sin", NULL,
 
 #else
+
+#  define LONG_MUSIC  "/home/lanceman/Music/Alanis Morissette/Jagged"\
+                      " Little Pill/02. You Oughta Know.ogg"
+
+#  define SHORT_MUSIC "/usr/share/tuxpaint/sounds/mirror.wav"
 
   // tests/ code
 
@@ -45,18 +51,15 @@ static const char *const default_programs[] =
   "sin", "--slope=0", "--swipe=1", "--fade=0", "--cos=1", NULL,
   "Quickplot", "soundFile_print",
       "/usr/share/tuxpaint/sounds/bleep.wav", NULL,
-  "soundFile", "/home/lanceman/Music/Alanis Morissette/Jagged"
-      " Little Pill/02. You Oughta Know.ogg", NULL,
-  "soundFile", "/usr/share/tuxpaint/sounds/mirror.wav", NULL,
-  "soundFile", "--swipe=0", "--fade=1", "--holdoff=0.03", 
-      "/home/lanceman/Music/Alanis Morissette/Jagged"
-      " Little Pill/02. You Oughta Know.ogg", NULL,
+  "soundFile", LONG_MUSIC, NULL,
+  "soundFile", SHORT_MUSIC, NULL,
+  "soundFile", "--swipe=0", "--fade=1", "--holdoff=0.03", LONG_MUSIC, NULL,
   "Quickplot", "rk4_print", NULL,
   "Quickplot", "ode_print", "system=lorenz", NULL,
   "ode", "--system=lorenz", NULL,
   "ode", "--system=lorenz", "--sweep=1", NULL,
   "ode", "--system=rossler", NULL,
-  "ode_3wins", NULL,
+  "rossler3Wins", NULL,
   "urandom", NULL,
   "sin", "--dense", "--slope=0", "--swipe=1", "--fade=0", NULL,
 
