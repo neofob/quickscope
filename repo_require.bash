@@ -55,7 +55,7 @@ function check_repo_require()
   if [ ! -d ".git" ] ; then
     cat <<END
   The .git repository directory was not found.  So
-  it does not look like you need/should to run this.
+  it does not look like you need to, or should, run this.
 
 END
     fail=yes

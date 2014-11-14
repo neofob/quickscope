@@ -69,7 +69,8 @@ EXTRA_DIST =\
  bootstrap\
  Repo_clean\
  $(convert_generated_images)\
- $(examples)
+ $(examples)\
+ repo_require.bash
 
 
 BUILT_SOURCES =\
