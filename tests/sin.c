@@ -8,8 +8,15 @@ int main(int argc, char **argv)
 {
   struct QsSource *sin, *cos=NULL, *sweep;
   struct QsTrace *trace;
+  float period = 0.5F, sweepPeriod = 4.132F;
 
   qsApp_init(&argc, &argv);
+  
+  if(qsApp_bool("dense", false))
+  {
+    period = 1.03F/2000.0F;
+    sweepPeriod = 0.01F;
+  }
 
   qsApp->op_fade = qsApp_bool("fade", true);
   qsApp->op_fadePeriod = 4.0F;
@@ -17,13 +24,13 @@ int main(int argc, char **argv)
   qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
 
-  sin = qsSin_create( 5000 /* maxNumFrames */,
-        0.45F /*amplitude*/, 0.5F /*period*/,
+  sin = qsSin_create( 30000 /* maxNumFrames */,
+        0.45F /*amplitude*/, period,
         0.0F*M_PI /*phaseShift*/,
         qsApp_int("samples-per-period", 100),
         NULL /* group */);
 
-  sweep = qsSweep_create(2.731F /*period*/,
+  sweep = qsSweep_create(sweepPeriod,
       0.0F/*level*/, qsApp_int("slope", 1),
       0.0F/*holdOff*/,
       qsApp_float("delay", 0.0F),

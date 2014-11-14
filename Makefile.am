@@ -166,20 +166,21 @@ libadjInt_la_SHORTNAME = adjInt
 libadjD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
 libadjLD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
 libadjInt_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
-libadjD_la_CFLAGS = -DDOUBLE $(gtk_3_CFLAGS)
-libadjLD_la_CFLAGS = -DLONG_DOUBLE $(gtk_3_CFLAGS)
-libadjInt_la_CFLAGS = -DINT $(gtk_3_CFLAGS)
+libadjD_la_CFLAGS = -DDOUBLE $(GTK_3_CFLAGS)
+libadjLD_la_CFLAGS = -DLONG_DOUBLE $(GTK_3_CFLAGS)
+libadjInt_la_CFLAGS = -DINT $(GTK_3_CFLAGS)
 
 libquickscope_la_SHORTNAME = qs
 libquickscope_la_LIBADD =\
  libadjD.la\
  libadjLD.la\
  libadjInt.la\
- $(gtk_3_LIBS)\
- $(sndfile_LIBS)\
+ $(GTK_3_LIBS)\
+ $(SNDFILE_LIBS)\
+ $(ALSA_LIBS)\
  -lX11\
  -ldl
-libquickscope_la_CFLAGS = $(gtk_3_CFLAGS) $(sndfile_CFLAGS)
+libquickscope_la_CFLAGS = $(GTK_3_CFLAGS) $(SNDFILE_CFLAGS) $(ALSA_CFLAGS)
 libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
 
 

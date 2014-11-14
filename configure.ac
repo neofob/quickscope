@@ -131,7 +131,7 @@ powl
 )
 
 
-PKG_CHECK_MODULES([gtk_3], [gtk+-3.0 >= 3.0.12],
+PKG_CHECK_MODULES([GTK_3], [gtk+-3.0 >= 3.0.12],
     [],
     [error=yes
      AC_MSG_WARN([
@@ -140,12 +140,20 @@ PKG_CHECK_MODULES([gtk_3], [gtk+-3.0 >= 3.0.12],
     ]
 )
 
-PKG_CHECK_MODULES([sndfile], [sndfile >= 1.0.5],
+PKG_CHECK_MODULES([SNDFILE], [sndfile >= 1.0.5],
     [],
     [error=yes
      AC_MSG_WARN([
         lib sndfile version >= 1.0.5 is required
         homepage: http://www.mega-nerd.com/libsndfile/])
+    ]
+)
+
+PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.28],
+    [],
+    [error=yes
+     AC_MSG_WARN([
+        lib alsa version >= 1.0.28 is required])
     ]
 )
 

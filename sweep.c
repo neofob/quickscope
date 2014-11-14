@@ -583,7 +583,7 @@ struct QsSource *qsSweep_create(
   addIcon(
       qsAdjusterFloat_create(adjL,
       "Sweep Period", "sec", &sweep->period,
-      0.01, /* min */ 1000.0, /* max */
+      0.005, /* min */ 1000.0, /* max */
       (void (*)(void *)) cb_changePeriod, sweep), sweep);
   addIcon(
       qsAdjusterFloat_create(adjL,

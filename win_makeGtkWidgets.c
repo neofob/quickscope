@@ -360,7 +360,12 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
     {
       GtkWidget *da;
       win->da = da = gtk_drawing_area_new();
-      gtk_widget_set_double_buffered(da, false);
+      // TODO: gtk_widget_set_double_buffered(,false) is depreciated
+      // but we may still need what it did.  I don't see a big
+      // performance hit by not calling it.  So ...???
+      // We don't want GTK to double buffer, because we are doing
+      // that in this quickscope code using the X11 client API.
+      //gtk_widget_set_double_buffered(da, false);
       g_signal_connect(G_OBJECT(da),"configure-event",
           G_CALLBACK(_qsWin_cb_configure), win);
       g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(_qsWin_cbDraw), win);

@@ -36,11 +36,13 @@ BUILT_SOURCES =\
 
 qs_LDADD = ../libquickscope.la 
 
-AM_CFLAGS = -I.. $(gtk_3_CFLAGS)
+AM_CFLAGS = -I.. $(GTK_3_CFLAGS)
 
+# tests_launcher does not need libquickscope
+# but it does need gtk-3
 tests_launcher_SOURCES = $(srcdir)/../launcher.c
-tests_launcher_LDADD = $(gtk_3_LIBS) -ldl
-tests_launcher_CFLAGS = -DTESTS $(gtk_3_CFLAGS)
+tests_launcher_LDADD = $(GTK_3_LIBS) -ldl
+tests_launcher_CFLAGS = -DTESTS $(GTK_3_CFLAGS)
 
 hello_SOURCES = hello.c
 

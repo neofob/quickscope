@@ -58,6 +58,7 @@ static const char *const default_programs[] =
   "ode", "--system=rossler", NULL,
   "ode_3wins", NULL,
   "urandom", NULL,
+  "sin", "--dense", "--slope=0", "--swipe=1", "--fade=0", NULL,
 
 #endif
   NULL // Null terminator

@@ -27,7 +27,7 @@
 
 #define MIN_SAMPLES  (4)
 #define MAX_SAMPLES  (10000)
-#define MIN_PERIOD   (0.01F)
+#define MIN_PERIOD   (0.0001F)
 #define MAX_PERIOD   (1000.0F)
 
 // TODO: make this thread safe and cleaner
