@@ -6,9 +6,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <gtk/gtk.h>
-#include <debug.h>
-#include <assert.h>
-#include <rungeKutta.h>
+#include "debug.h"
+#include "Assert.h"
+#include "rungeKutta.h"
 
 
 struct QsRungeKutta4 *qsRungeKutta4_create(

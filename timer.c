@@ -7,7 +7,7 @@
 #include <string.h>
 #include <gtk/gtk.h>
 #include "debug.h"
-#include "assert.h"
+#include "Assert.h"
 #include "timer_priv.h"
 
 

@@ -63,6 +63,7 @@ DEFAULT_GRID_FONT="Sans 10"
 
 
 #AM_INIT_AUTOMAKE(option1 option2 ...)
+#AM_INIT_AUTOMAKE([subdir-objects] dist-bzip2 dist-xz)
 AM_INIT_AUTOMAKE(dist-bzip2 dist-xz)
 AC_CONFIG_MACRO_DIR([m4])
 

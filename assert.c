@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include "debug.h"
-#include "assert.h"
+#include "Assert.h"
 
 #ifdef QS_DEBUG
 void qsSpew(const char *file, int line,

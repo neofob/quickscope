@@ -105,7 +105,8 @@ function remove_files()
   rm -f tests_launcher hello circle saw_print\
   non_master_print source sin soundFile\
   soundFile_print rk4_print ode ode_print ode_3wins\
-  urandom rossler3Wins rossler3Wins.c
+  urandom rossler3Wins rossler3Wins.c alsa_info\
+  alsa_capture_print
 
   # directory examples/
 

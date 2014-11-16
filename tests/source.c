@@ -2,8 +2,8 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
+#include "../quickscope.h"
 #include <math.h> // defines M_PI
-#include <quickscope.h>
 
 
 static void

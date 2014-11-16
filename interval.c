@@ -14,7 +14,7 @@
 #include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
-#include "assert.h"
+#include "Assert.h"
 #include "base.h"
 #include "controller_priv.h"
 #include "controller.h"

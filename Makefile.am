@@ -26,7 +26,7 @@ SUBDIRS += tests
 endif
 
 quickscope_lastheaders =\
- assert.h\
+ Assert.h\
  base.h\
  adjuster.h\
  app.h\
@@ -98,7 +98,7 @@ libquickscope_la_SOURCES =\
  app_priv.h\
  app_arg.c\
  assert.c\
- assert.h\
+ Assert.h\
  base.h\
  config.h\
  controller.c\

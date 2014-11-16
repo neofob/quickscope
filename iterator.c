@@ -10,7 +10,7 @@
 #include <stdbool.h>
 #include <gtk/gtk.h>
 #include "debug.h"
-#include "assert.h"
+#include "Assert.h"
 #include "app.h"
 #include "base.h"
 #include "trace.h"

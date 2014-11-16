@@ -17,7 +17,7 @@
 #include <gdk/gdkx.h>
 #include <gdk/gdkkeysyms.h>
 #include "debug.h"
-#include "assert.h"
+#include "Assert.h"
 #include "base.h"
 #include "app.h"
 #include "adjuster.h"

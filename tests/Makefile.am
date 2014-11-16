@@ -28,7 +28,10 @@ noinst_PROGRAMS =\
  ode_print\
  ode\
  rossler3Wins\
- urandom
+ urandom\
+ alsa_info\
+ alsa_capture_print
+
 
 noinst_SCRIPTS =\
  Quickplot
@@ -36,7 +39,7 @@ noinst_SCRIPTS =\
 
 qs_LDADD = ../libquickscope.la 
 
-AM_CFLAGS = -I.. $(GTK_3_CFLAGS)
+AM_CFLAGS = $(GTK_3_CFLAGS)
 
 # tests_launcher does not need libquickscope
 # but it does need gtk-3
@@ -81,6 +84,14 @@ rossler3Wins_LDADD = $(qs_LDADD)
 
 urandom_SOURCES = urandom.c
 urandom_LDADD = $(qs_LDADD)
+
+alsa_info_SOURCES = alsa_info.c
+alsa_info_LDADD = $(qs_LDADD) $(ALSA_LIBS)
+alsa_info_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
+
+alsa_capture_print_SOURCES = alsa_capture_print.c
+alsa_capture_print_LDADD = $(qs_LDADD) $(ALSA_LIBS)
+alsa_capture_print_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
 
 rossler3Wins.c: $(top_srcdir)/bin/rossler3Wins.c

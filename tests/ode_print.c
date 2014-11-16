@@ -2,7 +2,7 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
-#include <quickscope.h>
+#include "../quickscope.h"
 
 static bool
 SpewSource(struct QsSource *s, struct QsIterator2 *it)
