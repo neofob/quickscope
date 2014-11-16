@@ -90,7 +90,7 @@ alsa_info_LDADD = $(qs_LDADD) $(ALSA_LIBS)
 alsa_info_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
 alsa_capture_print_SOURCES = alsa_capture_print.c
-alsa_capture_print_LDADD = $(qs_LDADD) $(ALSA_LIBS)
+alsa_capture_print_LDADD = $(qs_LDADD) $(ALSA_LIBS) $(GTK_3_LIBS)
 alsa_capture_print_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
 
