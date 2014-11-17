@@ -24,6 +24,7 @@ static const char *const default_programs[] =
 
   // bin/ installed qs_launcher code
 
+  "qs_alsaCapture", NULL,
   "qs_rossler3Wins", NULL,
   "qs_circle", NULL,
   "qs_sin", NULL,
@@ -62,6 +63,7 @@ static const char *const default_programs[] =
   "rossler3Wins", NULL,
   "urandom", NULL,
   "sin", "--dense", "--slope=0", "--swipe=1", "--fade=0", NULL,
+  "Quickplot", "alsa_capture_print", NULL,
 
 #endif
   NULL // Null terminator

@@ -5,14 +5,15 @@
 
 # This directory has source code for
 # development test programs.
-# They are not so useful for regular
-# quickscope users. 
+# They are not necassarly so useful for
+# regular quickscope users. 
 
 EXTRA_DIST =\
  Quickplot
 
 BUILT_SOURCES =\
- rossler3Wins.c
+ rossler3Wins.c\
+ alsaCapture.c
 
 noinst_PROGRAMS =\
  tests_launcher\
@@ -30,7 +31,9 @@ noinst_PROGRAMS =\
  rossler3Wins\
  urandom\
  alsa_info\
- alsa_capture_print
+ alsa_capture_print\
+ idle\
+ alsaCapture
 
 
 noinst_SCRIPTS =\
@@ -51,6 +54,9 @@ hello_SOURCES = hello.c
 
 circle_SOURCES = circle.c
 circle_LDADD = $(qs_LDADD)
+
+idle_SOURCES = idle.c
+idle_LDADD = $(qs_LDADD)
 
 source_SOURCES = source.c
 source_LDADD = $(qs_LDADD)
@@ -93,6 +99,13 @@ alsa_capture_print_SOURCES = alsa_capture_print.c
 alsa_capture_print_LDADD = $(qs_LDADD) $(ALSA_LIBS) $(GTK_3_LIBS)
 alsa_capture_print_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
+alsaCapture_SOURCES = alsaCapture.c
+alsaCapture_LDADD = $(qs_LDADD)
+
+
 
 rossler3Wins.c: $(top_srcdir)/bin/rossler3Wins.c
+	$(LN_S) $< $@
+
+alsaCapture.c: $(top_srcdir)/bin/alsaCapture.c
 	$(LN_S) $< $@

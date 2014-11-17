@@ -1,5 +1,5 @@
 // Butt ugly macros used to define and declare functions
-// to an "QS class" object that may be inherited.
+// to "QS base class" that may be inherited.
 // 
 
 #define QS_BASE_DECLARE(prefix) \
@@ -13,7 +13,7 @@ extern \
 void prefix ## _addSubDestroy(void *x, void *destroy)
 
 
-#define QS_BASE_DEFINE(prefix, type) \
+#define QS_BASE_DEFINE_FULL(prefix, type, dprefix) \
 /* To be called at end of inheriting _destroy() function */ \
 void prefix ## _checkBaseDestroy(void *x) \
 { \
@@ -22,9 +22,9 @@ void prefix ## _checkBaseDestroy(void *x) \
   QS_ASSERT(s); \
   if(s->destroy) \
   { \
-    /* We are not in prefix_destroy() */ \
+    /* We are not in dprefix_destroy() */ \
     s->destroy = NULL; \
-    prefix ## _destroy(s); \
+    dprefix ## _destroy(s); \
   } \
   /* printf("end of %s()\n", __func__); */ \
 } \
@@ -39,6 +39,13 @@ void prefix ## _addSubDestroy(void *x, void *destroy) \
   QS_ASSERT(s); \
   s->destroy = destroy; \
 }
+
+
+// The case where the destroy function is public
+// so it has a destroy function like prefix_destroy
+// and a create function like prefix_create()
+#define QS_BASE_DEFINE(prefix, type) QS_BASE_DEFINE_FULL(prefix, type, prefix)
+
 
 
 #define QS_BASE_CHECKSUBDESTROY(s) \

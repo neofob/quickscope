@@ -30,11 +30,8 @@ quickscope_lastheaders =\
  base.h\
  adjuster.h\
  app.h\
- drawsync.h\
  controller.h\
- fd.h\
  group.h\
- interval.h\
  source.h\
  iterator.h\
  soundFile.h\
@@ -86,6 +83,7 @@ endif
 lib_LTLIBRARIES = libquickscope.la
 
 libquickscope_la_SOURCES =\
+ alsaCapture.c\
  adjuster.c\
  adjuster.h\
  adjusterBool.c\
@@ -105,12 +103,10 @@ libquickscope_la_SOURCES =\
  controller.h\
  controller_priv.h\
  drawsync.c\
- drawsync.h\
  fd.c\
- fd.h\
  imgSaveImage.xpm\
  interval.c\
- interval.h\
+ idle.c\
  iterator.c\
  iterator.h\
  source.c\
@@ -181,7 +177,8 @@ libquickscope_la_LIBADD =\
  $(SNDFILE_LIBS)\
  $(ALSA_LIBS)\
  -lX11\
- -ldl
+ -ldl\
+ -lm
 libquickscope_la_CFLAGS = $(GTK_3_CFLAGS) $(SNDFILE_CFLAGS) $(ALSA_CFLAGS)
 libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
 

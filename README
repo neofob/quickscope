@@ -140,7 +140,7 @@ drawsync      a controller that uses
 interval      a controller that manages a single callback
               interval using g_timeout_add_full(), which
               I imagine is using the system family of
-              functions that are started with setitimer(),
+              functions that are started with setitimer()
 
 
 fd            a controller that reads files, uses something
@@ -148,6 +148,13 @@ fd            a controller that reads files, uses something
               call using a g_source, used for efficient
               blocking read of a file,
 
+
+idle          This controller uses g_idle_add() to keep
+              looping and reading sources.  One of the
+              source read callbacks should do a blocking
+              read or like thing to keep this loop from
+              running uncontrolled and using to much CPU
+              usage
 
 source        we read data from a source, source callback
               controlled by controller using a controller,

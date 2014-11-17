@@ -26,7 +26,6 @@
 #include "iterator.h"
 #include "trace_priv.h"
 #include "controller_priv.h"
-#include "interval.h"
 
 struct QsApp *qsApp = NULL;
 

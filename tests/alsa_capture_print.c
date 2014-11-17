@@ -12,7 +12,7 @@
 #include <alsa/asoundlib.h>
 #include "../quickscope.h"
 
-#define RUN(x) \
+#define CALL(x) \
   do\
   {\
     /* make it so (x) is only called once */\
@@ -37,6 +37,41 @@ bool isLittleEndian(void)
   return (*(char*) &num == 01);
 }
 
+// This assumes that there is only one channel in the frame
+static inline
+bool ReadNFrames(snd_pcm_t *handle, float *buf, snd_pcm_uframes_t n)
+{
+  while(n)
+  {
+    int rc;
+
+    rc = snd_pcm_readi(handle, buf, n);
+    if(rc > 0 && rc <= n)
+    {
+      buf += rc;
+      n -= rc;
+      continue;
+    }
+
+    if(rc < 0)
+    {
+      fprintf(stderr,
+              "snd_pcm_readi() failed: %d: %s\n",
+              rc, snd_strerror(rc));
+      QS_ASSERT(0);
+      return true;
+    }
+
+    fprintf(stderr,
+        "error: snd_pcm_readi(,,frames=%ld) returned %d and not the requested %ld\n",
+        n, rc, n);
+    QS_ASSERT(0);
+    return true;
+  }
+
+  return false; // success
+}
+
 
 int main()
 {
@@ -45,87 +80,59 @@ int main()
 
   qsApp_init(NULL, NULL); // using the signal catchers for debugging
 
-  RUN(snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0));
+  CALL(snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0));
   snd_pcm_hw_params_malloc(&params);
   snd_pcm_hw_params_any(handle, params);
-  RUN(snd_pcm_hw_params_set_access(handle, params, SND_PCM_ACCESS_RW_INTERLEAVED));
-  RUN(snd_pcm_hw_params_set_format(handle, params, SND_PCM_FORMAT_FLOAT_LE));
-  RUN(snd_pcm_hw_params_set_channels(handle, params, 1));
+  CALL(snd_pcm_hw_params_set_access(handle, params, SND_PCM_ACCESS_RW_INTERLEAVED));
+  CALL(snd_pcm_hw_params_set_format(handle, params, SND_PCM_FORMAT_FLOAT_LE));
+  CALL(snd_pcm_hw_params_set_channels(handle, params, 1));
 
-  unsigned int rate = 44100;
+  unsigned int rate = 8000;
   int dir = 0;
-  RUN(snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir));
+  CALL(snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir));
   fprintf(stderr, "rate=%u  dir=%d\n", rate, dir);
 
 
   snd_pcm_uframes_t frames = 128;
-  RUN(snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir));
+  CALL(snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir));
 
 
-  RUN(snd_pcm_hw_params(handle, params));
+  CALL(snd_pcm_hw_params(handle, params));
 
 
-  RUN(snd_pcm_hw_params_get_period_size(params, &frames, &dir));
+  CALL(snd_pcm_hw_params_get_period_size(params, &frames, &dir));
   fprintf(stderr, "frames=%ld\n", frames);
 
   float *buffer;
   buffer = g_malloc0(frames * sizeof(*buffer));
 
   unsigned int usec = 0;
-  RUN(snd_pcm_hw_params_get_period_time(params, &usec, &dir));
+  CALL(snd_pcm_hw_params_get_period_time(params, &usec, &dir));
   fprintf(stderr, "period_time=%u micro seconds\n", usec);
   
   snd_pcm_hw_params_free(params);
 
-  RUN(snd_pcm_prepare(handle));
-  
+  CALL(snd_pcm_prepare(handle));
+
   int run;
   run = 1 /* seconds */ * 1000000 / usec;
 
   while(run--)
   {
-    int rc;
-    // We can use this blocking call to control the
-    // scope ????
-    // KISS: yes, great idea.  Let the blocking source 
-    // read control the scope loop.
-    rc = snd_pcm_readi(handle, buffer, frames);
-    if(rc == frames)
-    {
-      int n;
-      float *buf;
-      buf = buffer;
-      n = rc;
-      while(n--)
-        printf("%g\n", *buf++);
-    }
-    else if(rc == -EPIPE)
-    {
-      /* EPIPE means overrun */
-      fprintf(stderr, "overrun occurred\n");
-      snd_pcm_prepare(handle);
-    }
-    else if(rc != frames)
-    {
-      fprintf(stderr,
-          "error: read %d and not the requested %ld\n",
-          rc, frames);
+    if(ReadNFrames(handle, buffer, frames))
       break;
-    }
-    else
-    {
-      fprintf(stderr,
-              "error from read: %d: %s\n",
-              rc, snd_strerror(rc));
-      break;
-    }
-  }
 
+    float *buf;
+    buf = buffer;
+    snd_pcm_uframes_t i;
+    for(i=0; i<frames; ++i)
+      printf("%g\n", *buf++);
+  }
 
   g_free(buffer);
 
-  RUN(snd_pcm_drain(handle));
-  RUN(snd_pcm_close(handle));
+  CALL(snd_pcm_drain(handle));
+  CALL(snd_pcm_close(handle));
 
   return 0;
 }

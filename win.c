@@ -17,7 +17,6 @@
 #include "win.h"
 #include "win_priv.h"
 #include "trace.h"
-#include "drawsync.h"
 #include "controller.h"
 
 

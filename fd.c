@@ -18,7 +18,6 @@
 #include "base.h"
 #include "controller_priv.h"
 #include "controller.h"
-#include "fd.h"
 
 struct QsFdGSource
 {
@@ -40,8 +39,38 @@ struct QsFd
   void (*destroy)(void *);
 };
 
+static
+void _qsFd_destroy(struct QsFd *fd)
+{
+  QS_BASE_CHECKSUBDESTROY(fd);
 
-QS_BASE_DEFINE(qsFd, struct QsFd)
+  /* now destroy this and then the base object */
+  struct QsFdGSource *gfd;
+  QS_ASSERT(fd->fdGSource);
+
+  gfd = fd->fdGSource;
+
+  gfd->pfd.revents = 0;
+  g_source_remove_poll(&gfd->gsource, &(gfd->pfd));
+  /* g_source_destroy() removes a source from its' GMainContext */
+  g_source_destroy(&gfd->gsource);
+
+
+#ifdef QS_DEBUG
+  memset(((uint8_t*)gfd)+sizeof(GSource), 0, sizeof(*gfd) - sizeof(GSource));
+#endif
+
+  /* free the GSource and struct QsFdGSource memory */
+  g_source_unref(&gfd->gsource);
+
+  /* now destroy the base unless we are in
+   * the base qsController_destroy() */
+  _qsController_checkBaseDestroy(fd);
+}
+
+// We make this a base class with a destroy
+// function that is not public
+QS_BASE_DEFINE_FULL(qsFd, struct QsFd, _qsFd)
 
 
 static inline
@@ -86,34 +115,6 @@ bool dispatch(struct QsFdGSource *fD, GSourceFunc callback, gpointer data)
   return true;
 }
 
-void qsFd_destroy(struct QsFd *fd)
-{
-  QS_BASE_CHECKSUBDESTROY(fd);
-
-  /* now destroy this and then the base object */
-  struct QsFdGSource *gfd;
-  QS_ASSERT(fd->fdGSource);
-
-  gfd = fd->fdGSource;
-
-  gfd->pfd.revents = 0;
-  g_source_remove_poll(&gfd->gsource, &(gfd->pfd));
-  /* g_source_destroy() removes a source from its' GMainContext */
-  g_source_destroy(&gfd->gsource);
-
-
-#ifdef QS_DEBUG
-  memset(((uint8_t*)gfd)+sizeof(GSource), 0, sizeof(*gfd) - sizeof(GSource));
-#endif
-
-  /* free the GSource and struct QsFdGSource memory */
-  g_source_unref(&gfd->gsource);
-
-  /* now destroy the base unless we are in
-   * the base qsController_destroy() */
-  _qsController_checkBaseDestroy(fd);
-}
-
 struct QsController *qsFd_create(int fD, size_t size)
 {
   /* this source_funcs memory needs to exist after this function returns
@@ -135,7 +136,7 @@ struct QsController *qsFd_create(int fD, size_t size)
     size = sizeof(*fd);
 
   fd = _qsController_create(NULL, size);
-  _qsController_addSubDestroy(fd, qsFd_destroy);
+  _qsController_addSubDestroy(fd, _qsFd_destroy);
   fd->fdGSource = gs = (struct QsFdGSource *)
     g_source_new(&source_funcs, sizeof(*gs));
   memset(((uint8_t*)gs) + sizeof(GSource), 0, sizeof(*gs) - sizeof(GSource));

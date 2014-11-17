@@ -6,10 +6,10 @@
 # This directory has source code for programs
 # that get installed as part of Quickscope.
 
-qs_LDADD = ../libquickscope.la
+qs_LDADD = ../libquickscope.la -lm
 AM_CFLAGS = -I.. $(GTK_3_CFLAGS)
 
-bin_PROGRAMS = qs_launcher qs_rossler3Wins qs_circle qs_sin
+bin_PROGRAMS = qs_launcher qs_rossler3Wins qs_circle qs_sin qs_alsaCapture
 
 qs_launcher_SOURCES = $(srcdir)/../launcher.c
 qs_launcher_LDADD = $(GTK_3_LIBS) -ldl
@@ -17,8 +17,11 @@ qs_launcher_LDADD = $(GTK_3_LIBS) -ldl
 qs_circle_SOURCES = circle.c
 qs_circle_LDADD = $(qs_LDADD)
 
+qs_alsaCapture_SOURCES = alsaCapture.c
+qs_alsaCapture_LDADD = $(qs_LDADD)
+
 qs_sin_SOURCES = sin.c
-qs_sin_LDADD = $(qs_LDADD) $(GTK_3_LIBS) -lm
+qs_sin_LDADD = $(qs_LDADD)
 
 qs_rossler3Wins_SOURCES = rossler3Wins.c
-qs_rossler3Wins_LDADD = $(qs_LDADD) $(GTK_3_LIBS) -lm
+qs_rossler3Wins_LDADD = $(qs_LDADD)

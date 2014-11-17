@@ -26,7 +26,6 @@
 #include "group.h"
 #include "source.h"
 #include "controller_priv.h"
-#include "drawsync.h"
 
 struct QsDrawSync
 {
@@ -86,7 +85,7 @@ void _qsDrawSync_destroy(struct QsDrawSync *ds)
   _qsController_checkBaseDestroy(ds);
 }
 
-void *qsDrawSync_create(struct QsWin *win)
+struct QsController *qsDrawSync_create(struct QsWin *win)
 {
   struct QsDrawSync *ds;
   QS_ASSERT(win);
@@ -98,5 +97,5 @@ void *qsDrawSync_create(struct QsWin *win)
   _qsController_addSubDestroy(ds, _qsDrawSync_destroy);
   win->drawSyncs = g_slist_prepend(ds->win->drawSyncs, ds);
 
-  return ds;
+  return (struct QsController *) ds;
 }

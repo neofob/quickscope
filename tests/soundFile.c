@@ -36,7 +36,7 @@ int main(int argc, char **argv)
   qsApp->op_doubleBuffer = true;
   qsApp->op_width = 1200;
   qsApp->op_height = 400;
-
+  qsApp->op_axis = false;
   qsApp->op_grid = 0;
 
 

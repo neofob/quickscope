@@ -18,7 +18,6 @@
 #include "base.h"
 #include "controller_priv.h"
 #include "controller.h"
-#include "interval.h"
 
 struct QsInterval
 {
@@ -63,7 +62,7 @@ void _qsInterval_destroy(struct QsInterval *in)
   _qsController_checkBaseDestroy(in);
 }
 
-void *qsInterval_create(float period)
+struct QsController *qsInterval_create(float period)
 {
   struct QsInterval *in;
 
@@ -78,5 +77,5 @@ void *qsInterval_create(float period)
   in->period = period;
   _qsController_addSubDestroy(in, _qsInterval_destroy);
 
-  return in;
+  return (struct QsController *) in;
 }

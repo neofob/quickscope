@@ -232,7 +232,7 @@ bool qsSource_setMinSampleRate(struct QsSource *s, float rate/*Hz*/)
     return false;
   }
 
-  if(rate != s->minSampleRate)
+  if(s->minSampleRate != rate)
     s->minSampleRate = rate;
 
   if(rate != g->sampleRate)
@@ -313,6 +313,7 @@ int qsSource_getRequestedSamples(const struct QsSource *s,
   QS_ASSERT(s->group);
   QS_ASSERT(tF >= tPrev);
   QS_ASSERT(tF - tPrev < ((long double) FLT_MAX));
+
   if(s->isMaster)
   {
     int n;
@@ -321,17 +322,18 @@ int qsSource_getRequestedSamples(const struct QsSource *s,
     // TODO: We need to do more for this check:
     // maybe auto resize the sources and iterators,
     // but we should not let things get too large.
-    if(n > qsSource_maxNumFrames(s))
+    if(n > qsSource_maxNumFrames(s)/2)
     {
       QS_SPEW(
         "The number of frames in the source buffer is too small\n"
         "We have %d but need %d, tPrev=%Lg tF=%Lg deltaT=%Lg\n"
-        "s->group->sampleRate=%g\n",  qsSource_maxNumFrames(s), n,
+        "s->group->sampleRate=%g\n",  qsSource_maxNumFrames(s), n*2,
         tPrev, tF, tF - tPrev, s->group->sampleRate);
-      n = qsSource_maxNumFrames(s);
+      n = qsSource_maxNumFrames(s)/2;
     }
     return n;
   }
+
   return qsSource_numFrames(s);
 }
 

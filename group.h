@@ -13,6 +13,7 @@ struct QsGroup
 
   long double *time; // time stamp array/buffer
 
+  // The max of source minSampleRate
   float sampleRate;
 
   int maxNumFrames,

@@ -45,6 +45,10 @@ struct QsSource *qsLorenz_create(int maxNumFrames,
     void *cbdata,
     int numChannels/*number source channels written*/,
     struct QsSource *group);
+extern
+struct QsSource *qsAlsaCapture_create(int maxNumFrames, int sampleRate,
+    struct QsSource *group);
+
 
 struct QsRK4Source
 {
