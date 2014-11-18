@@ -11,6 +11,25 @@ struct QsIterator2;
 typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
     long double t, long double prevT, void *data);
 
+#if 0
+/* under-run is the state when the last call to the
+ * callback function happened so long ago that there
+ * are not enough frames in the source buffer to hold
+ * the required frames to run at the source groups
+ * period.   tA != tPrev
+ *
+ * No under-run will have tA == tPrev
+ *
+ * If the source group is not periodic there is no
+ * predefined under-run condition.
+ */
+typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
+    long double tB, long double tA, long double tPrev,
+    int nFrames, void *data);
+
+#endif
+
+
 struct QsSource
 {
   // inherit QsAdjusterList
@@ -139,6 +158,9 @@ struct QsSource
   // Who is the master? (??) The QsSource that is writing the fastest.
   // TODO: Can we have the master change?  Maybe not.
   bool isSwipable;
+  
+  enum QsSource_Type type;
+  float sampleRate, *sampleRates;
 };
 
 
@@ -203,6 +225,10 @@ extern
 void qsSource_sync(struct QsSource *to, struct QsIterator *it);
 extern
 long double qsSource_lastTime(struct QsSource *s);
+
+extern
+void qsSource_setType(struct QsSource *s, enum QsSource_Type type,
+    float *sampleRates);
 
 // All sources in a group share the same time stamp therefore
 // they share the same sample rate.  The group sample rate,

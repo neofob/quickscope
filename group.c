@@ -28,6 +28,11 @@ void _qsGroup_destroy(struct QsGroup *g)
   memset(g->time, 0, sizeof(long double)*g->maxNumFrames);
 #endif
   g_free(g->time);
+  if(g->sampleRates)
+  {
+    g_free(g->sampleRates);
+    g->sampleRates = NULL;
+  }
 
 #ifdef QS_DEBUG
   memset(g, 0, sizeof(*g));
@@ -53,6 +58,8 @@ struct QsGroup
   g->time = g_malloc0(sizeof(long double)*g->maxNumFrames);
 
   g->sources = g_slist_prepend(g->sources, s);
+
+  g->type = QS_NONE;
 
   return g;
 }

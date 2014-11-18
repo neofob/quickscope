@@ -242,7 +242,7 @@ struct QsSource *qsAlsaCapture_create(int maxNumFrames,
   int dir = 0;
   CALL(snd_pcm_hw_params_set_rate_near(handle, params, &rate, &dir));
 
-  snd_pcm_uframes_t frames = 128; /* TODO: What's a good value ??? */
+  snd_pcm_uframes_t frames = 32; /* TODO: What's a good value ??? */
   
   CALL(snd_pcm_hw_params_set_period_size_near(handle, params, &frames, &dir));
   CALL(snd_pcm_hw_params(handle, params));

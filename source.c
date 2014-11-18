@@ -157,6 +157,12 @@ void _qsSource_internalDestroy(struct QsSource *s, struct QsGroup *g)
    // This is the last source in the group
     _qsGroup_destroy(g);
 
+  if(s->sampleRates)
+  {
+    g_free(s->sampleRates);
+    s->sampleRates = NULL;
+  }
+
   qsApp->sources = g_slist_remove(qsApp->sources, s);
 
   // Call the base destroy if we are not calling
