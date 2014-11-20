@@ -19,7 +19,7 @@
 
 
 static
-const char *_typeStr(enum QsSource_Type type)
+const char *TypeStr(enum QsSource_Type type)
 {
   switch(type)
   {
@@ -38,35 +38,40 @@ const char *_typeStr(enum QsSource_Type type)
     case QS_CUSTOM:
       return "QS_CUSTOM";
       break;
+    case QS_NONE:
+      return "QS_NONE";
+      break;
     default:
       QS_ASSERT(0);
       return "UNKNOWN";
       break;
-    }
+  }
 }
 
 static
-void _spewType(enum QsSource_Type type, const float *sampleRates,
-    float sampleRate)
+void SpewType(enum QsSource_Type type,
+    const float *sampleRates, float sampleRate)
 {
-  fprintf(stderr, "%s\n", _typeStr(type));
+  fprintf(stderr, "%s\n", TypeStr(type));
   switch(type)
   {
     case QS_FIXED:
       fprintf(stderr, "sampleRate = %f\n", sampleRate);
       break;
     case QS_SELECTABLE:
-      fprintf(stderr, "selectable sampleRates (Hz):");
+      fprintf(stderr, "sampleRates (Hz):");
       while(*sampleRates)
         fprintf(stderr, " %f", *sampleRates++);
       fprintf(stderr, "\n");
       break;
     case QS_VARIABLE:
-      fprintf(stderr, "sampleRates at and between (min) %f Hz and (max) %f Hz\n",
+      fprintf(stderr, "sampleRates must be at and between (min) %f Hz and (max) %f Hz\n",
           sampleRates[0], sampleRates[1]); 
       break;
     case QS_TOLERANT:
-      fprintf(stderr, "Works with any sample rate\n");
+      fprintf(stderr, "Works with any sample rate with default sample rate= %g\n", sampleRate);
+      fprintf(stderr, "The default range is between (min) %f Hz and (max) %f Hz\n",
+          sampleRates[0], sampleRates[1]);
       break;
     case QS_CUSTOM:
       fprintf(stderr, "User custom frame times\n");
@@ -82,7 +87,7 @@ static
 void _qsSource_spewType(const struct QsSource *s)
 {
   fprintf(stderr, "Source %d is of type ", s->id);
-  _spewType(s->type, s->sampleRates, s->sampleRate);
+  SpewType(s->type, s->sampleRates, s->sampleRate);
 }
 
 static
@@ -99,9 +104,11 @@ static
 bool Incompatible(const struct QsSource *s, struct QsGroup *g)
 {
   fprintf(stderr,
-            "There are incompatible %s and %s sources\n",
-            _typeStr(s->type), _typeStr(g->type));
+            "There are incompatible %s and %s sources (at least)\n",
+            TypeStr(s->type), TypeStr(g->type));
   _qsSource_spewTypes(s);
+
+  QS_ASSERT(0);
 
   // cleanup g
   g->type = QS_NONE;
@@ -127,11 +134,14 @@ bool _qsGroup_setFixed(struct QsGroup *g, float rate)
   return false;
 }
 
-// returns false on success
+// returns false on success, or true otherwise.
+// Make the group, g, compatible with the source, s;
+// or fail trying.
 static inline
-bool _checkFixed(const struct QsSource *s, struct QsGroup *g)
+bool CheckFixed(const struct QsSource *s, struct QsGroup *g)
 {
-  QS_ASSERT(s->sampleRates && *s->sampleRates);
+  QS_ASSERT(s);
+  QS_ASSERT(!s->sampleRates);
   QS_ASSERT(s->type == QS_FIXED);
 
   int sampleRate = s->sampleRate;
@@ -146,9 +156,9 @@ bool _checkFixed(const struct QsSource *s, struct QsGroup *g)
       for(i=0; g->sampleRates[i]; ++i)
         if(g->sampleRates[i] == sampleRate)
           break;
-      if(!g->sampleRates[i])
-        return Incompatible(s, g);
-      return _qsGroup_setFixed(g, sampleRate);
+      if(g->sampleRates[i])
+        return _qsGroup_setFixed(g, sampleRate);
+      return Incompatible(s, g);
     }
     break;
     case QS_VARIABLE:
@@ -160,24 +170,24 @@ bool _checkFixed(const struct QsSource *s, struct QsGroup *g)
     case QS_FIXED:
       if(g->sampleRates[0] != sampleRate)
         return Incompatible(s, g);
-      return false;
+      return false; // success
     break;
     case QS_NONE:
     case QS_TOLERANT:
       return _qsGroup_setFixed(g, sampleRate);
       break;
+    //case QS_CUSTOM:
     default: // error
       return Incompatible(s, g);
     break;
   }
-
-  return true; //error WTF
 }
 
 static inline
-bool _checkSelectable(const struct QsSource *s, struct QsGroup *g)
+bool CheckSelectable(const struct QsSource *s, struct QsGroup *g)
 {
-  QS_ASSERT(s->sampleRates && *s->sampleRates);
+  QS_ASSERT(s);
+  QS_ASSERT(s->sampleRates && *s->sampleRates && s->sampleRate);
   QS_ASSERT(s->type == QS_SELECTABLE);
 
   switch(g->type)
@@ -186,7 +196,8 @@ bool _checkSelectable(const struct QsSource *s, struct QsGroup *g)
       {
         int i, j;
         size_t n = 0;
-        float *commonRates = NULL;
+        float oldSampleRate, *commonRates = NULL;
+        oldSampleRate = g->sampleRate;
         g->sampleRate = 0;
         for(i=0; g->sampleRates[i]; ++i)
           for(j=0; s->sampleRates[j]; ++j)
@@ -195,8 +206,11 @@ bool _checkSelectable(const struct QsSource *s, struct QsGroup *g)
               commonRates = g_realloc(commonRates, sizeof(float)*(n + 2));
               commonRates[n++] = g->sampleRates[i];
               commonRates[n] = 0; // terminator
+
               if(s->sampleRate == s->sampleRates[j])
                 g->sampleRate = s->sampleRate;
+              else if(!g->sampleRate && oldSampleRate == g->sampleRates[i])
+                g->sampleRate = oldSampleRate;
             }
 
         if(!commonRates)
@@ -213,17 +227,21 @@ bool _checkSelectable(const struct QsSource *s, struct QsGroup *g)
       {
         int i;
         size_t n = 0;
-        float *commonRates = NULL;
+        float oldSampleRate, *commonRates = NULL;
+        oldSampleRate = g->sampleRate;
         g->sampleRate = 0;
-        for(i=0; s->sampleRates; ++i)
+        for(i=0; s->sampleRates[i]; ++i)
           if(s->sampleRates[i] >= g->sampleRates[0] // >= min
             && s->sampleRates[i] <= g->sampleRates[1]) // <= max
           {
             commonRates = g_realloc(commonRates, sizeof(float)*(n + 2));
             commonRates[n++] = g->sampleRates[i];
             commonRates[n] = 0; // terminator
+
             if(s->sampleRate == s->sampleRates[i])
               g->sampleRate = s->sampleRate;
+            else if(!g->sampleRate && oldSampleRate == s->sampleRates[i])
+              g->sampleRate = oldSampleRate;
           }
 
         if(!commonRates)
@@ -239,15 +257,16 @@ bool _checkSelectable(const struct QsSource *s, struct QsGroup *g)
     break;
     case QS_FIXED:
       {
+        QS_ASSERT(!g->sampleRates);
         int i;
         for(i=0; s->sampleRates[i]; ++i)
           if(s->sampleRates[i] == g->sampleRate)
             break;
 
-        if(!s->sampleRates[i])
-          return Incompatible(s, g);
+        if(s->sampleRates[i])
+          return false; // success
       }
-      return false;
+      return Incompatible(s, g);
     break;
     case QS_NONE:
     case QS_TOLERANT:
@@ -258,32 +277,31 @@ bool _checkSelectable(const struct QsSource *s, struct QsGroup *g)
         g->sampleRates = g_malloc(sizeof(float)*(n+1));
         for(i=0; i<n; ++i)
           g->sampleRates[i] = s->sampleRates[i];
+        g->sampleRates[i] = 0; // terminator
         g->type = QS_SELECTABLE;
         g->sampleRate = s->sampleRate;
       }
       return false;
       break;
-    default: // error
+    default: // QS_CUSTOM
       return Incompatible(s, g);
     break;
   }
-
-  return true; // WTF
 }
 
 static inline
-bool _checkVariable(const struct QsSource *s, struct QsGroup *g)
+bool CheckVariable(const struct QsSource *s, struct QsGroup *g)
 {
   QS_ASSERT(s->type == QS_VARIABLE);
 
   switch(g->type)
   {
-    case QS_TOLERANT:
     case QS_NONE:
-      QS_ASSERT(!g->sampleRates);
       g->sampleRates = g_malloc(sizeof(float)*2);
-      g->sampleRates[0] = s->sampleRates[0];
-      g->sampleRates[1] = s->sampleRates[1];
+    case QS_TOLERANT:
+      QS_ASSERT(g->sampleRates);
+      g->sampleRates[0] = s->sampleRates[0]; // min
+      g->sampleRates[1] = s->sampleRates[1]; // max
       g->type = QS_VARIABLE;
       g->sampleRate = s->sampleRate;
       return false;
@@ -298,11 +316,14 @@ bool _checkVariable(const struct QsSource *s, struct QsGroup *g)
         g->sampleRates[0] = s->sampleRates[0];
       if(g->sampleRates[1] > s->sampleRates[1])
         g->sampleRates[1] = s->sampleRates[1];
+
       if(s->sampleRate >= g->sampleRates[0] &&
-          s->sampleRate <= g->sampleRates[1])
+        s->sampleRate <= g->sampleRates[1])
         g->sampleRate = s->sampleRate;
-      else
-        g->sampleRate = 0.5F * (g->sampleRates[0] + g->sampleRates[1]);
+      else if(!(g->sampleRate >= g->sampleRates[0] &&
+        g->sampleRate <= g->sampleRates[1]))
+        g->sampleRate = 0.5F *
+          (g->sampleRates[0] + g->sampleRates[1]);
       return false;
       break;
     case QS_FIXED:
@@ -315,18 +336,20 @@ bool _checkVariable(const struct QsSource *s, struct QsGroup *g)
       {
         int i;
         size_t n = 0;
-        float sampleRate, *commonRates = NULL;
-        sampleRate = g->sampleRate;
+        float oldSampleRate, *commonRates = NULL;
+        oldSampleRate = g->sampleRate;
         g->sampleRate = 0;
-        for(i=0; g->sampleRates; ++i)
+        for(i=0; g->sampleRates[i]; ++i)
           if(g->sampleRates[i] >= s->sampleRates[0] // >= min
             && g->sampleRates[i] <= s->sampleRates[1]) // <= max
           {
             commonRates = g_realloc(commonRates, sizeof(float)*(n + 2));
             commonRates[n++] = g->sampleRates[i];
             commonRates[n] = 0; // terminator
-            if(sampleRate == g->sampleRates[i])
-              g->sampleRate = sampleRate;
+            if(g->sampleRates[i] == s->sampleRate)
+              g->sampleRate = s->sampleRate;
+            else if(!g->sampleRate && oldSampleRate == g->sampleRates[i])
+              g->sampleRate = oldSampleRate;
           }
 
         if(!commonRates)
@@ -343,12 +366,10 @@ bool _checkVariable(const struct QsSource *s, struct QsGroup *g)
       return Incompatible(s, g);
       break;
   }
-
-  return true;
 }
 
 static inline
-bool _checkTolerant(const struct QsSource *s, struct QsGroup *g)
+bool CheckTolerant(const struct QsSource *s, struct QsGroup *g)
 {
   QS_ASSERT(s->type == QS_TOLERANT);
 
@@ -357,8 +378,24 @@ bool _checkTolerant(const struct QsSource *s, struct QsGroup *g)
     case QS_FIXED:
     case QS_SELECTABLE:
     case QS_VARIABLE:
+      return false;
+      break;
     case QS_TOLERANT:
+      // The sampleRate range is the union of the min/max intervals
+      // with possible gap between removed.
+      if(g->sampleRates[0] > s->sampleRates[0])
+        g->sampleRates[0] = s->sampleRates[0];
+      if(g->sampleRates[1] < s->sampleRates[1])
+        g->sampleRates[1] = s->sampleRates[1];
+      g->sampleRate = s->sampleRate;
+      return false;
+      break;
     case QS_NONE:
+      g->type = QS_TOLERANT;
+      g->sampleRate = s->sampleRate;
+      g->sampleRates = g_malloc(sizeof(float)*2);
+      g->sampleRates[0] = s->sampleRates[0];
+      g->sampleRates[1] = s->sampleRates[1];
       return false;
       break;
     // case QS_CUSTOM:
@@ -366,26 +403,40 @@ bool _checkTolerant(const struct QsSource *s, struct QsGroup *g)
       return Incompatible(s, g);
       break;
   }
-
-  return true;
 }
 
 static inline
-bool _checkCustom(const struct QsSource *s, struct QsGroup *g)
+bool CheckCustom(const struct QsSource *s, struct QsGroup *g)
 {
-   QS_ASSERT(s->type == QS_CUSTOM);
-  return (g->type == QS_CUSTOM)?false:true;
+  QS_ASSERT(s->type == QS_CUSTOM);
+  QS_ASSERT(s->sampleRate == 0);
+
+  switch(g->type)
+  {
+    case QS_NONE:
+      g->type = QS_CUSTOM;
+      g->sampleRate = 0;
+    case QS_CUSTOM:
+      return false;
+      break;
+    default:
+      return Incompatible(s, g);
+      break;
+  }
 }
 
 // setup source group rates and shit
 // returns false on success
-static
 bool _qsSource_checkTypes(struct QsSource *s)
 {
   QS_ASSERT(s);
   struct QsGroup *g;
   g = s->group;
   QS_ASSERT(g);
+
+  QS_ASSERT(g->sourceTypeChange);
+
+  g->sourceTypeChange = false;
 
   // First reset the group rate settings
   if(g->sampleRates)
@@ -396,6 +447,10 @@ bool _qsSource_checkTypes(struct QsSource *s)
   g->sampleRate = 0;
   g->type = QS_NONE;
 
+  // The g->sources is a list of source from last to
+  // first (master).  We override g->sampleRate as we
+  // go through all the sources sample rates, if they
+  // are compatible.
 
   GSList *l;
   for(l = g->sources; l; l = l->next)
@@ -408,68 +463,78 @@ bool _qsSource_checkTypes(struct QsSource *s)
     switch(s->type)
     {
       case QS_FIXED:
-        if(_checkFixed(s, g))
+        if(CheckFixed(s, g))
           return true; // error
         break;
       case QS_SELECTABLE:
-        if(_checkSelectable(s, g))
+        if(CheckSelectable(s, g))
           return true; // error
         break;
       case QS_VARIABLE:
-        if(_checkVariable(s, g))
+        if(CheckVariable(s, g))
           return true; // error
         break;
       case QS_TOLERANT:
-        if(_checkTolerant(s, g))
+        if(CheckTolerant(s, g))
           return true;
         break;
       case QS_CUSTOM:
-        if(_checkCustom(s, g))
+        if(CheckCustom(s, g))
           return true;
         break;
       default:
-        fprintf(stderr, "Invalid source type %s\n", _typeStr(s->type));
+        fprintf(stderr, "Invalid source type %s\n", TypeStr(s->type));
         _qsSource_spewTypes(s);
         return true; // error
         break;
       }
   }
 
+#if 1
+#ifdef QS_DEBUG
+  QS_SPEW("Source Group\n");
+  _qsSource_spewTypes(s);
+  fprintf(stderr, "\n");
+#endif
+#endif
 
-  // check if current group sample rate is compatible
-
-  return false;
-
+  return false; // success
 }
 
-void qsSource_setType(struct QsSource *s,
+bool qsSource_setType(struct QsSource *s,
     enum QsSource_Type type,
-    float *sampleRates /* one value for QS_FIXED
+    const float *sampleRates /* NULL for QS_FIXED
                           two values min and max for QS_VARIABLE
                           N+1 values (0 terminated) for QS_SELECTABLE
                           NULL of QS_TOLERANT and QS_CUSTOM
-                       */)
+                       */,
+    float sampleRate /*starting, default, sample rate*/)
 {
   QS_ASSERT(s);
+  QS_ASSERT(type == QS_CUSTOM || sampleRate > 0);
+  QS_ASSERT(s->group);
 
   s->type = type;
+  s->sampleRate = sampleRate;
 
   switch(type)
   {
     case QS_FIXED:
-      QS_ASSERT(sampleRates);
       if(s->sampleRates)
       {
         g_free(s->sampleRates);
         s->sampleRates = NULL;
       }
-      s->sampleRate = *sampleRates; // one value
       break;
     case QS_VARIABLE:
+    case QS_TOLERANT:
       QS_ASSERT(sampleRates);
       if(s->sampleRates)
         g_free(s->sampleRates);
-      QS_ASSERT(sampleRates[0] && sampleRates[1]);
+      QS_ASSERT(sampleRates[0] > 0);
+      QS_ASSERT(sampleRates[0] < sampleRates[1]);
+      QS_ASSERT(sampleRate >= sampleRates[0]);
+      QS_ASSERT(sampleRate <= sampleRates[1]);
       s->sampleRates = g_malloc(sizeof(float)*2);
       s->sampleRates[0] = sampleRates[0]; // min
       s->sampleRates[1] = sampleRates[1]; // max
@@ -486,9 +551,17 @@ void qsSource_setType(struct QsSource *s,
       for(i=0; i<n; ++i)
         s->sampleRates[i] = sampleRates[i];
       s->sampleRates[i] = sampleRates[i]; // zero terminated
+#ifdef QS_DEBUG
+      for(i=0; i<n; ++i)
+        if(s->sampleRates[i] == sampleRate)
+          break;
+      QS_VASSERT(i != n,
+          "starting sample rate %f not found in selectable rates\n",
+          sampleRate);
+#endif
       break;
-    case QS_TOLERANT:
     case QS_CUSTOM:
+      s->sampleRate = 0;
       if(s->sampleRates)
       {
         g_free(s->sampleRates);
@@ -496,8 +569,8 @@ void qsSource_setType(struct QsSource *s,
       }
       break;
     default:
-      fprintf(stderr, "%s() bad type\n", __func__);
-      QS_VASSERT(0, "bad type\n");
+      fprintf(stderr, "Error: %s() bad type\n", __func__);
+      QS_VASSERT(0, "bad source type\n");
       if(s->sampleRates)
       {
         g_free(s->sampleRates);
@@ -507,5 +580,7 @@ void qsSource_setType(struct QsSource *s,
       break;
   }
 
-  _qsSource_checkTypes(s);
+  s->group->sourceTypeChange = true;
+
+  return _qsSource_checkTypes(s);
 }

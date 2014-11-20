@@ -44,13 +44,15 @@ bool cb_close(GtkWidget *w, GdkEvent *e, struct QsWin *win)
   return true;
 }
 
-// This is just call when the drawing area is exposed or resized.
+// This is just called when the drawing area is exposed or resized.
 // It's a redraw or initial draw.  The animation drawing happens
 // from trace.c.
 bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
 {
   if(win->pixmap)
   {
+    static int count = 0;
+    ++count;
     XCopyArea(win->dsp, win->pixmap, win->xwin, win->gc,
       0, 0, win->width, win->height, 0, 0);
   }
@@ -361,15 +363,23 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       GtkWidget *da;
       win->da = da = gtk_drawing_area_new();
       // TODO: gtk_widget_set_double_buffered(,false) is depreciated
-      // but we may still need what it did.  I don't see a big
-      // performance hit by not calling it.  So ...???
+      // but we still need what it did.
       // We don't want GTK to double buffer, because we are doing
-      // that in this quickscope code using the X11 client API.
-      //gtk_widget_set_double_buffered(da, false);
+      // that in this quickscope code using the X11 client API,
+      // and when GTK does the double buffering it clobbers what we
+      // draw when there is a redraw event.  We cannot use Cairo to
+      // draw, it's too fucking slow.
+
+      // Many days of playing with GTK3 source and googling; conclusion
+      // there is no "proper" work-around to keep GTK+ from clobbering things
+      // you draw without cairo (Thu Nov 20 12:49:22 EST 2014).
+      // Calling gtk_widget_set_double_buffered() is the best I can do.
+      gtk_widget_set_double_buffered(da, false);
+
       g_signal_connect(G_OBJECT(da),"configure-event",
           G_CALLBACK(_qsWin_cb_configure), win);
       g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(_qsWin_cbDraw), win);
-      //gtk_widget_set_app_paintable(da, true);
+      //g_signal_connect(G_OBJECT(da), "expose_event", G_CALLBACK(_qsWin_cbDraw), win);
       //gtk_widget_override_background_color(da, 0xFF, &win->bgColor);
       gtk_box_pack_start(GTK_BOX(vbox), da, true, true, 0);
       gtk_widget_show(da);

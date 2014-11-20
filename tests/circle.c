@@ -3,7 +3,7 @@
  * GNU General Public License version 3
  */
 #include <math.h> // defines M_PI
-#include "../quickscope.h"
+#include "quickscope.h"
 
 int main(int argc, char **argv)
 {

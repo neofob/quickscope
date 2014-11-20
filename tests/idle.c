@@ -15,7 +15,7 @@
 
 #include <unistd.h>
 #include <math.h> // defines M_PI
-#include "../quickscope.h"
+#include "quickscope.h"
 
 
 static bool

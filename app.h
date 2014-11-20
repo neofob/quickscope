@@ -89,6 +89,12 @@ struct QsApp
   bool freezeDisplay; // freeze display of all windows view ports
 
   int sourceCreateCount;
+
+  // gdk functions we override because GTK+3 removed (or will remove)
+  // gtk_widget_set_double_buffered()
+  void (*gdk_window_begin_paint_region)(GdkWindow *window,
+        const cairo_region_t *region);
+  void (*gdk_window_end_paint)(GdkWindow *window);
 };
 
 /* singlet container of all things QS */

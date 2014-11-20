@@ -11,4 +11,6 @@
  * though internally we are writing to the QsSource frame
  * buffer. */
 extern
-int _qsSource_read(struct QsSource *source, long double time, void *data);
+int _qsSource_read(struct QsSource *source, long double time);
+extern
+bool _qsSource_checkTypes(struct QsSource *s);

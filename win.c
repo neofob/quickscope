@@ -76,11 +76,17 @@ void addIcon(struct QsAdjuster *adj, struct QsWin *win)
   adj->iconData = win;
 }
 
+
+
+#define GDK_LIB_NAME  "libgdk-3.so.0"
+
+
 struct QsWin *qsWin_create(void)
 {
   struct QsWin *win;
 
-  if(!qsApp) qsApp_init(NULL, NULL);
+  if(!qsApp)
+    qsApp_init(NULL, NULL);
 
   QS_ASSERT(qsApp->op_gridXMinPixelSpace > 0);
   QS_ASSERT(qsApp->op_gridYMinPixelSpace > 0);
@@ -148,6 +154,8 @@ struct QsWin *qsWin_create(void)
 
   win->hashTable = g_hash_table_new_full(g_int_hash,
         g_int_equal, NULL, (GDestroyNotify) _qsXColor_destroy);
+
+
 
   _qsWin_makeGtkWidgets(win);
   

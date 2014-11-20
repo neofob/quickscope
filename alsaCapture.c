@@ -26,7 +26,7 @@
 #include "source.h"
 #include "iterator.h"
 #include "rungeKutta.h"
-#include "sourceTypes.h"
+#include "sourceParticular.h"
 
 // TODO: make this thread safe and cleaner
 static int createCount = 0;
@@ -49,11 +49,6 @@ void _qsAlsaCapture_parameterChange(struct QsAlsaCapture *s)
   // preserved, but that may be considered misleading
   // or unexpected behavior.
   qsSource_addPenLift((struct QsSource *) s);
-
-  /* We get a second chance here to adjust parameters
-   * here. */
-  // TODO: THIS ...
-  //qsSource_setMinSampleRate((struct QsSource *) s, s->sampleRate/60);
 }
 
 // This assumes that there is only one channel in the frame
@@ -105,59 +100,49 @@ bool ReadNFrames(snd_pcm_t *handle, float *buf, snd_pcm_uframes_t n)
 }
 
 static
-int cb_read(struct QsAlsaCapture *s, long double tf, long double prevT)
+int cb_read(struct QsAlsaCapture *s,
+    long double tf, long double prevT,
+    long double currentT,
+    long double dt, int nFrames,
+    bool underrun)
 {
   struct QsSource *source;
   source = (struct QsSource *) s;
-  int nFrames;
-  bool isMaster;
-  isMaster = qsSource_isMaster(source);
-
-  nFrames = qsSource_getRequestedSamples(source, tf, prevT);
-  QS_ASSERT(nFrames >= 0);
 
   if(nFrames == 0) return 0;
 
-  // TODO: this will not work if the qsSource_getRequestedSamples()
-  // is not using this source sampleRate.
-
-  if(nFrames > s->frames)
+  if(underrun)
   {
-    // This seems to fix the scope under-run,
-    // which is when the scope not getting data
-    // fast enough:
-    //
-    // We lift the drawing pen so there will
-    // be no crazy long lines in the display.
-    qsSource_addPenLift(source);
+    // This means that we are not calling this
+    // callback fast enough.
 
-    nFrames = s->frames;
- 
-    // The time jumps ahead.
-    prevT = tf - nFrames / ((long double) s->sampleRate);
+    // Skip the oldest frames?  I think that's what this
+    // does.
+    snd_pcm_sframes_t total;
+    total = snd_pcm_forwardable(s->handle);
+    if(total > nFrames)
+      snd_pcm_forward(s->handle, total - nFrames);
   }
-  
-
-  long double dt;
-  dt = 1.0L / ((long double) s->sampleRate);
 
   while(nFrames)
   {
     float *frames;
     long double *t;
-    int i, n;
+    int n;
+
     n = nFrames;
 
     frames = qsSource_setFrames(source, &t, &n);
-
-    if(isMaster)
-      for(i=0; i<n; ++i)
-        *t++ = (prevT += dt);
 
     if(ReadNFrames(s->handle, frames, (snd_pcm_uframes_t) n))
       return -1; // fail
 
     nFrames -= n;
+
+    if(dt)
+      // This is the master source
+      for(; n; --n)
+        *t++ = (currentT += dt);
   }
   return 1;
 }
@@ -184,6 +169,7 @@ void _qsAlsaCapture_destroy(struct QsAlsaCapture *s)
 {
   QS_ASSERT(s);
   QS_ASSERT(s->handle);
+  snd_pcm_drain(s->handle);
   snd_pcm_close(s->handle);
 }
 
@@ -223,7 +209,6 @@ struct QsSource *qsAlsaCapture_create(int maxNumFrames,
 
   s = qsSource_create((QsSource_ReadFunc_t) cb_read,
       1 /* numChannels */, maxNumFrames, group, sizeof(*s));
-  qsSource_setMinSampleRate((struct QsSource *) s, sampleRate);
 
   /* BEGIN alsa init code */
   
@@ -260,6 +245,10 @@ struct QsSource *qsAlsaCapture_create(int maxNumFrames,
   s->id = createCount++;
   s->sampleRate = sampleRate;
 
+  // TODO: figure out what the sample rate really is.
+  // TODO: make this QS_SELECTABLE
+  qsSource_setType((struct QsSource *) s, QS_FIXED, NULL, sampleRate);
+  
   struct QsAdjuster *adjG;
   struct QsAdjusterList *adjL;
   adjL = (struct QsAdjusterList *) s;

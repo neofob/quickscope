@@ -14,7 +14,7 @@
 #include "group.h"
 #include "source.h"
 #include "rungeKutta.h"
-#include "sourceTypes.h"
+#include "sourceParticular.h"
 
 static int createCount = 0;
 

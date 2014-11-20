@@ -8,25 +8,77 @@ struct QsIterator;
 struct QsIterator2;
 
 
+#if 0
 typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
     long double t, long double prevT, void *data);
 
-#if 0
-/* under-run is the state when the last call to the
- * callback function happened so long ago that there
- * are not enough frames in the source buffer to hold
- * the required frames to run at the source groups
- * period.   tA != tPrev
- *
- * No under-run will have tA == tPrev
+#else
+/* under-run is the state when the source read callback
+ * is not called frequently enough, and the source
+ * buffers may have a very old frame adjacent to a
+ * recent frame.  If the group source type is a
+ * periodic source type, a pen-lift will automatically
+ * be inserted in between the old and new frame if this
+ * happens.
  *
  * If the source group is not periodic there is no
- * predefined under-run condition.
+ * automatically defined under-run condition.  So source
+ * groups that are of type QS_CUSTOM will
+ * not have under-run automatically handled.
+ *
+ * time is, measured in seconds, is the time since
+ * the program started, real wall clock time
+ *
+ * tB = current time from when program started as gotten
+ *   by the controller at the start of the current read
+ *   callback loops
+ * tBPrev = the value of tB at the last call that any
+ *   data was written for this source
+ * tA = 
+ *   if master:
+ *     tA + deltaT should be the first time that should be
+ *     written in the callback based on the source group
+ *     sample rate and under-run state
+ *   else is not master:
+ *     0
+ *
+ * consider qsSource_lastTime(s) to get the last time stamp
+ * that this source was written to by this source, s.
+ * That time stamp may not be correct is the source, s,
+ * is under-run.
+ *
+ * Note: sample rates can change between read callback cycles.
+ *   So detecting under-run is not so simple.
+ *
+ * nFrames = 
+ *        if master:
+ *          the expected number of frames to write
+ *          given the current group source type
+ *          and the group rate parameters.
+ *          nFrames = 0 if this has no sample rate
+ *          as in the case a source group that is QS_CUSTOM
+ *        else if not master:
+ *          the number of frames to write in order
+ *          to catch up to the master source in writing
+ * deltaT =
+ *        if master:
+ *          the expected time difference between frames
+ *          based on source group type or
+ *          0 if there is no sample rate as in the
+ *          case a source group that is QS_CUSTOM
+ *        else if not master:
+ *          0; sources should use the time
+ *          stamps that are from the master
+ *          even for source group of QS_CUSTOM
+ * underrun = true is the master source is under-run,
+ *            is false otherwise.
+ *
+ * data = user callback data
  */
 typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
-    long double tB, long double tA, long double tPrev,
-    int nFrames, void *data);
-
+    long double tB, long double tBPrev, long double tA,
+    long double deltaT, int nFrames, bool underrun,
+    void *data);
 #endif
 
 
@@ -47,7 +99,7 @@ struct QsSource
    * slower and with a little more memory.  So, okay we thought about it. */
 
   /* current and previous QsSource_ReadFunc_t call time */
-  long double t, prevT;
+  long double prevT;
 
   /* read() returns
    *    1  -> have new data
@@ -120,8 +172,6 @@ struct QsSource
 
     numChannels; // number of channels per frame
 
-  float minSampleRate;
-
   // traces to call after read, also manage these traces
   GSList *traces,
          // Lists of iterators that read from this source.
@@ -183,6 +233,14 @@ bool qsSource_isSwipable(struct QsSource *s)
   QS_ASSERT(s);
   return s->isSwipable;
 }
+// Returns the frame sample rate if not type QS_CUSTOM
+static inline
+float qsSource_getSampleRate(struct QsSource *s)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(s->group);
+  return s->group->sampleRate;
+}
 static inline
 int qsSource_numChannels(struct QsSource *s)
 {
@@ -226,70 +284,11 @@ void qsSource_sync(struct QsSource *to, struct QsIterator *it);
 extern
 long double qsSource_lastTime(struct QsSource *s);
 
+// return false on success
 extern
-void qsSource_setType(struct QsSource *s, enum QsSource_Type type,
-    float *sampleRates);
+bool qsSource_setType(struct QsSource *s, enum QsSource_Type type,
+    const float *sampleRates, float startingSampleRate);
 
-// All sources in a group share the same time stamp therefore
-// they share the same sample rate.  The group sample rate,
-// returned by qsSource_getSampleRate(),
-// will be set to the maximum of qsSource_setMinSampleRate()
-// which can be called on behalf of each source, not just the
-// master.  Returns true if the group rate changed, returns false
-// otherwise.
-// This may be used to increase or decrease the rate.
-static inline
-bool qsSource_setMinSampleRate(struct QsSource *s, float rate/*Hz*/)
-{
-  QS_ASSERT(rate >= 0);
-  QS_ASSERT(s);
-  struct QsGroup *g;
-  g = s->group;
-  QS_ASSERT(g);
-
-  if(rate > g->sampleRate)
-  {
-    s->minSampleRate = g->sampleRate = rate;
-    return true;
-  }
-  if(rate > s->minSampleRate) // && rate <= s->group->sampleRate
-  {
-    s->minSampleRate = rate;
-    return false;
-  }
-
-  if(s->minSampleRate != rate)
-    s->minSampleRate = rate;
-
-  if(rate != g->sampleRate)
-  {
-    // We check if this used to be the max rate source
-    // that is being decreased now.
-    GSList *l;
-    float oldRate;
-    oldRate = g->sampleRate;
-    g->sampleRate = 0;
-    for(l = g->sources; l; l = l->next)
-    {
-      struct QsSource *q;
-      q = l->data;
-      // See if there is a new max.
-      if(q->minSampleRate > g->sampleRate)
-        g->sampleRate = q->minSampleRate;
-    }
-    return (g->sampleRate != oldRate)?true:false;
-  }
-
-  return false;
-}
-
-static inline
-float qsSource_getSampleRate(const struct QsSource *s)
-{
-  QS_ASSERT(s);
-  QS_ASSERT(s->group);
-  return s->group->sampleRate;
-}
 
 // Returns the number of frames that may be written to
 // catch up to the master QsSource.
@@ -325,42 +324,6 @@ int qsSource_maxNumFrames(const struct QsSource *s)
   QS_ASSERT(s);
   QS_ASSERT(s->group);
   return s->group->maxNumFrames;
-}
-
-// Returns the number of samples needed based on
-// s->group->sampleRate, and times tF, and tPrev
-// This can return zero if the rate is low or the
-// time difference is small.
-static inline
-int qsSource_getRequestedSamples(const struct QsSource *s,
-    long double tF, long double tPrev)
-{
-  QS_ASSERT(s);
-  QS_ASSERT(s->group);
-  QS_ASSERT(tF >= tPrev);
-  QS_ASSERT(tF - tPrev < ((long double) FLT_MAX));
-
-  if(s->isMaster)
-  {
-    int n;
-    n = s->group->sampleRate * (tF - tPrev);
-
-    // TODO: We need to do more for this check:
-    // maybe auto resize the sources and iterators,
-    // but we should not let things get too large.
-    if(n > qsSource_maxNumFrames(s)/2)
-    {
-      QS_SPEW(
-        "The number of frames in the source buffer is too small\n"
-        "We have %d but need %d, tPrev=%Lg tF=%Lg deltaT=%Lg\n"
-        "s->group->sampleRate=%g\n",  qsSource_maxNumFrames(s), n*2,
-        tPrev, tF, tF - tPrev, s->group->sampleRate);
-      n = qsSource_maxNumFrames(s)/2;
-    }
-    return n;
-  }
-
-  return qsSource_numFrames(s);
 }
 
 static inline
@@ -714,4 +677,35 @@ int qsSource_addPenLift(struct QsSource *s)
   // non master source
   *qsSource_appendFrame(s) = QS_LIFT;
   return 0;
+}
+// returns false on success
+static inline
+bool qsSource_setFrameSampleRate(struct QsSource *s, float rate)
+{
+  QS_ASSERT(s);
+  struct QsGroup *g;
+  g = s->group;
+  QS_ASSERT(g);
+
+  switch(g->type)
+  {
+    case QS_TOLERANT:
+      g->sampleRate = rate;
+      if(g->sampleRates[0] > rate)
+        g->sampleRates[0] = rate;
+      else if(g->sampleRates[1] < rate)
+        g->sampleRates[1] = rate;
+      return false;
+      break;
+    case QS_FIXED:
+      QS_VASSERT(0, "Cannot set frame sample rate "
+          "for QS_FIXED source group.  Sample rate=%f\n",
+          g->sampleRate);
+      return true;
+      break;
+    default:
+      QS_VASSERT(0, "Write MORE CODE HERE\n");
+      return true;
+      break;
+  }
 }

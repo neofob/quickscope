@@ -197,7 +197,10 @@ source        we read data from a source, source callback
                 tolerant: the time interval between frames
                   is not necessarily predictable.  This source
                   can tolerate any interval and is compatible
-                  with periodic sources.
+                  with periodic sources. It has a min and max
+                  sample rate that a variable periodic source
+                  will override.  It has a sample rate that is
+                  overridden if there are other source types.
 
                 custom: the time interval between frames
                   is not necessarily predictable. This source

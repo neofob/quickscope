@@ -296,8 +296,6 @@ void _qsWin_drawPoints(struct QsWin *win)
   }
 }
 
-extern
-bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win);
 
 static inline
 void _qsWin_postTraceDraw(struct QsWin *win, long double t)

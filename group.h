@@ -10,7 +10,7 @@ enum QsSource_Type
   QS_FIXED,      /* fixed periodic */
   QS_SELECTABLE, /* selectable periodic */
   QS_VARIABLE,   /* variable periodic */
-  QS_TOLERANT,   /* not necessarily periodic but can be */
+  QS_TOLERANT,   /* not necessarily periodic, works with all but QS_CUSTOM */
   QS_NONE        /* group type initialization, not used by sources */
 };
 
@@ -25,11 +25,17 @@ struct QsGroup
   long double *time; // time stamp array/buffer
 
   int maxNumFrames,
-      bufferLength; // larger than maxNumFrames
+      bufferLength, // larger than maxNumFrames
       // by a factor of qsApp->op_bufferFactor to
       // accommodate multi value frames.
+      underrunCount; // counter/flag to detect source buffer under-run
 
   enum QsSource_Type type;
-  float sampleRate; // current rate of source frames, ignoring pen lifts
-  float *sampleRates;
+  // sample rates of frames, in Hz, ignoring pen lifts
+  float sampleRate; // current sample rate (Hz)
+  float *sampleRates; // available sample rates (Hz)
+
+  bool sourceTypeChange; // flag to let us know to call
+  // _qsSource_checkTypes(s) to fix the group type, sampleRates,
+  // and sampleRate.
 };

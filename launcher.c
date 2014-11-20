@@ -64,6 +64,7 @@ static const char *const default_programs[] =
   "urandom", NULL,
   "sin", "--dense", "--slope=0", "--swipe=1", "--fade=0", NULL,
   "Quickplot", "alsa_capture_print", NULL,
+  "alsaCapture", NULL,
 
 #endif
   NULL // Null terminator

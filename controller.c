@@ -78,7 +78,7 @@ bool _qsController_run(struct QsController *c)
   {
     struct QsSource *s;
     s = l->data;
-    changeSource |= _qsSource_read(s, t, s->callbackData);
+    changeSource |= _qsSource_read(s, t);
   }
 
   if(changeSource)
@@ -152,6 +152,17 @@ void _qsController_changeSource(struct QsController *c,
   s->callbackData = callbackData;
   if(c->changedSource)
     c->changedSource(c, c->sources);
+
+  GSList *l;
+  for(l=c->sources;l;l=l->next)
+  {
+    struct QsSource *qs;
+    qs = l->data;
+    QS_ASSERT(qs);
+    QS_ASSERT(qs->group);
+    if(qs->group->sourceTypeChange)
+      _qsSource_checkTypes(qs);
+  }
 }
 
 void qsController_appendSource(struct QsController *c,

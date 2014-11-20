@@ -26,7 +26,6 @@
  * callback below will do that. */ 
 void _qsWin_reconfigure(struct QsWin *win)
 {
-
   _qsWin_setGridX(win);
   _qsWin_setGridY(win);
 
@@ -70,10 +69,10 @@ void _qsWin_reconfigure(struct QsWin *win)
       win->fadeLastInsert = NULL;
   }
 
-
   // the drawing area draw callback will fix the rest.
   gtk_widget_queue_draw_area(win->da, 0, 0, w, h);
 }
+
 
 /* This gets called on window resize before drawing. */
 bool _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
@@ -173,7 +172,5 @@ bool _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
      * there is no pixmap the grid is drawn in cb_draw() */
     _qsWin_drawBackground(win);
 
-
   return true; /* true means the event is handled. */
 }
-

@@ -106,7 +106,8 @@ function remove_files()
   non_master_print source sin soundFile\
   soundFile_print rk4_print ode ode_print ode_3wins\
   urandom rossler3Wins rossler3Wins.c alsa_info\
-  alsa_capture_print alsaCapture idle alsaCapture.c
+  alsa_capture_print alsaCapture idle alsaCapture.c\
+  qsGtkWidget
 
   # directory examples/
 

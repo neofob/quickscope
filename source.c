@@ -80,10 +80,6 @@ void _qsSource_internalDestroy(struct QsSource *s, struct QsGroup *g)
   QS_ASSERT(s->read);
   QS_ASSERT(s->numChannels >= 1);
 
-  // Make it so that there is no minimum sample rate requirement
-  // for this now dead source.
-  qsSource_setMinSampleRate(s, 0);
-
   if(s->controller)
     // This will not destroy the source.
     qsController_removeSource(s->controller, s);
@@ -153,6 +149,7 @@ void _qsSource_internalDestroy(struct QsSource *s, struct QsGroup *g)
 
   _qsGroup_removeSource(g, s);
 
+
   if(s->isMaster)
    // This is the last source in the group
     _qsGroup_destroy(g);
@@ -178,6 +175,9 @@ void qsSource_destroy(struct QsSource *s)
   QS_ASSERT(g);
   QS_ASSERT(g->master);
   QS_SPEW("source->id=%d\n", s->id);
+
+  // set rate type change flag
+  g->sourceTypeChange = true;
 
   if(s->isMaster)
   {
@@ -218,6 +218,8 @@ void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read)
   s->read = read;
 }
 
+#define QS_MIN_MAXNUMFRAMES 100
+
 void *qsSource_create(QsSource_ReadFunc_t read,
     int numChannels, int maxNumFrames /* max num frames buffered */,
     const struct QsSource *groupSource /* groupSource=NULL to make a new group */,
@@ -226,6 +228,9 @@ void *qsSource_create(QsSource_ReadFunc_t read,
   struct QsSource *s;
   QS_ASSERT(read);
   QS_ASSERT(numChannels > 0);
+
+  if(maxNumFrames && maxNumFrames < QS_MIN_MAXNUMFRAMES)
+    maxNumFrames = QS_MIN_MAXNUMFRAMES;
 
   if(!qsApp) qsApp_init(NULL, NULL);
 
@@ -256,19 +261,18 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     s->wrapCount = master->wrapCount;
     // The frame array is larger than the master case.
     s->framePtr = g_malloc(sizeof(float)*numChannels*group->bufferLength);
-    tI = s->timeIndex = g_malloc(sizeof(int)*group->bufferLength);
+    tI = s->timeIndex = g_malloc0(sizeof(int)*group->bufferLength);
     _qsGroup_addSource(group, s);
   }
   else
   {
-    QS_ASSERT(maxNumFrames > 0);
     // This is the master source
     s->isMaster = true;
     group = s->group = _qsGroup_create(s, maxNumFrames);
     s->iMax = s->i = maxNumFrames - 1;
     s->wrapCount = -1;
     // The frame array is smaller in this master case.
-    s->framePtr = g_malloc(sizeof(float)*numChannels*group->maxNumFrames);
+    s->framePtr = g_malloc0(sizeof(float)*numChannels*group->maxNumFrames);
     tI = s->timeIndex = g_malloc(sizeof(int)*group->maxNumFrames);
   }
   
@@ -282,6 +286,8 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     // has no valid data, but has a valid time now
     // so that qsSource_lastMasterTime() works now.
     group->time[s->i] = _qsTimer_get(qsApp->timer);
+
+  group->sourceTypeChange = true;
 
   // prepend!  It's very important that it's not append,
   // so that we auto destroy in reverse order of creation.
@@ -420,17 +426,86 @@ void qsSource_removeTraceDraw(struct QsSource *s, struct QsTrace *trace)
     qsTrace_destroy(trace);
 }
 
-int _qsSource_read(struct QsSource *s, long double time, void *data)
+#define FRAC  (2/3.0F)
+
+int _qsSource_read(struct QsSource *s, long double time)
 {
   int ret;
   QS_ASSERT(s);
-  QS_ASSERT(s->group);
+  struct QsGroup *g;
+  g = s->group;
+  QS_ASSERT(g);
   QS_ASSERT(s->read);
   QS_ASSERT(time > s->prevT);
 
-  s->t = time;
+  int nFrames = 0;
+  long double deltaT = 0, tA = 0;
 
-  ret = s->read(s, time, s->prevT, data);
+  QS_ASSERT(g->type == QS_CUSTOM || g->sampleRate > 0);
+  QS_ASSERT(g->type != QS_NONE);
+
+  if(s->isMaster && g->sampleRate != 0)
+  {
+    nFrames = g->sampleRate * (time - (tA = g->time[s->i]));
+
+    // Check for under-run
+    if(nFrames > FRAC*qsSource_maxNumFrames(s))
+    {
+      // We define that we have an under-run
+      // or bad user code.
+      //
+      // Making nFrames too large can cause
+      // an under-run positive feedback loop
+      // where we get under-run at every loop
+      // because the source read callback can't
+      // ever write/read fast enough to get the large
+      // nFrames.  Hence we have this stupid
+      // under-run flag to see if that happens.
+      nFrames = FRAC*qsSource_maxNumFrames(s);
+      if(g->underrunCount)
+      {
+        // we have 2 or more under-runs in a row so we
+        // ease the load on the sources by requesting
+        // a small number of frames.
+        nFrames = QS_MIN_MAXNUMFRAMES/2;
+      }
+
+      ++g->underrunCount;
+
+      QS_SPEW("Master source (id=%d) was under-run at least %d %s\n",
+            s->id, g->underrunCount,
+            (g->underrunCount > 1)?"times in a row":"time");
+
+      if(g->underrunCount > 1000)
+      {
+        QS_VASSERT(0, "Master source (id=%d) was under-run %d "
+            "times in a row!\n",
+            s->id, g->underrunCount);
+        // Keep it from wrapping through to less than 0
+        g->underrunCount = 449;
+      }
+
+      tA = time - ((long double) nFrames)/((long double) g->sampleRate);
+      deltaT = (time - tA)/nFrames;
+    }
+    else
+    {
+      // reset underrun flag
+      g->underrunCount = 0;
+      deltaT = 1.0L/g->sampleRate;
+    }
+  }
+  else
+    nFrames = qsSource_numFrames(s);
+
+  //QS_SPEW("time=%Lg prevT=%Lg\n", time, s->prevT);
+
+  if(g->underrunCount)
+    qsSource_addPenLift(s);
+
+  ret = s->read(s, time, s->prevT, tA, deltaT, nFrames,
+      g->underrunCount?true:false, s->callbackData);
+
 
   GSList *l;
 

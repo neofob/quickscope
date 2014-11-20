@@ -15,46 +15,48 @@
 #include "group.h"
 #include "source.h"
 #include "rungeKutta.h"
-#include "sourceTypes.h"
+#include "sourceParticular.h"
 
 
 static
 int cb_sourceRead(struct QsRK4Source *rk4s, long double tf,
-    long double prevT, void *data)
+    long double prevT, long double currentT,
+    long double dt, int nFrames, bool underrun)
 {
   struct QsSource *s;
   s = (struct QsSource *) rk4s;
-  int nFrames, numChannels;
+  int numChannels;
   numChannels = qsSource_numChannels(s);
   QS_ASSERT(numChannels <= rk4s->dof);
-  bool isMaster;
-  isMaster = qsSource_isMaster(s);
-  nFrames = qsSource_getRequestedSamples(s, tf, prevT);
-  QS_ASSERT(nFrames >= 0);
+  
   if(nFrames == 0) return 0;
 
-  long double dt, lt;
+  long double lt;
   float rate;
   rate = rk4s->rate;
-  dt = (tf - prevT)/nFrames;
   lt = rk4s->lastT;
+
+  if(underrun)
+  {
+    QS_ASSERT(currentT > prevT);
+    // jump ahead in time
+    qsRungeKutta4_go(rk4s->rk4, rk4s->x, lt + rate*(currentT - prevT));
+  }
 
   while(nFrames)
   {
     float *frames;
     long double *t;
-    int i, n;
+    int n;
+
     n = nFrames;
+
     frames = qsSource_setFrames(s, &t, &n);
 
-    for(i=0; i<n; ++i)
+    for(nFrames -= n; n; --n)
     {
-      if(isMaster)
-        // TODO:
-        // We are assuming that time changes at a uniform rate,
-        // but that may not be true if we are not the master.
-        *t = (prevT += dt);
-      ++t;
+      if(dt)
+        *t = (currentT += dt);
       // ODE system time changes at a scaled rate.
       // lt += (dt * rate);
       lt += dt * rate;
@@ -71,9 +73,8 @@ int cb_sourceRead(struct QsRK4Source *rk4s, long double tf,
         for(j=0; j<numChannels; ++j)
           *frames++ = rk4s->x[j];
       }
+      ++t;
     }
-
-    nFrames -= n;
   }
 
   rk4s->lastT = lt;
@@ -129,8 +130,11 @@ void *qsRK4Source_create(int maxNumFrames,
   rk4s->x = g_malloc0(sizeof(float)*dof);
   memcpy(rk4s->x, xInit, sizeof(float)*dof);
 
+  const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
+  qsSource_setType((struct QsSource *) rk4s, QS_TOLERANT, minMaxSampleRates,
+      rk4s->rate/qsRungeKutta4_getTStep(rk4s->rk4));
+
   qsSource_addSubDestroy(rk4s, _qsRK4Source_destroy);
 
 return rk4s;
 }
-

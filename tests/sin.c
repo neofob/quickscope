@@ -2,7 +2,7 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
-#include "../quickscope.h"
+#include "quickscope.h"
 
 int main(int argc, char **argv)
 {
@@ -11,18 +11,21 @@ int main(int argc, char **argv)
   float period = 0.5F, sweepPeriod = 4.132F;
 
   qsApp_init(&argc, &argv);
-  
-  if(qsApp_bool("dense", false))
-  {
-    period = 1.03F/2000.0F;
-    sweepPeriod = 0.01F;
-  }
 
   qsApp->op_fade = qsApp_bool("fade", true);
   qsApp->op_fadePeriod = 4.0F;
   qsApp->op_fadeDelay =  0.6F;
   qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
+
+  if(qsApp_bool("dense", false))
+  {
+    period = 1.23421234F/200.0F;
+    sweepPeriod = 0.01F;
+    qsApp->op_fadePeriod = 0.02F;
+    qsApp->op_fadeDelay =  0.04;
+  }
+
 
   sin = qsSin_create( 30000 /* maxNumFrames */,
         0.45F /*amplitude*/, period,

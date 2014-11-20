@@ -35,11 +35,10 @@ quickscope_lastheaders =\
  source.h\
  iterator.h\
  soundFile.h\
- sweep.h\
  trace.h\
  win.h\
  rungeKutta.h\
- sourceTypes.h
+ sourceParticular.h
 
 
 # The .xpm files are built but come in a tarball.
@@ -112,7 +111,7 @@ libquickscope_la_SOURCES =\
  source.c\
  source_type.c\
  source.h\
- sourceTypes.h\
+ sourceParticular.h\
  source_priv.h\
  group.c\
  group.h\
@@ -123,7 +122,6 @@ libquickscope_la_SOURCES =\
  swipe.c\
  swipe_priv.h\
  sweep.c\
- sweep.h\
  timer.c\
  timer_priv.h\
  trace.c\

@@ -2,9 +2,8 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
-#include "../quickscope.h"
 #include <math.h> // defines M_PI
-
+#include "quickscope.h"
 
 static void
 SpewSource(struct QsSource *s)
@@ -22,12 +21,15 @@ SpewSource(struct QsSource *s)
 
 
 static
-int cb_read(struct QsSource *s, long double tf, long double prevT, void *data)
+int cb_read(struct QsSource *s, long double tB,
+    long double tA, long double tBPrev,
+    long double deltaT, int nFrames, bool runderrun,
+    void *data)
 {
   static float value = 0;
   int frames = 3;
   long double dt;
-  dt = (tf - prevT)/frames;
+  dt = (tB - tA)/frames;
   
   while(frames)
   {
@@ -41,7 +43,7 @@ int cb_read(struct QsSource *s, long double tf, long double prevT, void *data)
     for(i=0; i<n; ++i)
     {
       vals[i] = (value += 0.5);
-      t[i] = (prevT += dt);
+      t[i] = (tA += dt);
     }
     frames -= n;
   }

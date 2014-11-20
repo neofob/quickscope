@@ -14,8 +14,9 @@
 #include "adjuster.h"
 #include "group.h"
 #include "source.h"
+#include "rungeKutta.h"
+#include "sourceParticular.h"
 #include "iterator.h"
-#include "sweep.h"
 
 // TODO: clearly this is not thread safe
 static int createCount = 0;
@@ -60,15 +61,16 @@ float _qsSweep_val(long double t, long double startT,
 }
 
 static
-int cb_sweep(struct QsSweep *sw,
-    long double tf, long double prevT, void *data)
+int cb_sweep(struct QsSweep *sw)
 {
+  // TODO: add underrun correction
+
   struct QsSource *s;
   s = (struct QsSource *) sw;
   float prevValueOut;
   prevValueOut = sw->prevValueOut;
   float y;
-  long double t;
+  long double t, prevT;
   prevT = sw->prevT;
   struct QsIterator *tit;
   tit = sw->timeIt;
@@ -360,8 +362,7 @@ int cb_sweep(struct QsSweep *sw,
 // It keeps this code out of the running source
 // read callback.
 static
-int cb_sweep_init(struct QsSweep *sw,
-    long double tf, long double prevT, void *data)
+int cb_sweep_init(struct QsSweep *sw)
 {
   QS_ASSERT(sw);
   struct QsSource *s;
@@ -380,7 +381,7 @@ int cb_sweep_init(struct QsSweep *sw,
 
     // Next time they call cb_sweep():
     qsSource_setReadFunc(s, (QsSource_ReadFunc_t) cb_sweep);
-    return cb_sweep(sw, tf, prevT, data);
+    return cb_sweep(sw);
   }
 
   // No data to read from sourceIn yet.
@@ -567,6 +568,14 @@ struct QsSource *qsSweep_create(
   qsSource_initIterator((struct QsSource *) sweep, sweep->timeIt);
   sweep->state = HELD;
   qsSource_setIsSwipable((struct QsSource *)sweep, true);
+
+  // The sweep does not care what the frame sample rate is.
+  // The sweep is a dependent source so this frame sample rate
+  // will be overridden anyway.
+  const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
+  qsSource_setType((struct QsSource *) sweep, QS_TOLERANT, minMaxSampleRates,
+      1000/*default frame sample rate*/);
+
 
   // More of struct sweep gets initialized in cb_sweep_init()
   // above.

@@ -10,7 +10,7 @@
 #include <gtk/gtk.h>
 #define ALSA_PCM_NEW_HW_PARAMS_API
 #include <alsa/asoundlib.h>
-#include "../quickscope.h"
+#include "quickscope.h"
 
 #define CALL(x) \
   do\

@@ -33,7 +33,8 @@ noinst_PROGRAMS =\
  alsa_info\
  alsa_capture_print\
  idle\
- alsaCapture
+ alsaCapture\
+ qsGtkWidget
 
 
 noinst_SCRIPTS =\
@@ -50,48 +51,53 @@ tests_launcher_SOURCES = $(srcdir)/../launcher.c
 tests_launcher_LDADD = $(GTK_3_LIBS) -ldl
 tests_launcher_CFLAGS = -DTESTS $(GTK_3_CFLAGS)
 
+qsGtkWidget_SOURCES = qsGtkWidget.c
+qsGtkWidget_LDADD = $(qs_LDADD) $(GTK_3_LIBS) -lX11
+qsGtkWidget_CFLAGS = -DTESTS $(GTK_3_CFLAGS)
+
+
 hello_SOURCES = hello.c
 
-circle_SOURCES = circle.c
+circle_SOURCES = circle.c quickscope.h
 circle_LDADD = $(qs_LDADD)
 
-idle_SOURCES = idle.c
+idle_SOURCES = idle.c quickscope.h
 idle_LDADD = $(qs_LDADD)
 
-source_SOURCES = source.c
+source_SOURCES = source.c quickscope.h
 source_LDADD = $(qs_LDADD)
 
-saw_print_SOURCES = saw_print.c
+saw_print_SOURCES = saw_print.c quickscope.h
 saw_print_LDADD = $(qs_LDADD)
 
-non_master_print_SOURCES = non_master_print.c
+non_master_print_SOURCES = non_master_print.c quickscope.h
 non_master_print_LDADD = $(qs_LDADD)
 
 sin_SOURCES = sin.c
 sin_LDADD = $(qs_LDADD)
 
-soundFile_SOURCES = soundFile.c
+soundFile_SOURCES = soundFile.c quickscope.h
 soundFile_LDADD = $(qs_LDADD)
 
-soundFile_print_SOURCES = soundFile_print.c
+soundFile_print_SOURCES = soundFile_print.c quickscope.h
 soundFile_print_LDADD = $(qs_LDADD)
 
-rk4_print_SOURCES = rk4_print.c
+rk4_print_SOURCES = rk4_print.c quickscope.h
 rk4_print_LDADD = $(qs_LDADD)
 
-ode_print_SOURCES = ode_print.c
+ode_print_SOURCES = ode_print.c quickscope.h
 ode_print_LDADD = $(qs_LDADD)
 
-ode_SOURCES = ode.c
+ode_SOURCES = ode.c quickscope.h
 ode_LDADD = $(qs_LDADD)
 
-rossler3Wins_SOURCES = rossler3Wins.c
+rossler3Wins_SOURCES = rossler3Wins.c quickscope.h
 rossler3Wins_LDADD = $(qs_LDADD)
 
-urandom_SOURCES = urandom.c
+urandom_SOURCES = urandom.c quickscope.h
 urandom_LDADD = $(qs_LDADD)
 
-alsa_info_SOURCES = alsa_info.c
+alsa_info_SOURCES = alsa_info.c quickscope.h
 alsa_info_LDADD = $(qs_LDADD) $(ALSA_LIBS)
 alsa_info_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
@@ -99,7 +105,7 @@ alsa_capture_print_SOURCES = alsa_capture_print.c
 alsa_capture_print_LDADD = $(qs_LDADD) $(ALSA_LIBS) $(GTK_3_LIBS)
 alsa_capture_print_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
-alsaCapture_SOURCES = alsaCapture.c
+alsaCapture_SOURCES = alsaCapture.c quickscope.h
 alsaCapture_LDADD = $(qs_LDADD)
 
 
