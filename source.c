@@ -472,9 +472,20 @@ int _qsSource_read(struct QsSource *s, long double time)
 
       ++g->underrunCount;
 
-      QS_SPEW("Master source (id=%d) was under-run at least %d %s\n",
-            s->id, g->underrunCount,
-            (g->underrunCount > 1)?"times in a row":"time");
+#ifdef QS_DEBUG
+      if(g->underrunCount == 1)
+        QS_SPEW("Master source (id=%d) was "
+            "under-run 1 time\n",
+            s->id);
+      else if(g->underrunCount < 1000)
+        QS_SPEW("Master source (id=%d) was "
+            "under-run %d times in a row\n",
+            s->id, g->underrunCount);
+      else
+        QS_SPEW("Master source (id=%d) was "
+            "under-run at least 1000 times in a row\n",
+            s->id);
+#endif
 
       if(g->underrunCount > 1000)
       {

@@ -30,7 +30,7 @@ int main(int argc, char **argv)
   qsTrace_create(NULL /* QsWin, NULL to make a default */,
       sweepSource, 0, sinSource, 0, /* x/y source and channels */
       1.0F, 0.9F, 0, 0, /* xscale, yscale, xshift, yshift */
-      true, /* lines */ 0, 1, 0 /* RGB line color */);
+      true, /* lines */ 0.1, 1, 1 /* RGB line color */);
 
   qsApp_main();
 

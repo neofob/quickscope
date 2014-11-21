@@ -62,7 +62,7 @@ bool cb_savePNG(GtkWidget *w, struct QsWin *win)
   }
   // We don't know the filename yet, so we use a temp file.
   // Popping up the dialog fucks up the cairo_surface so we
-  // must save it before the dialog pops up.
+  // must save it before the dialog pops up. 
   if(CAIRO_STATUS_SUCCESS != cairo_surface_write_to_png(surface, tempfilename))
   {
     close(tmpFD);
@@ -72,6 +72,7 @@ bool cb_savePNG(GtkWidget *w, struct QsWin *win)
     return true;
   }
   cairo_surface_destroy(surface);
+  g_free(data);
 
 QS_SPEW("saved tempfile image: \"%s\"\n", tempfilename);
 
@@ -166,16 +167,13 @@ QS_SPEW("saved tempfile image: \"%s\"\n", tempfilename);
     g_free(filename);
   }
 
-  // Clean up this F-ing mess.
+  // Clean up
 
   close(tmpFD);
   unlink(tempfilename);
   
   if(feedbackStr)
     g_free(feedbackStr);
-
-  if(data)
-    g_free(data);
 
   return true;
 }

@@ -49,10 +49,7 @@ void _qsTrace_cleanupSwipe(struct QsTrace *trace);
 
 
 // This is called if parameters change, other then view port
-// width and height.  This is called from within
-// _qsWin_reallocSwipe.
-// This can be used to set the trace, or trace = NULL to keep the
-// current swiping trace.
+// width and height.
 extern
 void _qsTrace_initSwipe(struct QsTrace *trace);
 

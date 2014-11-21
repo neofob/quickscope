@@ -352,7 +352,7 @@ bool _qsSource_checkWithMaster(struct QsSource *s,
   QS_ASSERT(master);
 
   if(s == master)
-    return false; // there may be data to read
+    return false; // no change
 
   int wrapDiff;
 
@@ -385,10 +385,10 @@ bool _qsSource_checkWithMaster(struct QsSource *s,
     QS_SPEW("had to reset source buffer that may be too small\n"
         "source id=%d maxNumFrames=%d\n",
         s->id, master->group->maxNumFrames);
-    return true; // there is no data to read
+    return true; // there is a change to s
   }
 
-  return false; // there may be data to read
+  return false; // there is not change to s
 }
 
 // TODO: Add auto-resizing of the source framePtr buffer.
@@ -477,6 +477,9 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
   // !s->isMaster
   struct QsSource *master;
   master = s->group->master;
+
+  _qsSource_checkWithMaster(s, master);
+
   int ti; // ti = the index relative to the master or time array
   ti = s->timeIndex[s->i]; // last index used
   QS_ASSERT(ti >= 0 && ti < maxNumFrames);
@@ -486,8 +489,6 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
   // We must be behind or at the master in writing:
   QS_ASSERT((wrapDiff == 0 && ti <= master->i) || wrapDiff > 0);
   QS_ASSERT(master->i >= 0 && master->i < maxNumFrames);
-
-  _qsSource_checkWithMaster(s, master);
 
   if(wrapDiff == 0 && ti == master->i)
   {

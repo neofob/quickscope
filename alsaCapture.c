@@ -2,6 +2,7 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
+#include <unistd.h>
 #include <string.h>
 #ifndef __USE_GNU
 #define ISET___USE_GNU
@@ -69,7 +70,7 @@ bool ReadNFrames(snd_pcm_t *handle, float *buf, snd_pcm_uframes_t n)
 
     if(rc == -EPIPE)
     {
-#if 0
+#if 1
       fprintf(stderr,
               "snd_pcm_readi() failed: %d: %s\n"
               "Must be a capture buffer over-run "
@@ -109,7 +110,15 @@ int cb_read(struct QsAlsaCapture *s,
   struct QsSource *source;
   source = (struct QsSource *) s;
 
-  if(nFrames == 0) return 0;
+//static int totalFrames = 0;
+//printf("%20.20Lg %d %d\n", tf, nFrames, totalFrames += nFrames);
+
+  if(nFrames == 0)
+  {
+    // May not be the best solution
+    usleep(10000);
+    return 0;
+  }
 
   if(underrun)
   {

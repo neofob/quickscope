@@ -163,7 +163,7 @@ bool _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
   /* setup gridXSpacing, gridXStart, gridYSpacing, gridYStart
    * and gridXLineUnits, gridYLinUnits for drawing ticks.
    * They will be needed if any grid, ticks, or axis are turned
-   * on on the fly by the user. */
+   * on, on the fly, by the user. */
   _qsWin_setGridX(win);
   _qsWin_setGridY(win);
 

@@ -22,10 +22,10 @@ int main(int argc, char **argv)
   qsApp->op_height = 200;
 
 
-  soundIn = qsAlsaCapture_create( 10000 /* maxNumFrames */,
+  soundIn = qsAlsaCapture_create( 2000 /* maxNumFrames */,
       44100/*sampleRate (Hz)*/, NULL /* group */);
 
-  sweep = qsSweep_create(1.0F/100.0F/*sweep period*/,
+  sweep = qsSweep_create(2.0F/100.0F/*sweep period*/,
       0.01F/*level*/, 1/*slope 0==free run*/,
       0.0F/*holdOff*/,0/*delay*/,
       soundIn/*source*/, 0/*sourceChannelNum*/);

@@ -296,4 +296,3 @@ cairo_surface_t *_qsWin_savePNGwithAphas(struct QsWin *win,
 
   return surface;
 }
-

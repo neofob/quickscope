@@ -72,20 +72,27 @@ void _qsTrace_reallocSwipe(struct QsTrace *trace)
   else
   {
     swipe = trace->swipe;
+    struct QsSwipeColor *surface;
+    surface = swipe->surface;
+    // reset all swipe data
     memset(swipe, 0, sizeof(*swipe));
+    // but remember the surface buffer
+    swipe->surface = surface;
   }
 
   if(!win->gc)
     // We need the drawing area width and height
     return; // we should have X11 window stuff setup later.
-  
-  if(swipe->surface)
-    g_free(swipe->surface);
 
+
+  
 #ifdef QS_DEBUG
   // Some value a little less than width
   swipe->xMid = 2*win->width/3;
 #endif
+
+  if(swipe->surface)
+    g_free(swipe->surface);
 
   swipe->surface = g_malloc0(sizeof(*swipe->surface) *
       win->width * win->height);
