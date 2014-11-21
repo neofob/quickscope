@@ -256,7 +256,7 @@ struct QsSource *qsAlsaCapture_create(int maxNumFrames,
 
   // TODO: figure out what the sample rate really is.
   // TODO: make this QS_SELECTABLE
-  qsSource_setType((struct QsSource *) s, QS_FIXED, NULL, sampleRate);
+  qsSource_setFrameRateType((struct QsSource *) s, QS_FIXED, NULL, sampleRate);
   
   struct QsAdjuster *adjG;
   struct QsAdjusterList *adjL;

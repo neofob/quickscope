@@ -42,17 +42,17 @@ cb_read(struct QsUrandom *s, long double tf,
   int numChannels;
   numChannels = qsSource_numChannels(source);
 
-
   while(nFrames)
   {
-    uint32_t data[128];
+    const size_t LEN = 1024;
+    uint32_t data[1024];
 
     float *frames;
     long double *t;
     int i, n;
 
-    if(nFrames > (128 - 128%numChannels)/numChannels)
-      n = (128 - 128%numChannels)/numChannels;
+    if(nFrames > (LEN - LEN%numChannels)/numChannels)
+      n = (LEN - LEN%numChannels)/numChannels;
     else
       n = nFrames;
 
@@ -119,8 +119,8 @@ struct QsSource *qsUrandom_create(
     numChannels, maxNumFrames, group, sizeof(*s));
   s->file = file;
 
-  const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
-  qsSource_setType((struct QsSource *) s, QS_TOLERANT, minMaxSampleRates,
+  float minMaxSampleRates[] = { 0.01F , 100*44100.0F };
+  qsSource_setFrameRateType((struct QsSource *) s, QS_TOLERANT, minMaxSampleRates,
       sampleRate/*default frame sample rate*/);
 
   qsSource_addSubDestroy(s, _qsUrandom_destroy);

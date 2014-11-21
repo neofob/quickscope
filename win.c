@@ -278,3 +278,21 @@ void qsWin_destroy(struct QsWin *win)
   _qsAdjusterList_checkBaseDestroy(win);
 }
 
+struct QsWin *qsWin_getDefault(struct QsWin *win)
+{
+  if(!win)
+  {
+    // Use and/or make the default QsWin
+    if(!qsApp->wins)
+      win = qsWin_create();
+    else
+      // we use the last win created
+      // new wins are prepended to this wins list,
+      // so it's the first in the list
+      win = qsApp->wins->data;
+  }
+  QS_ASSERT(win);
+  QS_ASSERT(qsApp->wins);
+  QS_ASSERT(qsApp->wins->data);
+  return win;
+}

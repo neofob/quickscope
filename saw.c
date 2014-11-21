@@ -124,7 +124,7 @@ struct QsSource *qsSaw_create(int maxNumFrames,
   s->id = createCount++;
 
   const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
-  qsSource_setType((struct QsSource *) s, QS_TOLERANT, minMaxSampleRates,
+  qsSource_setFrameRateType((struct QsSource *) s, QS_TOLERANT, minMaxSampleRates,
       samplesPerPeriod/period/*default frame sample rate*/);
 
 

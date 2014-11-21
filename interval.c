@@ -39,9 +39,10 @@ void _qsInterval_changedSource(struct QsInterval *in, const GSList *sources)
   }
   else if(sources && !in->timeoutTag)
     in->timeoutTag = g_timeout_add_full(
-        /* This priority much be lower than the priority
+        /* This priority must be lower than the priority
          * of a configure/resize event */
-        G_PRIORITY_HIGH_IDLE - 40,
+        //G_PRIORITY_HIGH_IDLE - 40,
+        G_PRIORITY_LOW,
         (guint)(in->period*1000+0.5) /* 1/1000ths of a second */,
         (GSourceFunc) _qsController_run, in, NULL);
 }

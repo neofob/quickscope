@@ -17,8 +17,16 @@ int main(int argc, char **argv)
   qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
 
-  s = qsUrandom_create(6/*numChannels*/, 1000/*maxNumFrames*/,
-      1000/*sampleRate Hz*/, NULL/*group*/);
+  float frameRate = 1000;
+
+  if(qsApp_bool("hammer-time", false))
+  {
+    qsIdle_create();
+    frameRate = INFINITY;
+  }
+
+  s = qsUrandom_create(6/*numChannels*/, 3000/*maxNumFrames*/,
+      frameRate/*frame sampleRate Hz*/, NULL/*group*/);
   if(!s) return 1;
 
   qsTrace_create(NULL /* QsWin, NULL to make a default Win */,

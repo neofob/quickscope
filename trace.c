@@ -353,23 +353,7 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
   QS_ASSERT(green >= 0 && green <= 1.0F);
   QS_ASSERT(blue >= 0 && blue <= 1.0F);
 
-  if(!win)
-  {
-    // Use and/or make the default QsWin
-    if(!qsApp->wins)
-    {
-      win = qsWin_create();
-    }
-    else
-    {
-      // we use the last win created
-      QS_ASSERT(qsApp->wins->data);
-      win = qsApp->wins->data;
-    }
-  }
-  QS_ASSERT(win);
-  QS_ASSERT(qsApp->wins);
-  QS_ASSERT(qsApp->wins->data);
+  win = qsWin_getDefault(win);
 
 
   trace = g_malloc0(sizeof(*trace));

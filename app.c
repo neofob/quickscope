@@ -234,7 +234,9 @@ void qsApp_main(void)
     qsApp_init(NULL, NULL);
 
   if(qsApp->inAppLevel & QS_APP_INAPPMAIN)
+    // stop qsApp_main() re entrance.  Stupid user.
     return;
+
   qsApp->inAppLevel |= QS_APP_INAPPMAIN;
 
 

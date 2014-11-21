@@ -56,20 +56,25 @@ void SpewType(enum QsSource_Type type,
   switch(type)
   {
     case QS_FIXED:
-      fprintf(stderr, "sampleRate = %f\n", sampleRate);
+      fprintf(stderr, "frame sample rate = %f\n", sampleRate);
       break;
     case QS_SELECTABLE:
-      fprintf(stderr, "sampleRates (Hz):");
+      fprintf(stderr, "frame sample rates (Hz):");
       while(*sampleRates)
         fprintf(stderr, " %f", *sampleRates++);
       fprintf(stderr, "\n");
       break;
     case QS_VARIABLE:
-      fprintf(stderr, "sampleRates must be at and between (min) %f Hz and (max) %f Hz\n",
+      fprintf(stderr, "frame sample rates must be at and between (min) %f Hz and (max) %f Hz\n",
           sampleRates[0], sampleRates[1]); 
       break;
     case QS_TOLERANT:
-      fprintf(stderr, "Works with any sample rate with default sample rate= %g\n", sampleRate);
+      fprintf(stderr, "Works with any frame sample rate with default rate= %g\n",
+          sampleRate);
+      if(isinf(sampleRate))
+        fprintf(stderr, "%f means that the number of frames per scope display\n"
+            " cycle is only limited by the max number of frame the buffer holds\n",
+            sampleRate);
       fprintf(stderr, "The default range is between (min) %f Hz and (max) %f Hz\n",
           sampleRates[0], sampleRates[1]);
       break;
@@ -501,7 +506,7 @@ bool _qsSource_checkTypes(struct QsSource *s)
   return false; // success
 }
 
-bool qsSource_setType(struct QsSource *s,
+bool qsSource_setFrameRateType(struct QsSource *s,
     enum QsSource_Type type,
     const float *sampleRates /* NULL for QS_FIXED
                           two values min and max for QS_VARIABLE
@@ -532,12 +537,16 @@ bool qsSource_setType(struct QsSource *s,
       if(s->sampleRates)
         g_free(s->sampleRates);
       QS_ASSERT(sampleRates[0] > 0);
-      QS_ASSERT(sampleRates[0] < sampleRates[1]);
-      QS_ASSERT(sampleRate >= sampleRates[0]);
-      QS_ASSERT(sampleRate <= sampleRates[1]);
+      QS_ASSERT(sampleRates[0] <= sampleRates[1]);
+      QS_ASSERT(sampleRate > 0);
+
       s->sampleRates = g_malloc(sizeof(float)*2);
       s->sampleRates[0] = sampleRates[0]; // min
       s->sampleRates[1] = sampleRates[1]; // max
+      if(sampleRate < s->sampleRates[0])
+        s->sampleRates[0] = sampleRate;
+      if(sampleRate > s->sampleRates[1])
+        s->sampleRates[1] = sampleRate;
       break;
     case QS_SELECTABLE:
       QS_ASSERT(sampleRates);

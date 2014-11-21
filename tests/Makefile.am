@@ -34,7 +34,8 @@ noinst_PROGRAMS =\
  alsa_capture_print\
  idle\
  alsaCapture\
- qsGtkWidget
+ qsGtkWidget\
+ controller
 
 
 noinst_SCRIPTS =\
@@ -107,6 +108,9 @@ alsa_capture_print_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
 alsaCapture_SOURCES = alsaCapture.c quickscope.h
 alsaCapture_LDADD = $(qs_LDADD)
+
+controller_SOURCES = controller.c quickscope.h
+controller_LDADD = $(qs_LDADD)
 
 
 

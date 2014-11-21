@@ -444,7 +444,7 @@ int _qsSource_read(struct QsSource *s, long double time)
   QS_ASSERT(g->type == QS_CUSTOM || g->sampleRate > 0);
   QS_ASSERT(g->type != QS_NONE);
 
-  if(s->isMaster && g->sampleRate != 0)
+  if(s->isMaster && g->sampleRate != 0 && isfinite(g->sampleRate))
   {
     nFrames = g->sampleRate * (time - (tA = g->time[s->i]));
 
@@ -506,8 +506,22 @@ int _qsSource_read(struct QsSource *s, long double time)
       deltaT = 1.0L/g->sampleRate;
     }
   }
-  else
+  else if(!s->isMaster)
     nFrames = qsSource_numFrames(s);
+  else if(g->type == QS_TOLERANT)
+    // !isfinite(g->sampleRate)) and isMaster
+  {
+    // We call this the uncontrolled frame rate,
+    // because we are just getting the most frames
+    // as we can, assuming the master source even
+    // reads nFrames.
+    // This source would be periodic only if this
+    // function is called periodically which is
+    // not likely.
+    nFrames = FRAC*qsSource_maxNumFrames(s);
+    // If the source wants to use this here it is:
+    deltaT = (time - (tA = g->time[s->i]))/nFrames;
+  }
 
   //QS_SPEW("time=%Lg prevT=%Lg\n", time, s->prevT);
 

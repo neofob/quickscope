@@ -22,4 +22,6 @@ extern
 void qsWin_setXUnits(struct QsWin *win, const char *unitsLabel);
 extern
 void qsWin_setYUnits(struct QsWin *win, const char *unitsLabel);
+extern
+struct QsWin *qsWin_getDefault(struct QsWin *win);
 

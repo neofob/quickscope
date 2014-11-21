@@ -62,6 +62,7 @@ static const char *const default_programs[] =
   "ode", "--system=rossler", NULL,
   "rossler3Wins", NULL,
   "urandom", NULL,
+  "urandom", "--hammer-time=1", NULL,
   "sin", "--dense", "--slope=0", "--swipe=1", "--fade=0", NULL,
   "Quickplot", "alsa_capture_print", NULL,
   "alsaCapture", NULL,

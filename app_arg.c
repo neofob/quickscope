@@ -33,7 +33,9 @@ char *getString(const char *name, char **argv)
     {
       ret = &(*argv++)[nlen];
     }
-    else if(!strcmp(opt1, *argv) && *(argv + 1))
+    else if(!strcmp(opt1, *argv) && *(argv + 1)
+        &&  (*(argv + 1))[0] && (*(argv + 1))[0] != '-'
+        && (*(argv + 1))[1] != '-')
     {
       ret = *(++argv);
       ++argv;
@@ -43,6 +45,8 @@ char *getString(const char *name, char **argv)
       ++argv;
     }
   }
+  g_free(opt0);
+  g_free(opt1);
 
   return ret;
 }
@@ -95,6 +99,13 @@ bool qsApp_bool(const char *name, bool dflt)
       // true, 1, yes, affirmative, on, asdf
       return true;
   }
+
+#if 0 // TODO: --opt   without arg means true
+  char *arg;
+  argv = 
+  if(strcmp(
+
+#endif
 
   return dflt;
 }

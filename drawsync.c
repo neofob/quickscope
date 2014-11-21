@@ -40,7 +40,7 @@ static bool _gtkTickCallback(GtkWidget *widget,
 {
   QS_ASSERT(c);
 
-  // Let the controller call the source reads
+  // Let the (base object) controller call the source reads
   return _qsController_run(c);
 }
 
@@ -88,13 +88,16 @@ void _qsDrawSync_destroy(struct QsDrawSync *ds)
 struct QsController *qsDrawSync_create(struct QsWin *win)
 {
   struct QsDrawSync *ds;
-  QS_ASSERT(win);
+
+  win = qsWin_getDefault(win);
 
   ds = _qsController_create(
       (void (*)(struct QsController *c, const GSList *sources))
       _qsDrawSync_changedSource, sizeof(*ds));
   ds->win = win;
+
   _qsController_addSubDestroy(ds, _qsDrawSync_destroy);
+  
   win->drawSyncs = g_slist_prepend(ds->win->drawSyncs, ds);
 
   return (struct QsController *) ds;

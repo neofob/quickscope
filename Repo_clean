@@ -107,7 +107,7 @@ function remove_files()
   soundFile_print rk4_print ode ode_print ode_3wins\
   urandom rossler3Wins rossler3Wins.c alsa_info\
   alsa_capture_print alsaCapture idle alsaCapture.c\
-  qsGtkWidget
+  qsGtkWidget controller
 
   # directory examples/
 

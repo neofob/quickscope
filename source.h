@@ -223,6 +223,11 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     // The maxNumFrames will only be set for the first source
     // made in the group (checked that it is the same in QS_DEBUG).
     // It is also the ring buffer length.
+#if 0 // will be changed to add this
+    enum QsSource_Type type,
+    const float *sampleRates/*NULL, min and max, or list*/,
+    float sampleRate/*default frame sample rate*/
+#endif
     const struct QsSource *group /* group=NULL to make a new group */,
     size_t objectSize);
 extern
@@ -286,7 +291,7 @@ long double qsSource_lastTime(struct QsSource *s);
 
 // return false on success
 extern
-bool qsSource_setType(struct QsSource *s, enum QsSource_Type type,
+bool qsSource_setFrameRateType(struct QsSource *s, enum QsSource_Type type,
     const float *sampleRates, float startingSampleRate);
 
 

@@ -233,7 +233,7 @@ struct QsSource *qsSoundFile_create(const char *filename,
   snd->filename = g_strdup(filename);
 
   const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
-  qsSource_setType((struct QsSource *) snd, QS_TOLERANT, minMaxSampleRates,
+  qsSource_setFrameRateType((struct QsSource *) snd, QS_TOLERANT, minMaxSampleRates,
       sampleRate/*default frame sample rate*/);
 
   // A QsSoundFile is a QsSource is an QsAdjusterList.

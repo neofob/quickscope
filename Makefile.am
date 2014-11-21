@@ -109,7 +109,7 @@ libquickscope_la_SOURCES =\
  iterator.c\
  iterator.h\
  source.c\
- source_type.c\
+ source_frameRate.c\
  source.h\
  sourceParticular.h\
  source_priv.h\

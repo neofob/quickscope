@@ -70,6 +70,7 @@ bool _qsController_run(struct QsController *c)
   int changeSource = 0;
 
   QS_ASSERT(c);
+//QS_SPEW("controller %p\n", c);
 
   t = _qsTimer_get(qsApp->timer);
   

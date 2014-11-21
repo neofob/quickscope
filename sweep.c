@@ -571,7 +571,7 @@ struct QsSource *qsSweep_create(
   // The sweep is a dependent source so this frame sample rate
   // will be overridden anyway.
   const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
-  qsSource_setType((struct QsSource *) sweep, QS_TOLERANT, minMaxSampleRates,
+  qsSource_setFrameRateType((struct QsSource *) sweep, QS_TOLERANT, minMaxSampleRates,
       1000/*default frame sample rate*/);
 
 
