@@ -544,9 +544,19 @@ bool qsSource_setFrameRateType(struct QsSource *s,
       s->sampleRates[0] = sampleRates[0]; // min
       s->sampleRates[1] = sampleRates[1]; // max
       if(sampleRate < s->sampleRates[0])
-        s->sampleRates[0] = sampleRate;
+      {
+        if(type == QS_TOLERANT)
+          s->sampleRates[0] = sampleRate;
+        else // type == QS_VARIABLE
+          sampleRate = s->sampleRates[0];
+      }
       if(sampleRate > s->sampleRates[1])
-        s->sampleRates[1] = sampleRate;
+      {
+        if(type == QS_TOLERANT)
+          s->sampleRates[1] = sampleRate;
+        else // type == QS_VARIABLE
+          sampleRate = s->sampleRates[1];
+      }
       break;
     case QS_SELECTABLE:
       QS_ASSERT(sampleRates);
@@ -592,4 +602,120 @@ bool qsSource_setFrameRateType(struct QsSource *s,
   s->group->sourceTypeChange = true;
 
   return _qsSource_checkTypes(s);
+}
+
+static
+void _qsSource_setGroupFrameRate(const struct QsSource *s, struct QsGroup *g)
+{
+  QS_ASSERT(g);
+
+  // source s has requested that it be the group frame rate
+  // so lets see about that...
+  // The rate for the group must be compatible with all sources in the
+  // group.  The group is a type and has rates that is compatible with
+  // all the sources in the group, so we don't need to check this
+  // requested rate with all the sources, just the group.
+
+  if(g->sampleRate == s->sampleRate)
+    return;
+
+  switch(g->type)
+  {
+    case QS_TOLERANT:
+      {
+        // all sources are QS_TOLERANT
+        // find the max frame sample rates
+        GSList *l;
+        g->sampleRate = 0;
+        for(l=g->sources; l; l=l->next)
+        {
+          struct QsSource *ls;
+          ls = l->data;
+          QS_ASSERT(ls->type == QS_TOLERANT);
+          QS_ASSERT(ls->sampleRate > 0);
+          if(g->sampleRate < ls->sampleRate)
+            g->sampleRate = ls->sampleRate;
+        }
+      }
+      break;
+    case QS_VARIABLE:
+      {
+        QS_VASSERT(0, "Write more case code here");
+      }
+      break;
+    case QS_SELECTABLE:
+      {
+        QS_VASSERT(0, "Write more case code here");
+      }
+      break;
+    case QS_FIXED:
+      break;
+    default:
+      QS_VASSERT(0, "Write more case code here");
+      break;
+  }
+}
+
+
+// returns true on success even if the rate stays the same.
+// else returns false and the rate stays the same.
+void qsSource_setFrameRate(struct QsSource *s, float sampleRate)
+{
+  QS_ASSERT(s);
+  
+  switch(s->type)
+  {
+    case QS_TOLERANT:
+      QS_ASSERT(sampleRate > 0);
+      if(sampleRate <= 0)
+        return;
+      s->sampleRate = sampleRate;
+      if(s->sampleRates[0] > sampleRate)
+        s->sampleRates[0] = sampleRate; // min
+      if(s->sampleRates[1] < sampleRate)
+        s->sampleRates[1] = sampleRate; // max
+      break;
+    case QS_VARIABLE:
+      if(s->sampleRates[0] <= sampleRate &&
+          s->sampleRates[1] >= sampleRate)
+      {
+        s->sampleRate = sampleRate;
+        break;
+      }
+      return;
+      break;
+    case QS_SELECTABLE:
+      {
+        float *rates;
+        rates = s->sampleRates;
+        while(*rates)
+        {
+          if(sampleRate == *rates++)
+          {
+            s->sampleRate = sampleRate;
+            break;
+          }
+        }
+      }
+      return;
+      break;
+    case QS_FIXED:
+      if(s->sampleRate == sampleRate)
+        break;
+      return;
+      break;
+    case QS_CUSTOM:
+      QS_ASSERT(s->sampleRate == 0);
+      QS_VASSERT(0, "A QS_CUSTOM source should not call this\n");
+      return;
+      break;
+    case QS_NONE:
+      QS_VASSERT(0, "bad source frame rate type QS_NONE");
+    default:
+      QS_VASSERT(0, "bad source frame rate type");
+      return;
+      break;
+  }
+
+  _qsSource_setGroupFrameRate(s, s->group);
 }

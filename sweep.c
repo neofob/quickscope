@@ -423,6 +423,9 @@ void cb_changePeriod(struct QsSweep *sweep)
   //bool free;
   //free = !sweep->slope && !sweep->holdOff && !sweep->delay;
   _qsSweep_setContStart(sweep);
+
+  // We need enough samples in the period of the sweep.
+  qsSource_setFrameRate((struct QsSource *) sweep, 10/sweep->period);
 }
 
 static
@@ -572,7 +575,7 @@ struct QsSource *qsSweep_create(
   // will be overridden anyway.
   const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
   qsSource_setFrameRateType((struct QsSource *) sweep, QS_TOLERANT, minMaxSampleRates,
-      1000/*default frame sample rate*/);
+      10/period/*default min frame sample rate*/);
 
 
   // More of struct sweep gets initialized in cb_sweep_init()

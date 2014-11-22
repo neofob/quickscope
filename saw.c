@@ -40,22 +40,24 @@ static int createCount = 0;
 struct QsSaw
 {
   struct QsSource source; // inherit QsSource
-  float amp, period, periodShift, omega;
+  float amp, period, periodShift, omega, samplesPerPeriod;
   int id;
 };
 
 static
-void _qsSaw_parameterChange(struct QsSaw *s)
+void _qsSaw_parameterChange(struct QsSaw *saw)
 {
   // Another way to handle a parameter change is to
   // change other parameters too so that continuity is
   // preserved, but that may be considered misleading
   // or unexpected behavior.
-  qsSource_addPenLift((struct QsSource *) s);
+  
+  qsSource_addPenLift((struct QsSource *) saw);
+  qsSource_setFrameRate((struct QsSource *) saw, saw->samplesPerPeriod/saw->period);
 }
 
 static
-int cb_saw(struct QsSaw *s, long double tf,
+int cb_read(struct QsSaw *s, long double tf,
     long double prevT, long double currentT,
     long double dt, int nFrames)
 {
@@ -116,17 +118,17 @@ struct QsSource *qsSaw_create(int maxNumFrames,
   QS_ASSERT(period >= MIN_PERIOD && period <= MAX_PERIOD);
   QS_ASSERT(samplesPerPeriod >= 4 && samplesPerPeriod <= 1000);
 
-  s = qsSource_create((QsSource_ReadFunc_t) cb_saw,
+  s = qsSource_create((QsSource_ReadFunc_t) cb_read,
       1 /* numChannels */, maxNumFrames, group, sizeof(*s));
   s->amp = amp;
   s->period = period;
   s->periodShift = periodShift;
   s->id = createCount++;
+  s->samplesPerPeriod = samplesPerPeriod;
 
   const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
   qsSource_setFrameRateType((struct QsSource *) s, QS_TOLERANT, minMaxSampleRates,
       samplesPerPeriod/period/*default frame sample rate*/);
-
 
   struct QsAdjuster *adjG;
   struct QsAdjusterList *adjL;

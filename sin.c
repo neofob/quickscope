@@ -32,22 +32,29 @@ static int createCount = 0;
 struct QsSin
 {
   struct QsSource source; // inherit QsSource
-  float amp, period, phaseShift, omega;
+  float amp, period, phaseShift, omega, samplesPerPeriod;
   int id;
 };
 
 static
-void _qsSin_parameterChange(struct QsSin *s)
+void _qsSin_parameterChange(struct QsSin *sin)
 {
   // Another way to handle a parameter change is to
   // change other parameters too so that continuity is
   // preserved, but that may be considered misleading
   // or unexpected behavior.
-  qsSource_addPenLift((struct QsSource *) s);
+  
+  qsSource_addPenLift((struct QsSource *) sin);
+  qsSource_setFrameRate((struct QsSource *) sin, sin->samplesPerPeriod/sin->period);
+
+#if 0
+  QS_SPEW("qsSource_setFrameRate()=%g sin->samplesPerPeriod/sin->period=%g\n",
+    qsSource_getFrameRate((struct QsSource *) sin), sin->samplesPerPeriod/sin->period);
+#endif
 }
 
 static
-int cb_sin_read(struct QsSin *s, long double tf,
+int cb_read(struct QsSin *s, long double tf,
     long double prevT, long double currentT,
     long double dt, int nFrames)
 {
@@ -106,18 +113,18 @@ struct QsSource *qsSin_create(int maxNumFrames,
   QS_ASSERT(period >= MIN_PERIOD && period <= MAX_PERIOD);
   QS_ASSERT(samplesPerPeriod >= 4 && samplesPerPeriod <= 10000);
 
-  s = qsSource_create((QsSource_ReadFunc_t) cb_sin_read,
+  s = qsSource_create((QsSource_ReadFunc_t) cb_read,
       1 /* numChannels */, maxNumFrames, group, sizeof(*s));
   s->amp = amp;
   s->period = period;
   s->phaseShift = phaseShift/M_PI;
   s->id = createCount++;
+  s->samplesPerPeriod = samplesPerPeriod;
 
   const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
   qsSource_setFrameRateType((struct QsSource *) s, QS_TOLERANT, minMaxSampleRates,
       samplesPerPeriod/period/*default frame sample rate*/);
-QS_SPEW("%g\n", samplesPerPeriod/period);
-
+  qsSource_setFrameRate((struct QsSource *) s, samplesPerPeriod/period);
 
   struct QsAdjuster *adjG;
   struct QsAdjusterList *adjL;

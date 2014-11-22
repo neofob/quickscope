@@ -294,6 +294,17 @@ extern
 bool qsSource_setFrameRateType(struct QsSource *s, enum QsSource_Type type,
     const float *sampleRates, float startingSampleRate);
 
+static inline
+float qsSource_getFrameRate(struct QsSource *s)
+{
+  QS_ASSERT(s);
+  QS_ASSERT(s->group);
+  return s->group->sampleRate;
+}
+
+extern
+void qsSource_setFrameRate(struct QsSource *s, float sampleRate);
+
 
 // Returns the number of frames that may be written to
 // catch up to the master QsSource.
@@ -407,15 +418,15 @@ bool _qsSource_checkWithMaster(struct QsSource *s,
 // values in the order of frames with the sequence
 // of all channels in the source in each frame:
 //
-//   Frame0: value0_channel0, value0_channel1, ..., value0_channelN-1
-//   Frame1: value1_channel0, value1_channel1, ..., value1_channelN-1
-//   ... etc.
-//   t time is a simple array of long double times in seconds.
 //
-//  Put another way:
-//
-//    value = returnedFrames[ frameIndex * numChannels + channelIndex ];
+//    return value = returnedFrames[ frameIndex * numChannels + channelIndex ];
 //    time = t[frameIndex];
+//
+//  The returned float array is the interlaced frames that you will
+//  write.
+//
+//  If this is the master source you should set the time array,
+//  if this is not the master source you can read the time array.
 //
 //  See also qsSource_appendFrame() which more than one set of values
 //  to a frame, giving more than one value per channel at a given time.
@@ -475,7 +486,7 @@ float *qsSource_setFrames(struct QsSource *s, long double **t,
   // a sweep signal (source); the leading edge
   // point has the same time and Y-value as does
   // the trailing edge.  Without this complexity
-  // we have a suboptimal sweep display.
+  // we would have a suboptimal sweep display.
 
   QS_ASSERT(s->i < s->group->bufferLength);
 
