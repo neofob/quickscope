@@ -709,3 +709,4 @@ float *qsSource_setFrameIt(struct QsSource *s, const struct QsIterator *it)
 
   return NULL;
 }
+#undef PRINT

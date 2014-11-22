@@ -35,7 +35,8 @@ noinst_PROGRAMS =\
  idle\
  alsaCapture\
  qsGtkWidget\
- controller
+ controller\
+ app_arg
 
 
 noinst_SCRIPTS =\
@@ -111,6 +112,10 @@ alsaCapture_LDADD = $(qs_LDADD)
 
 controller_SOURCES = controller.c quickscope.h
 controller_LDADD = $(qs_LDADD)
+
+app_arg_SOURCES = app_arg.c quickscope.h
+app_arg_LDADD = $(qs_LDADD)
+
 
 
 
