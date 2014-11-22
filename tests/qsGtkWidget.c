@@ -97,9 +97,13 @@ struct QsDrawX11Context *qsDrawX11Context_create(GtkWidget *w)
   x->bg.green = 0xFFFF;
   x->bg.blue  = 0xFFFF;
   x->bg.flags = 0;
-  int ret;
-  ret = XAllocColor(x->dsp, x->cmap, &x->bg);
-  QS_ASSERT(ret);
+
+#ifdef QS_DEBUG
+  QS_ASSERT(XAllocColor(x->dsp, x->cmap, &x->bg));
+#else
+  XAllocColor(x->dsp, x->cmap, &x->bg);
+#endif
+  
   return x;
 }
 
@@ -109,8 +113,10 @@ struct QsDrawX11Context *x = NULL;
 static
 gboolean cbDraw(GtkWidget *da, cairo_t *cr)
 {
+#ifdef QS_DEBUG
   static int count = 0;
   QS_SPEW("%d\n", ++count);
+#endif
   if(!x)
     x = qsDrawX11Context_create(da);
 #if 1
