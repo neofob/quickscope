@@ -179,7 +179,7 @@ _qsSoundFile_destroy(struct QsSoundFile *snd)
 static
 void cb_sampleRate(struct QsSoundFile *snd)
 {
-  QS_SPEW("%s\n", snd->filename);
+  qsSource_setFrameRate((struct QsSource *)snd, snd->sampleRate);
 }
 
 struct QsSource *qsSoundFile_create(const char *filename,
@@ -216,7 +216,7 @@ struct QsSource *qsSoundFile_create(const char *filename,
     sampleRate = info.samplerate;
 
   float maxRate;
-  maxRate = info.samplerate;
+  maxRate = info.samplerate*4;
   if(maxRate < sampleRate)
     maxRate = sampleRate;
 
@@ -247,7 +247,7 @@ struct QsSource *qsSoundFile_create(const char *filename,
 
   addIcon(
       qsAdjusterFloat_create(adjL,
-      "Rate IGNORED", "Hz", &snd->sampleRate,
+      "Rate", "Hz", &snd->sampleRate,
       0.01, /* min */ maxRate, /* max */
       (void (*)(void *)) cb_sampleRate, snd), snd);
 

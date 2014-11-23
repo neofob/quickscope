@@ -33,7 +33,7 @@ int main(int argc, char **argv)
   qsApp->op_fade = qsApp_bool("fade", false);
   qsApp->op_fadePeriod = 0.04F;
   qsApp->op_fadeDelay =  0.04F;
-  qsApp->op_doubleBuffer = true;
+  qsApp->op_doubleBuffer = false;
   qsApp->op_width = 1200;
   qsApp->op_height = 400;
   qsApp->op_axis = false;
