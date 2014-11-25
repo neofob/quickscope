@@ -131,7 +131,8 @@ void *qsRK4Source_create(int maxNumFrames,
   memcpy(rk4s->x, xInit, sizeof(float)*dof);
 
   const float minMaxSampleRates[] = { 0.01F , 2*44100.0F };
-  qsSource_setFrameRateType((struct QsSource *) rk4s, QS_TOLERANT, minMaxSampleRates,
+  qsSource_setFrameRateType((struct QsSource *) rk4s,
+      QS_TOLERANT, minMaxSampleRates,
       rk4s->rate/qsRungeKutta4_getTStep(rk4s->rk4));
 
   qsSource_addSubDestroy(rk4s, _qsRK4Source_destroy);

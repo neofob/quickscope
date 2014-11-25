@@ -267,7 +267,7 @@ struct QsSource *qsAlsaCapture_create(int maxNumFrames,
     (size_t (*)(char *, size_t, void *)) iconText, s);
 
   qsAdjusterInt_create(adjL,
-      "Sample Rate", "Hz", &s->sampleRate,
+      "Sample Rate (WRITE THIS CODE)", "Hz", &s->sampleRate,
       600, /* min */ 44100, /* max */
       (void (*) (void *)) _qsAlsaCapture_parameterChange, s);
 

@@ -56,26 +56,27 @@ void SpewType(enum QsSource_Type type,
   switch(type)
   {
     case QS_FIXED:
-      fprintf(stderr, "frame sample rate = %f\n", sampleRate);
+      fprintf(stderr, "frame sample rate = %g\n", sampleRate);
       break;
     case QS_SELECTABLE:
       fprintf(stderr, "frame sample rates (Hz):");
       while(*sampleRates)
-        fprintf(stderr, " %f", *sampleRates++);
+        fprintf(stderr, " %g", *sampleRates++);
       fprintf(stderr, "\n");
       break;
     case QS_VARIABLE:
-      fprintf(stderr, "frame sample rates must be at and between (min) %f Hz and (max) %f Hz\n",
+      fprintf(stderr, "frame sample rates must be at and between "
+          "(min) %f Hz and (max) %f Hz\n",
           sampleRates[0], sampleRates[1]); 
       break;
     case QS_TOLERANT:
       fprintf(stderr, "Works with any frame sample rate with default rate= %g\n",
           sampleRate);
       if(isinf(sampleRate))
-        fprintf(stderr, "%f means that the number of frames per scope display\n"
+        fprintf(stderr, "%g means that the number of frames per scope display\n"
             " cycle is only limited by the max number of frame the buffer holds\n",
             sampleRate);
-      fprintf(stderr, "The default range is between (min) %f Hz and (max) %f Hz\n",
+      fprintf(stderr, "The default range is between (min) %g Hz and (max) %g Hz\n",
           sampleRates[0], sampleRates[1]);
       break;
     case QS_CUSTOM:
@@ -392,7 +393,10 @@ bool CheckTolerant(const struct QsSource *s, struct QsGroup *g)
         g->sampleRates[0] = s->sampleRates[0];
       if(g->sampleRates[1] < s->sampleRates[1])
         g->sampleRates[1] = s->sampleRates[1];
-      g->sampleRate = s->sampleRate;
+      if(g->sampleRate < s->sampleRate)
+        // We make the current rate the largest
+        // of all requested.
+        g->sampleRate = s->sampleRate;
       return false;
       break;
     case QS_NONE:
@@ -506,6 +510,14 @@ bool _qsSource_checkTypes(struct QsSource *s)
   return false; // success
 }
 
+static inline
+void SetSelectableSampleRate(const float *rates, float *out, float sampleRate)
+{
+  for(*out = *rates++; *rates; ++rates)
+    if(fabs(sampleRate - *rates) < fabs(sampleRate - *out))
+      *out = *rates;
+}
+
 bool qsSource_setFrameRateType(struct QsSource *s,
     enum QsSource_Type type,
     const float *sampleRates /* NULL for QS_FIXED
@@ -559,25 +571,46 @@ bool qsSource_setFrameRateType(struct QsSource *s,
       }
       break;
     case QS_SELECTABLE:
-      QS_ASSERT(sampleRates);
-      if(s->sampleRates)
-        g_free(s->sampleRates);
-      int n = 0;
-      for(n=0; sampleRates[n]; ++n);
-      QS_ASSERT(n);
-      s->sampleRates = g_malloc(sizeof(float)*(n+1));
-      int i;
-      for(i=0; i<n; ++i)
-        s->sampleRates[i] = sampleRates[i];
-      s->sampleRates[i] = sampleRates[i]; // zero terminated
-#ifdef QS_DEBUG
-      for(i=0; i<n; ++i)
-        if(s->sampleRates[i] == sampleRate)
-          break;
-      QS_VASSERT(i != n,
-          "starting sample rate %f not found in selectable rates\n",
-          sampleRate);
-#endif
+      {
+        QS_ASSERT(sampleRates);
+        QS_ASSERT(sampleRates[0] > 0);
+        if(s->sampleRates)
+          g_free(s->sampleRates);
+    
+        int n, end, i;
+        for(n=0; sampleRates[n]; ++n);
+        float *sr;
+        sr = g_malloc(sizeof(float)*(n+1));
+        for(i=0; i<n; ++i)
+          sr[i] = sampleRates[i];
+        sr[i] = sampleRates[i]; // zero terminated
+
+        // bubble sort: they should be ordered already
+        for(end = n-1; end;)
+        {
+          int last;
+          for(last=i=0; i+1<=end; ++i)
+          {
+            if(sr[i] > sr[i+1])
+            {
+              QS_ASSERT(sr[i] > 0);
+              float r;
+              r = sr[i];
+              sr[i] = sr[i+1];
+              sr[i+1] = r;
+              last = i;
+            }
+            QS_VASSERT(sr[i] != sr[i+1],
+              "duplicate frame rate (%f) in list",
+              sr[i]);
+          }
+          end = last;
+        }
+        s->sampleRates = sr;
+        SetSelectableSampleRate(s->sampleRates, &s->sampleRate, sampleRate);
+        QS_SPEW("set sample rate to %g, %g was requested\n",
+              s->sampleRate, sampleRate);
+      }
       break;
     case QS_CUSTOM:
       s->sampleRate = 0;
@@ -605,7 +638,7 @@ bool qsSource_setFrameRateType(struct QsSource *s,
 }
 
 static
-void _qsSource_setGroupFrameRate(const struct QsSource *s, struct QsGroup *g)
+void _qsSource_setGroupFrameRate(const struct QsSource *si, struct QsGroup *g)
 {
   QS_ASSERT(g);
 
@@ -616,42 +649,69 @@ void _qsSource_setGroupFrameRate(const struct QsSource *s, struct QsGroup *g)
   // all the sources in the group, so we don't need to check this
   // requested rate with all the sources, just the group.
 
-  if(g->sampleRate == s->sampleRate)
+  if(g->sampleRate == si->sampleRate)
     return;
 
   switch(g->type)
   {
     case QS_TOLERANT:
+      // all sources are QS_TOLERANT
+      // find the max frame sample rate
       {
-        // all sources are QS_TOLERANT
-        // find the max frame sample rates
         GSList *l;
         g->sampleRate = 0;
         for(l=g->sources; l; l=l->next)
         {
-          struct QsSource *ls;
-          ls = l->data;
-          QS_ASSERT(ls->type == QS_TOLERANT);
-          QS_ASSERT(ls->sampleRate > 0);
-          if(g->sampleRate < ls->sampleRate)
-            g->sampleRate = ls->sampleRate;
+          struct QsSource *s;
+          s = l->data;
+          if(g->sampleRate < s->sampleRate)
+            g->sampleRate = s->sampleRate;
         }
       }
       break;
     case QS_VARIABLE:
+      // set to the largest and make it in range
+      QS_ASSERT(g->sampleRate >= g->sampleRates[0]);
+      QS_ASSERT(g->sampleRate <= g->sampleRates[1]);
       {
-        QS_VASSERT(0, "Write more case code here");
+        GSList *l;
+        g->sampleRate = 0;
+        for(l=g->sources; l; l=l->next)
+        {
+          struct QsSource *s;
+          s = l->data;
+          if(g->sampleRate < s->sampleRate)
+            g->sampleRate = s->sampleRate;
+        }
       }
+      // make it in range
+      if(g->sampleRate < g->sampleRates[0])
+          g->sampleRate = g->sampleRates[0];
+      else if(g->sampleRate > g->sampleRates[1])
+        g->sampleRate = g->sampleRates[1];
       break;
     case QS_SELECTABLE:
       {
-        QS_VASSERT(0, "Write more case code here");
+        // Find the highest frame sample rate
+        GSList *l;
+        g->sampleRate = 0;
+        for(l=g->sources; l; l=l->next)
+        {
+          struct QsSource *s;
+          s = l->data;
+          if(g->sampleRate < s->sampleRate)
+            g->sampleRate = s->sampleRate;
+        }
+
+        SetSelectableSampleRate(g->sampleRates, &g->sampleRate, g->sampleRate);
+        QS_SPEW("set group sample rate to %g\n", g->sampleRate);
       }
       break;
     case QS_FIXED:
+      // We cannot change the frame sample rate
       break;
     default:
-      QS_VASSERT(0, "Write more case code here");
+      QS_VASSERT(0, "Write more case code here (WTF)");
       break;
   }
 }
@@ -685,23 +745,12 @@ void qsSource_setFrameRate(struct QsSource *s, float sampleRate)
       return;
       break;
     case QS_SELECTABLE:
-      {
-        float *rates;
-        rates = s->sampleRates;
-        while(*rates)
-        {
-          if(sampleRate == *rates++)
-          {
-            s->sampleRate = sampleRate;
-            break;
-          }
-        }
-      }
-      return;
+      SetSelectableSampleRate(s->sampleRates, &s->sampleRate, sampleRate);
+      QS_SPEW("set sample rate to %g, %g was requested\n",
+          s->sampleRate, sampleRate);
       break;
     case QS_FIXED:
-      if(s->sampleRate == sampleRate)
-        break;
+      QS_ASSERT(0);
       return;
       break;
     case QS_CUSTOM:

@@ -8,11 +8,6 @@ struct QsIterator;
 struct QsIterator2;
 
 
-#if 0
-typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
-    long double t, long double prevT, void *data);
-
-#else
 /* under-run is the state when the source read callback
  * is not called frequently enough, and the source
  * buffers may have a very old frame adjacent to a
@@ -34,7 +29,7 @@ typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
  *   callback loops
  * tBPrev = the value of tB at the last call that any
  *   data was written for this source
- * tA = 
+ * tCurrent = 
  *   if master:
  *     tA + deltaT should be the first time that should be
  *     written in the callback based on the source group
@@ -76,10 +71,9 @@ typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
  * data = user callback data
  */
 typedef int (*QsSource_ReadFunc_t)(struct QsSource *s,
-    long double tB, long double tBPrev, long double tA,
+    long double tB, long double tBPrev, long double tCurrent,
     long double deltaT, int nFrames, bool underrun,
     void *data);
-#endif
 
 
 struct QsSource
