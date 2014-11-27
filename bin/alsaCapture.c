@@ -16,8 +16,9 @@ int main(int argc, char **argv)
   qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
   qsApp->op_axis = false;
-  qsApp->op_showStatusbar =false;
   qsApp->op_width = 1000;
+  qsApp->op_showStatusbar =false;
+  qsApp->op_showControlbar =false;
   qsApp->op_height = 200;
   qsApp->op_showWindowBorder = false;
 

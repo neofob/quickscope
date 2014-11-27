@@ -34,7 +34,7 @@ int main(int argc, char **argv)
   qsApp->op_width = 4000;
   qsApp->op_height = 500;
   qsApp->op_showWindowBorder = false;
-  qsApp->op_showStatusbar =false;
+  qsApp->op_showControlbar =false;
 
   int i;
   for(i=0; i<3; ++i)
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
   qsApp->op_fadePeriod = 11.0F;
   qsApp->op_fadeDelay =  5.6F;
   qsApp->op_showWindowBorder = true;
-  qsApp->op_showStatusbar = true;
+  qsApp->op_showControlbar = true;
 
   // new win for this trace
   qsTrace_create(qsWin_create(),
