@@ -73,7 +73,6 @@ void _qsWin_reconfigure(struct QsWin *win)
   gtk_widget_queue_draw_area(win->da, 0, 0, w, h);
 }
 
-
 /* This gets called on window resize before drawing. */
 bool _qsWin_cb_configure(GtkWidget *da, GdkEvent *e,
                         struct QsWin *win)

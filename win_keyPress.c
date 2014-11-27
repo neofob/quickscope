@@ -230,6 +230,14 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_b:
       return flipViewCheckMenuItem(win->viewWindowBorder);
       break;
+    case GDK_KEY_c:
+    case GDK_KEY_C:
+      return flipViewCheckMenuItem(win->viewControlbar);
+      break;
+    case GDK_KEY_s:
+    case GDK_KEY_S:
+      return flipViewCheckMenuItem(win->viewStatusbar);
+      break;
     case GDK_KEY_Escape:
     case GDK_KEY_D:
     case GDK_KEY_d:
@@ -251,7 +259,7 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_N:
     case GDK_KEY_J:
     case GDK_KEY_j:
-      if(checkViewMenuItem(win->viewStatusbar))
+      if(checkViewMenuItem(win->viewControlbar))
         _qsWidget_next(win->adjsWidget);
       return true;
       break;
@@ -259,15 +267,11 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_M:
       return flipViewCheckMenuItem(win->viewMenubar);
       break;
-    case GDK_KEY_s:
-    case GDK_KEY_S:
-      return flipViewCheckMenuItem(win->viewStatusbar);
-      break;
     case GDK_KEY_K:
     case GDK_KEY_k:
     case GDK_KEY_P:
     case GDK_KEY_p:
-      if(checkViewMenuItem(win->viewStatusbar))
+      if(checkViewMenuItem(win->viewControlbar))
         _qsWidget_prev(win->adjsWidget);
       return true;
       break;
@@ -289,25 +293,25 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
       break;
     case GDK_KEY_Left:
     case GDK_KEY_leftarrow:
-      if(checkViewMenuItem(win->viewStatusbar))
+      if(checkViewMenuItem(win->viewControlbar))
         _qsWidget_shiftLeft(win->adjsWidget);
       return true;
       break;
     case GDK_KEY_Right:
     case GDK_KEY_rightarrow:
-      if(checkViewMenuItem(win->viewStatusbar))
+      if(checkViewMenuItem(win->viewControlbar))
           _qsWidget_shiftRight(win->adjsWidget);
       return true;
       break;
     case GDK_KEY_Up:
     case GDK_KEY_uparrow:
-      if(checkViewMenuItem(win->viewStatusbar))
+      if(checkViewMenuItem(win->viewControlbar))
         _qsWidget_inc(win->adjsWidget);
       return true;
       break;
     case GDK_KEY_Down:
     case GDK_KEY_downarrow:
-      if(checkViewMenuItem(win->viewStatusbar))
+      if(checkViewMenuItem(win->viewControlbar))
         _qsWidget_dec(win->adjsWidget);
       return true;
       break;

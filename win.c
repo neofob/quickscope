@@ -33,7 +33,7 @@ void _qsWin_displayParameter(struct QsWidget *w,
     const struct QsAdjuster *adj,
     const char *text, struct QsWin *win)
 {
-  gtk_label_set_markup(GTK_LABEL(win->statusbar), text);
+  gtk_label_set_markup(GTK_LABEL(win->controlbar), text);
 }
 
 static
@@ -187,7 +187,7 @@ struct QsWin *qsWin_create(void)
       0.0F, /* min */ 10000.0F, /* max */
       NULL, NULL);
   qsAdjusterFloat_create(&win->adjusters,
-      "X Grid Shift", "*width", &win->gridXWinOffset,
+      "X Grid Shift", "x width", &win->gridXWinOffset,
       -0.6, /* min */ 0.6, /* max */
       (void (*)(void *)) _qsWin_reconfigure, win);
   qsAdjusterFloat_create(&win->adjusters,

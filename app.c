@@ -184,7 +184,8 @@ struct QsApp *qsApp_init(int *argc, char ***argv)
   qsApp->op_fullscreen = false;
   qsApp->op_showWindowBorder = true;
   qsApp->op_showMenubar = false;
-  qsApp->op_showStatusbar = true;
+  qsApp->op_showControlbar = true;
+  qsApp->op_showStatusbar = false;
 
   qsApp->op_defaultIntervalPeriod = 1.0/60.0;
   qsApp->op_exitOnNoSourceWins = true;

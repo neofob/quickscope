@@ -72,7 +72,7 @@ struct QsApp
         op_fade; /* beam lines and points don't fade if false */
   
   bool op_fullscreen, op_showWindowBorder,
-           op_showMenubar, op_showStatusbar;
+           op_showMenubar, op_showControlbar, op_showStatusbar;
   bool op_exitOnNoSourceWins; // exit if no sources and no wins
 
   bool op_sourceRequireController; // require this in qsApp_main()

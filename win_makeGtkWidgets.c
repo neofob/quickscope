@@ -15,6 +15,7 @@
 #include <stdbool.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
+//#include <gdk/gdk.h>
 #include "debug.h"
 #include "Assert.h"
 #include "base.h"
@@ -47,6 +48,19 @@ bool cb_close(GtkWidget *w, GdkEvent *e, struct QsWin *win)
 // This is just called when the drawing area is exposed or resized.
 // It's a redraw or initial draw.  The animation drawing happens
 // from trace.c.
+//
+// TODO: If GTK+ removes gtk_widget_set_double_buffered() we can
+// have this draw to X11 and copy it to the cairo_t thingy.
+// This will not be a big performance hit given it is only
+// drawing the one, first, frame, and all other scope frames
+// will not use this callback, but use libX11 having the draw
+// triggered by the traces as they are looping by using whatever
+// QsController they are having call their draw calls with the
+// QsSource reads.
+//
+// We need this stupid callback incase the scope is frozen and the window
+// is resized, or iconified and then de-iconified.
+static
 bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
 {
   if(win->pixmap)
@@ -73,17 +87,6 @@ bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
     // If there are no buffers with traces in them
     // then we can't draw traces in this GTK draw callback.
   }
-
-#ifdef QS_DEBUG
-#if 0
-#include "timer_priv.h"
-static int64_t frameCount = 0;
-  if((++frameCount) % 20 == 0)
-    printf("%s() %"PRId64"  %Lg frames/sec\n", __func__,
-        frameCount, frameCount/_qsTimer_get(qsApp->timer));
-#endif
-#endif
-
 
   return true; /* true means the event is handled. */
 }
@@ -291,8 +294,10 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
     GtkWidget *vbox;
     vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
-    /* We get the statusbar now so we can pass this pointer to
-     * setup the veiwStatusbar callback. */
+    /* We get the controlbar now so we can pass this pointer to
+     * setup the veiwcontrolbar callback. */
+    win->controlbar = gtk_label_new("");
+    /* same for statusbar */
     win->statusbar = gtk_label_new("");
     
     /**************************************************************************
@@ -332,7 +337,11 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
         create_check_menu_item(menu, "_Menu Bar", GDK_KEY_M,
         qsApp->op_showMenubar,
         (void (*)(GtkWidget*, gpointer)) cb_viewMenuItem, menubar);
-      win->viewStatusbar =
+      win->viewControlbar =
+        create_check_menu_item(menu, "_Control Bar", GDK_KEY_C,
+        qsApp->op_showControlbar,
+        (void (*)(GtkWidget*, gpointer)) cb_viewMenuItem, win->controlbar);
+     win->viewStatusbar =
         create_check_menu_item(menu, "_Status Bar", GDK_KEY_S,
         qsApp->op_showStatusbar,
         (void (*)(GtkWidget*, gpointer)) cb_viewMenuItem, win->statusbar);
@@ -368,10 +377,10 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       // that in this quickscope code using the X11 client API,
       // and when GTK does the double buffering it clobbers what we
       // draw when there is a redraw event.  We cannot use Cairo to
-      // draw, it's too fucking slow.
+      // draw, it's much too slow.
 
       // Many days of playing with GTK3 source and googling; conclusion
-      // there is no "proper" work-around to keep GTK+ from clobbering things
+      // there is no "proper" work-around to keep GTK from clobbering things
       // you draw without cairo (Thu Nov 20 12:49:22 EST 2014).
       // Calling gtk_widget_set_double_buffered() is the best I can do.
       gtk_widget_set_double_buffered(da, false);
@@ -379,10 +388,34 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       g_signal_connect(G_OBJECT(da),"configure-event",
           G_CALLBACK(_qsWin_cb_configure), win);
       g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(_qsWin_cbDraw), win);
-      //g_signal_connect(G_OBJECT(da), "expose_event", G_CALLBACK(_qsWin_cbDraw), win);
+      //g_signal_connect(gtk_widget_get_window(da), "expose-event",
+        //  G_CALLBACK(_qsWin_cbDraw), win);
       //gtk_widget_override_background_color(da, 0xFF, &win->bgColor);
       gtk_box_pack_start(GTK_BOX(vbox), da, true, true, 0);
       gtk_widget_show(da);
+    }
+    /**************************************************************************
+     *              Control Bar (Scope Parameter adjusters)
+     **************************************************************************/
+    {
+      PangoFontDescription *pfd;
+      // tried label in place of entry but it made the window not get
+      // smaller than the width of the label text
+      
+      gtk_label_set_ellipsize(GTK_LABEL(win->controlbar), PANGO_ELLIPSIZE_END);
+      gtk_label_set_use_markup(GTK_LABEL(win->controlbar), true);
+      pfd = pango_font_description_from_string("Monospace 11");
+      if(pfd)
+      {
+       gtk_widget_override_font(win->controlbar, pfd);
+       pango_font_description_free(pfd);
+      }
+      gtk_label_set_markup(GTK_LABEL(win->controlbar), "control bar");
+      gtk_box_pack_start(GTK_BOX(vbox), win->controlbar, false, false, 0);
+      //const GdkRGBA rgba = { /*r*/ 1.0, /*g*/ 0.0, /*b*/ 0.0, /*alpha*/ 0.5 };
+      //gtk_widget_override_background_color(win->controlbar, 0xFFFFFFFF, &rgba);
+      if(qsApp->op_showControlbar)
+        gtk_widget_show(win->controlbar);
     }
     /**************************************************************************
      *                Status Bar
@@ -391,7 +424,6 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       PangoFontDescription *pfd;
       // tried label in place of entry but it made the window not get
       // smaller than the width of the label text
-      //win->statusbar = gtk_label_new("");
       
       gtk_label_set_ellipsize(GTK_LABEL(win->statusbar), PANGO_ELLIPSIZE_END);
       gtk_label_set_use_markup(GTK_LABEL(win->statusbar), true);
@@ -406,13 +438,12 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       if(qsApp->op_showStatusbar)
         gtk_widget_show(win->statusbar);
     }
-
-    gtk_container_add(GTK_CONTAINER(w), vbox);
-    gtk_widget_show(vbox);
-  }
   /**************************************************************************
    *               End of Main VBox
    **************************************************************************/
+    gtk_container_add(GTK_CONTAINER(w), vbox);
+    gtk_widget_show(vbox);
+  }
 
   if(qsApp->op_fullscreen)
     gtk_window_fullscreen(GTK_WINDOW(w));

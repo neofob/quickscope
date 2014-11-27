@@ -30,12 +30,17 @@ struct QsWin
   struct QsWidget *adjsWidget;
 
   // We don't need to have a pointer to all GTK+ widgets,
-  // just some.
+  // just some so that we do not need to hunt for them
+  // in the GTK widget family tree.
   GtkWidget 
       *win,
         *menubar,
-            *viewMenubar, *viewStatusbar,
-            *viewWindowBorder, *viewFullscreen,
+            *viewMenubar,
+            *viewControlbar,
+            *viewStatusbar,
+            *viewWindowBorder,
+            *viewFullscreen,
+        *controlbar,
         *da,
         *statusbar;
 
