@@ -195,6 +195,18 @@ bool checkViewMenuItem(GtkWidget *w)
       GTK_CHECK_MENU_ITEM(w));
 }
 
+bool cb_viewStatusbar(GtkWidget *menuItem, struct QsWin *win)
+{
+  if(checkViewMenuItem(menuItem))
+  {
+    _qsWin_updateStatusbar(win);
+    gtk_widget_show(win->statusbar);
+  }
+  else
+    gtk_widget_hide(win->statusbar);
+  return true;
+}
+
 bool cb_viewMenuItem(GtkWidget *menuItem, GtkWidget *w)
 {
   if(checkViewMenuItem(menuItem))

@@ -225,6 +225,8 @@ void _qsWin_drawTracePoint(struct QsWin *win, int x, int y,
 extern
 bool _qsWin_fadeDraw(struct QsWin *win);
 extern
+void _qsWin_updateStatusbar(struct QsWin *win);
+extern
 bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win);
 extern
 bool cb_savePNG(GtkWidget *w, struct QsWin *win);
@@ -232,6 +234,8 @@ extern
 bool cb_quit(GtkWidget *w, gpointer data);
 extern
 bool cb_viewFullscreen(GtkWidget *w, GtkWidget *win);
+extern
+bool cb_viewStatusbar(GtkWidget *menuItem, struct QsWin *win);
 extern
 bool cb_viewMenuItem(GtkWidget *menuItem, GtkWidget *w);
 extern
@@ -300,7 +304,6 @@ void _qsWin_drawPoints(struct QsWin *win)
 #endif
   }
 }
-
 
 static inline
 void _qsWin_postTraceDraw(struct QsWin *win, long double t)
@@ -448,4 +451,3 @@ unsigned long fadeColor(struct QsWin *win, struct QsFadingColor *fc,
       fc->g * intensity + fade * win->g[i],
       fc->b * intensity + fade * win->b[i]);
 }
-

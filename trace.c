@@ -292,11 +292,11 @@ void _qsWin_drawLine(struct QsWin *win,
   }
 }
 
-static
-size_t iconText(char *buf, size_t len, struct QsTrace *trace)
+size_t _qsTrace_iconText(char *buf, size_t len, struct QsTrace *trace)
 {
   // TODO: consider saving this and only recomputing this if
-  // one or more of the colors changes.
+  // one or more of the colors changes.  But then we need to
+  // detect the change.
 
   // color strings
   char lC[8]; // line color
@@ -385,7 +385,8 @@ struct QsTrace *qsTrace_create(struct QsWin *win,
   snprintf(desc, 64, "trace%d", trace->id);
   struct QsAdjuster *group;
   trace->adjusterGroup = group = qsAdjusterGroup_start(&win->adjusters, desc);
-  group->icon = (size_t (*)(char *buf, size_t len, void *iconData)) iconText;
+  group->icon = (size_t (*)(char *buf, size_t len,
+        void *iconData)) _qsTrace_iconText;
   group->iconData = trace;
 
   if(qsSource_isSwipable(xs))

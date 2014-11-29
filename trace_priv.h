@@ -40,4 +40,6 @@ extern
 void _qsTrace_scale(struct QsTrace *trace);
 extern
 void _qsTrace_draw(struct QsTrace *trace, long double t);
+extern
+size_t _qsTrace_iconText(char *buf, size_t len, struct QsTrace *trace);
 

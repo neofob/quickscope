@@ -15,7 +15,7 @@
 #include <stdbool.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
-//#include <gdk/gdk.h>
+#include <gdk/gdk.h>
 #include "debug.h"
 #include "Assert.h"
 #include "base.h"
@@ -89,6 +89,95 @@ bool _qsWin_cbDraw(GtkWidget *da, cairo_t *cr, struct QsWin *win)
   }
 
   return true; /* true means the event is handled. */
+}
+
+// TODO: thread safety
+// We assume that there is just one pointer.
+// Good for old X11 but things change.
+static bool leftButtonDown = false;
+static gdouble lastX = 0.0, lastY = 0.0;
+
+#define LEFT_BUTTON  (1)
+
+void _qsWin_updateStatusbar(struct QsWin *win)
+{
+  const size_t size = 1024;
+  char text[size];
+  size_t len = 0;
+  
+  GSList *l;
+  for(l=win->traces; l; l=l->next)
+  {
+    struct QsTrace *t;
+    t = l->data;
+    QS_ASSERT(t);
+
+    if(size > len)
+      len += _qsTrace_iconText(&text[len], size - len, t);
+    if(size > len)
+      len += snprintf(&text[len], size - len,
+            "%+3.3f %+3.3f ",
+            (lastX - t->xShiftPix)/t->xScalePix,
+            (lastY - t->yShiftPix)/t->yScalePix);
+    if(len == size)
+      break;
+  }
+
+  gtk_label_set_markup(GTK_LABEL(win->statusbar), text);
+}
+
+static
+bool ecbPointerMotion(GtkWidget *w, GdkEvent *event, struct QsWin *win)
+{
+  QS_ASSERT(event);
+  QS_ASSERT(event->type == GDK_MOTION_NOTIFY);
+
+  lastX = event->motion.x;
+  lastY = event->motion.y;
+
+  if(!gtk_check_menu_item_get_active(
+        GTK_CHECK_MENU_ITEM(win->viewStatusbar)))
+    return true;
+
+  _qsWin_updateStatusbar(win);
+
+  //QS_SPEW("x y = %g %g\n", event->motion.x, event->motion.y);
+
+  return true;
+}
+
+static
+bool ecbButtonPress(GtkWidget *w, GdkEvent *event, struct QsWin *win)
+
+{
+  QS_ASSERT(event);
+  QS_ASSERT(event->type == GDK_BUTTON_PRESS);
+  if(event->button.button != LEFT_BUTTON)
+    return false;
+
+  QS_ASSERT(leftButtonDown == false);
+
+  leftButtonDown = true;
+
+  //QS_SPEW("x y = %g %g\n", event->button.x, event->button.y);
+  return true;
+}
+
+static
+bool ecbButtonRelease(GtkWidget *w, GdkEvent *event, struct QsWin *win)
+{
+  QS_ASSERT(event);
+  QS_ASSERT(event->type == GDK_BUTTON_RELEASE);
+  if(event->button.button != LEFT_BUTTON)
+    return false;
+
+  QS_ASSERT(leftButtonDown == true);
+
+
+  leftButtonDown = false;
+
+  //QS_SPEW("x y = %g %g\n", event->button.x, event->button.y);
+  return true;
 }
 
 static inline
@@ -344,7 +433,7 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
      win->viewStatusbar =
         create_check_menu_item(menu, "_Status Bar", GDK_KEY_S,
         qsApp->op_showStatusbar,
-        (void (*)(GtkWidget*, gpointer)) cb_viewMenuItem, win->statusbar);
+        (void (*)(GtkWidget*, gpointer)) cb_viewStatusbar, win);
       win->viewWindowBorder =
         create_check_menu_item(menu, "Window _Border", GDK_KEY_B,
         qsApp->op_showWindowBorder,
@@ -384,12 +473,23 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       // you draw without cairo (Thu Nov 20 12:49:22 EST 2014).
       // Calling gtk_widget_set_double_buffered() is the best I can do.
       gtk_widget_set_double_buffered(da, false);
+      gtk_widget_set_events(da,
+                  gtk_widget_get_events(da) |
+		  GDK_BUTTON_PRESS_MASK |
+		  GDK_BUTTON_RELEASE_MASK |
+		  GDK_POINTER_MOTION_MASK);
 
       g_signal_connect(G_OBJECT(da),"configure-event",
           G_CALLBACK(_qsWin_cb_configure), win);
-      g_signal_connect(G_OBJECT(da), "draw", G_CALLBACK(_qsWin_cbDraw), win);
-      //g_signal_connect(gtk_widget_get_window(da), "expose-event",
-        //  G_CALLBACK(_qsWin_cbDraw), win);
+      g_signal_connect(G_OBJECT(da), "draw",
+          G_CALLBACK(_qsWin_cbDraw), win);
+      g_signal_connect(G_OBJECT(da), "button-press-event",
+          G_CALLBACK(ecbButtonPress), win);
+      g_signal_connect(G_OBJECT(da), "button-release-event",
+          G_CALLBACK(ecbButtonRelease), win);
+      g_signal_connect(G_OBJECT(da), "motion-notify-event",
+          G_CALLBACK(ecbPointerMotion), win);
+
       //gtk_widget_override_background_color(da, 0xFF, &win->bgColor);
       gtk_box_pack_start(GTK_BOX(vbox), da, true, true, 0);
       gtk_widget_show(da);
@@ -407,8 +507,8 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       pfd = pango_font_description_from_string("Monospace 11");
       if(pfd)
       {
-       gtk_widget_override_font(win->controlbar, pfd);
-       pango_font_description_free(pfd);
+        gtk_widget_override_font(win->controlbar, pfd);
+        pango_font_description_free(pfd);
       }
       gtk_label_set_markup(GTK_LABEL(win->controlbar), "control bar");
       gtk_box_pack_start(GTK_BOX(vbox), win->controlbar, false, false, 0);
@@ -430,8 +530,8 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
       pfd = pango_font_description_from_string("Monospace 11");
       if(pfd)
       {
-       gtk_widget_override_font(win->statusbar, pfd);
-       pango_font_description_free(pfd);
+        gtk_widget_override_font(win->statusbar, pfd);
+        pango_font_description_free(pfd);
       }
       gtk_label_set_markup(GTK_LABEL(win->statusbar), "status bar");
       gtk_box_pack_start(GTK_BOX(vbox), win->statusbar, false, false, 0);
