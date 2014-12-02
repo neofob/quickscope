@@ -146,6 +146,16 @@ void _qsSource_internalDestroy(struct QsSource *s, struct QsGroup *g)
 
   g_free(s->framePtr);
   g_free(s->timeIndex);
+  g_free(s->scale);
+  g_free(s->shift);
+
+  if(s->units)
+  {
+    int i;
+    for(i=0; i<s->numChannels; ++i)
+      g_free(s->units[i]);
+    g_free(s->units);
+  }
 
   _qsGroup_removeSource(g, s);
 
@@ -286,6 +296,11 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     // has no valid data, but has a valid time now
     // so that qsSource_lastMasterTime() works now.
     group->time[s->i] = _qsTimer_get(qsApp->timer);
+
+  s->shift = g_malloc0(sizeof(float)*numChannels);
+  s->scale = g_malloc(sizeof(float)*numChannels);
+  for(i=0; i<numChannels; ++i)
+    s->scale[i] = 1.0F;
 
   group->sourceTypeChange = true;
 
@@ -583,4 +598,84 @@ int _qsSource_read(struct QsSource *s, long double time)
   }
 
   return 0;
+}
+
+void qsSource_setScales(struct QsSource *s, const float *scales)
+{
+  QS_ASSERT(s);
+  int i;
+  if(scales)
+  {
+    for(i=0; i<s->numChannels; ++i)
+      s->scale[i] = scales[i];
+  }
+  else
+  {
+    for(i=0; i<s->numChannels; ++i)
+      s->scale[i] = 1.0F;
+  }
+}
+
+void qsSource_setScale(struct QsSource *s, float scale)
+{
+  QS_ASSERT(s);
+  int i;
+  for(i=0; i<s->numChannels; ++i)
+    s->scale[i] = scale;
+}
+
+void qsSource_setShifts(struct QsSource *s, const float *shifts)
+{
+  QS_ASSERT(s);
+  int i;
+  if(shifts)
+  {
+    for(i=0; i<s->numChannels; ++i)
+      s->shift[i] = shifts[i];
+  }
+  else
+  {
+    for(i=0; i<s->numChannels; ++i)
+      s->shift[i] = 0.0F;
+  }
+}
+
+void qsSource_setShift(struct QsSource *s, float shift)
+{
+  QS_ASSERT(s);
+  int i;
+  for(i=0; i<s->numChannels; ++i)
+    s->shift[i] = shift;
+}
+
+void qsSource_setUnits(struct QsSource *s, const char **units)
+{
+  QS_ASSERT(s);
+  int i;
+
+  if(!s->units)
+    s->units = g_malloc(sizeof(char *)*s->numChannels);
+  else
+  {
+    for(i=0; i<s->numChannels; ++i)
+      g_free(s->units[i]);
+  }
+  for(i=0; i<s->numChannels; ++i)
+    s->units[i] = g_strdup(units[i]);
+}
+
+void qsSource_setUnit(struct QsSource *s, const char *units)
+{
+  QS_ASSERT(s);
+  int i;
+
+  if(!s->units)
+    s->units = g_malloc(sizeof(char *)*s->numChannels);
+  else
+  {
+    for(i=0; i<s->numChannels; ++i)
+      g_free(s->units[i]);
+  }
+  for(i=0; i<s->numChannels; ++i)
+    s->units[i] = g_strdup(units);
 }

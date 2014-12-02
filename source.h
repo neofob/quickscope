@@ -205,10 +205,18 @@ struct QsSource
   
   enum QsSource_Type type;
   float sampleRate, *sampleRates;
+
+  char **units; // string indexed by channel number,
+  // that is units to display example: 4.0 sec
+  float *scale; // indexed by channel number default is 1.0F
+  float *shift; // indexed by channel number default is 0.0F
+  // displays value: [(value*scale - shift) - trace->xShiftPix]/trace->xScalePix
 };
 
 
 QS_BASE_DECLARE(qsSource);
+
+
 
 extern // Declaring this void * make is easier to  use this to make
   // an inheriting object.  It's a GTK+ learned trick. 
@@ -720,3 +728,16 @@ bool qsSource_setFrameSampleRate(struct QsSource *s, float rate)
       break;
   }
 }
+
+extern
+void qsSource_setScales(struct QsSource *s, const float *scales);
+extern
+void qsSource_setScale(struct QsSource *s, float scale);
+extern
+void qsSource_setShifts(struct QsSource *s, const float *shifts);
+extern
+void qsSource_setShift(struct QsSource *s, float shift);
+extern
+void qsSource_setUnits(struct QsSource *s, const char **units);
+extern
+void qsSource_setUnit(struct QsSource *s, const char *units);

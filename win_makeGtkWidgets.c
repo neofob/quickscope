@@ -11,7 +11,9 @@
 // glibc users should never define __USE_GNU directly.
 #define _GNU_SOURCE
 #include <errno.h> // for program_invocation_short_name
+#include <math.h>
 #include <inttypes.h>
+#include <string.h>
 #include <stdbool.h>
 #include <X11/Xlib.h>
 #include <gtk/gtk.h>
@@ -27,6 +29,9 @@
 #include "trace.h"
 #include "trace_priv.h"
 #include "swipe_priv.h"
+#include "group.h"
+#include "source.h"
+#include "iterator.h"
 #include "quickscope_32.xpm"
 #include "imgSaveImage.xpm"
 
@@ -111,14 +116,27 @@ void _qsWin_updateStatusbar(struct QsWin *win)
     struct QsTrace *t;
     t = l->data;
     QS_ASSERT(t);
+    struct QsSource *sx, *sy;
+    sx = t->it->source0;
+    sy = t->it->source1;
+    int xChannel, yChannel;
+    xChannel = t->xChannelNum;
+    yChannel = t->yChannelNum;
+    char *xunit = "", *yunit = "";
+    if(sx->units)
+      xunit = sx->units[xChannel];
+    if(sy->units)
+      yunit = sy->units[yChannel];
 
     if(size > len)
       len += _qsTrace_iconText(&text[len], size - len, t);
     if(size > len)
       len += snprintf(&text[len], size - len,
-            "%+3.3f %+3.3f ",
-            (lastX - t->xShiftPix)/t->xScalePix,
-            (lastY - t->yShiftPix)/t->yScalePix);
+            "%+3.3g %s %+3.3g %s",
+            ((lastX - t->xShiftPix)/t->xScalePix) *
+            sx->scale[xChannel] + sx->shift[xChannel] , xunit,
+            ((lastY - t->yShiftPix)/t->yScalePix) *
+            sy->scale[yChannel] + sy->shift[yChannel], yunit);
     if(len == size)
       break;
   }
@@ -551,4 +569,3 @@ void _qsWin_makeGtkWidgets(struct QsWin *win)
     gtk_window_set_decorated(GTK_WINDOW(w), false);
   gtk_widget_show(w);
 }
-
