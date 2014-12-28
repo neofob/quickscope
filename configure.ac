@@ -20,7 +20,7 @@
 
 
 # require autoconf version
-AC_PREREQ(2.59)
+AC_PREREQ(2.69)
 
 #################################################################
 ############### Configure a release here ########################
@@ -61,18 +61,19 @@ DEFAULT_GRID_FONT="Sans 10"
 # setting many variables before  AC_PROG_*
 ################################################################
 
+AC_CONFIG_HEADERS(config.h)
 
 #AM_INIT_AUTOMAKE(option1 option2 ...)
 #AM_INIT_AUTOMAKE([subdir-objects] dist-bzip2 dist-xz)
-AM_INIT_AUTOMAKE(dist-bzip2 dist-xz)
-AC_CONFIG_MACRO_DIR([m4])
+#AM_INIT_AUTOMAKE(dist-bzip2 dist-xz)
+#AC_CONFIG_MACRO_DIR([m4])
 
-AM_CONFIG_HEADER(config.h)
-AC_PROG_CC_C_O
-AM_PROG_CC_C_O
+#AM_INIT_AUTOMAKE(-Wall -Werror dist-bzip2 no-dist-gzip subdir-objects)
+AM_INIT_AUTOMAKE(-Wall dist-bzip2 no-dist-gzip)
+AM_PROG_AR
+LT_INIT
+AC_PROG_CC
 
-AC_PROG_LIBTOOL
-AC_LANG(C)
 
 #################################################################
 

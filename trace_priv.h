@@ -9,15 +9,20 @@ struct QsSwipe;
 
 struct QsTrace
 {
-  struct QsWin *win;
-  struct QsIterator2 *it;
-  int xChannelNum, yChannelNum, xID, yID;
+  struct QsWin *win; // window to draw into
+  struct QsIterator2 *it; // iterator reads X and Y sources
+  int xChannelNum, yChannelNum,
+      xID, yID; // ID of the sources so we uniquely know them
   int id; // trace ID from counting creates in a given QsWin
 
-  /* Scale from input to normalized */
+  /* scale and shift from source [I]nput to [N]ormalized [-1/2, 1/2)
+   * Set in qsTrace_create().  Is fixed for life of trace. */
+  // N = I * scale + shift
   float xScale, yScale, xShift, yShift;
- 
-  /* Scale from input to window pixels */
+
+  /* scale from source [I]nput to window [P]ixels.
+   * Changes with window resize */
+  // P = I * scale + shift
   float xScalePix, yScalePix, xShiftPix, yShiftPix;
 
   float red, green, blue;

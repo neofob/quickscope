@@ -182,7 +182,7 @@ libquickscope_la_CFLAGS = $(GTK_3_CFLAGS) $(SNDFILE_CFLAGS) $(ALSA_CFLAGS)
 libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
 
 
-# For making libquickscope.so executable if we are using GCC (g++) and
+# For making libquickscope.so executable if we are using gcc and
 # glibc which we tested by compiling with the gnu/lib-names.h file.
 if HAVE_GNU_LIB_NAMES_H
 libquickscope_la_SOURCES  += lib_main.c
@@ -199,15 +199,10 @@ pkgconfig_DATA = quickscope.pc
 include_HEADERS = quickscope.h
 
 
-gzfile  = $(distdir).tar.gz
 bz2file = $(distdir).tar.bz2
-xzfile  = $(distdir).tar.xz
 
 
-SUFFIXES = .html .bz2 .xz .gz \
-.gz.sha1 .gz.sha256 .gz.sha512 \
-.bz2.sha1 .bz2.sha256 .bz2.sha512 \
-.xz.sha1 .xz.sha256 .xz.sha512
+SUFFIXES = .html .bz2 .bz2.sha512
 
 if USE_CONVERT
 SUFFIXES += .png .xpm .ico _32.xpm
@@ -215,7 +210,7 @@ endif
 
 
 
-.PHONY: hash sha1 sha256 sha512
+.PHONY: hash sha512
 
 if USE_CONVERT
 .png_32.xpm:
@@ -256,38 +251,13 @@ quickscope.h: Makefile $(srcdir)/top_quickscope.h debug.h $(quickscope_lastheade
         done
 
 
-hash: sha1 sha256 sha512
-sha1:   $(gzfile).sha1   $(bz2file).sha1   $(xzfile).sha1
-sha256: $(gzfile).sha256 $(bz2file).sha256 $(xzfile).sha256
-sha512: $(gzfile).sha512 $(bz2file).sha512 $(xzfile).sha512
+hash: sha512
+sha512: $(bz2file).sha512
 
- 
-.gz.gz.sha1:
-	sha1sum $< > $@
-.gz.gz.sha256:
-	sha256sum $< > $@
-.gz.gz.sha512:
-	sha512sum $< > $@
 
-.bz2.bz2.sha1:
-	sha1sum $< > $@
-.bz2.bz2.sha256:
-	sha256sum $< > $@
 .bz2.bz2.sha512:
 	sha512sum $< > $@
-
-.xz.xz.sha1:
-	sha1sum $< > $@
-.xz.xz.sha256:
-	sha256sum $< > $@
-.xz.xz.sha512:
-	sha512sum $< > $@
-
-$(gzfile):
-	$(MAKE) dist-gzip
 
 $(bz2file):
 	$(MAKE) dist-bzip2
 
-$(xzfile):
-	$(MAKE) dist-xz

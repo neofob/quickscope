@@ -185,7 +185,7 @@ struct QsFadingColor
   /* Intensity decreases with time whereby making colors
    * fade from r,g,b to win->r, win->g, win->b.  When a
    * colors' intensity is zero it is removed from the
-   * list and that color get set to win->r, win->g, win->b.
+   * list and that color gets set to win->r, win->g, win->b.
    * until it is drawn on again.  This intensity is a simple
    * linear function of time. */
 

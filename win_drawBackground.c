@@ -112,7 +112,7 @@ void DrawPoint(struct QsWin *win,
             fade-to surface background colors, so it would
             be more code and not less, and I'm pretty
             sure it would be a little slower.  Text drawing
-            with Cario may be nicer.
+            with Cairo may be nicer.
 
  */
 static inline
@@ -259,7 +259,7 @@ static
 void DrawTickRec(struct QsWin *win,
     float tickR, float tickG, float tickB, // rbg color
     int w, int h, // viewport width and height
-    float wD2, float hD2, // width and height divided by 2
+    float wD2, float hD2, // width and height of tick divided by 2
     float x, float y /* center of rectangle */)
 {
   int ixmin, iymin, ixmax, iymax;

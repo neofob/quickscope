@@ -75,7 +75,7 @@ function remove_files()
   done
 
   # generated directories
-  rm -rf .deps .libs conftest.dir autom4te.cache m4
+  rm -rf .deps .libs conftest.dir autom4te.cache
 
   # wildcard
   rm -f *.o *.la *.so *.lo config.h* stamp-h* *.a *.xpm
@@ -88,7 +88,7 @@ function remove_files()
  libtool config.status autoscan.log depcomp confdefs.h\
  depend.make compile quickscope.h\
  quickscope.xpm quickscope.pc quickscope.ico debug.h\
- bin/Makefile bin/Makefile.in
+ bin/Makefile bin/Makefile.in ar-lib
 
   # directory bin/
   cd bin || exit 1

@@ -59,14 +59,17 @@
 scriptdir="$(dirname ${BASH_SOURCE[0]})" || exit 1
 cd $scriptdir || exit 1
 
+function cleanup_FAIL()
+{
+    rm -f "$scriptdir"/configure
+    FAIL
+}
+
 
 function bootstrap()
 {
   # This tries to do what this script does
   # without any checks.
-
-  # Keep autoreconf from complaining about missing m4/
-  mkdir -p m4 || FAIL
 
   set -x
 
@@ -78,7 +81,13 @@ function bootstrap()
   done
 
   # Today bootstrap is easy with autoreconf
-  autoreconf --force --verbose --install || FAIL
+  #
+  # We cannot use WARNING=error because it wrongly requires
+  # use to use automake option subdir-objects as in
+  # AM_INIT_AUTOMAKE(-Wall -Werror dist-bzip2 no-dist-gzip subdir-objects)
+  # doing so breaks the build.  We are not using subdir-objects
+  # the way automake thinks we are.
+  WARNINGS=all autoreconf --force --verbose --install || cleanup_FAIL
   exit 0
 }
 
