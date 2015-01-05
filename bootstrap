@@ -88,6 +88,9 @@ function bootstrap()
   # doing so breaks the build.  We are not using subdir-objects
   # the way automake thinks we are.
   WARNINGS=all autoreconf --force --verbose --install || cleanup_FAIL
+  set +x
+  echo "The subdir-objects warnings are a load of crap."
+  echo "They make wrong assumptions about what this code it doing."
   exit 0
 }
 

@@ -1,6 +1,6 @@
 # Quickscope - a software oscilloscope
 #
-# Copyright (C) 2012-2014  Lance Arsenault
+# Copyright (C) 2012-2015  Lance Arsenault
 
 # This file is part of Quickscope.
 #
@@ -87,7 +87,8 @@ error=no
 ######################## REPO BUILD #########################
 
 enable_repobuild_default=no
-if test -f .git/HEAD ; then
+# using `dirname $0` lets this work if the build dir is not src dir
+if test -f "`dirname $0`"/.git/config ; then
   enable_repobuild_default=yes
 fi
 
@@ -115,22 +116,35 @@ if test "$enable_repobuild" != "no"; then
     error=yes
     AC_MSG_WARN([
         For building $PACKAGE_NAME for the git repository
-        convert from ImageMagick is required with to be in your PATH
+        convert from ImageMagick is required to be in your PATH
         homepage: http://www.imagemagick.org/])
   fi
 fi
 
 AM_CONDITIONAL([USE_CONVERT], [test x$USE_CONVERT = xyes])
 
+
+##################### marked mark down program ###################
+
+USE_MARKED=no
+
+if test "$enable_repobuild" != "no"; then
+  USE_MARKED=yes
+  AC_CHECK_PROG(HAVE_MARKED, convert, [yes], [no])
+
+  if test x$HAVE_MARKED != xyes; then
+    error=yes
+    AC_MSG_WARN([
+        For building $PACKAGE_NAME from the git repository
+        marked is required to be in your PATH
+        homepage: https://github.com/chjj/marked.git])
+  fi
+fi
+
+AM_CONDITIONAL([USE_MARKED], [test x$USE_MARKED = xyes])
+
+
 ##############################################################
-
-
-AC_CHECK_HEADERS(math.h)
-
-AC_CHECK_FUNCS(
-vsnprintf \
-powl
-)
 
 
 PKG_CHECK_MODULES([GTK_3], [gtk+-3.0 >= 3.0.12],
@@ -289,11 +303,6 @@ if test x$tests == xyes ; then
   AC_DEFINE_UNQUOTED(QS_TESTS,[1],
     [If QS_TESTS we build tests code.])
 fi
-
-
-
-AM_CONDITIONAL([HAVE_LOCAL_SCREENSHOTS], [test -f screenshots.html.in])
-
 
 
 

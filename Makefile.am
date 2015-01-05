@@ -66,15 +66,21 @@ EXTRA_DIST =\
  Repo_clean\
  $(convert_generated_images)\
  $(examples)\
- repo_require.bash
+ repo_require.bash\
+ README.html\
+ README.md
 
 
 BUILT_SOURCES =\
  debug.h\
  quickscope.h
 
+if USE_MARKED
+ BUILT_SOURCES += README.html
+endif
+
 if USE_CONVERT
-BUILT_SOURCES += $(convert_generated_images)
+ BUILT_SOURCES += $(convert_generated_images)
 endif
 
 
@@ -204,6 +210,10 @@ bz2file = $(distdir).tar.bz2
 
 SUFFIXES = .html .bz2 .bz2.sha512
 
+if USE_MARKED
+ SUFFIXES += .md
+endif
+
 if USE_CONVERT
 SUFFIXES += .png .xpm .ico _32.xpm
 endif
@@ -227,7 +237,10 @@ if USE_CONVERT
 	rm $@.in
 endif
 
-
+if USE_MARKED
+.md.html:
+	marked $< > $@
+endif
 
 debug.h:
 	echo "/* This is a generated file */" > $@
