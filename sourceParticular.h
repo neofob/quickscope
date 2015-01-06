@@ -16,11 +16,11 @@ struct QsSource *qsUrandom_create(
     struct QsSource *group);
 extern
 struct QsSource *qsSin_create(int maxNumFrames,
-    float amp, float period, float phaseShift, int samplesPerPeriod,
+    float amp, float period, float phaseShift, float samplesPerPeriod,
     struct QsSource *group);
 extern
 struct QsSource *qsSaw_create(int maxNumFrames,
-    float amp, float period, float periodShift, float samplesPerSecond,
+    float amp, float period, float periodShift, float samplesPerPeriod,
     struct QsSource *group);
 
 /* The RK4Source has more than on method */

@@ -8,9 +8,6 @@
 # They are not necassarly so useful for
 # regular quickscope users. 
 
-EXTRA_DIST =\
- Quickplot
-
 BUILT_SOURCES =\
  rossler3Wins.c\
  alsaCapture.c
@@ -18,7 +15,7 @@ BUILT_SOURCES =\
 noinst_PROGRAMS =\
  tests_launcher\
  hello\
- source\
+ qsSource\
  soundFile_print\
  circle\
  saw_print\
@@ -39,9 +36,6 @@ noinst_PROGRAMS =\
  app_arg
 
 
-noinst_SCRIPTS =\
- Quickplot
-
 
 qs_LDADD = ../libquickscope.la 
 
@@ -57,7 +51,6 @@ qsGtkWidget_SOURCES = qsGtkWidget.c
 qsGtkWidget_LDADD = $(qs_LDADD) $(GTK_3_LIBS) -lX11
 qsGtkWidget_CFLAGS = -DTESTS $(GTK_3_CFLAGS)
 
-
 hello_SOURCES = hello.c
 
 circle_SOURCES = circle.c quickscope.h
@@ -66,8 +59,8 @@ circle_LDADD = $(qs_LDADD)
 idle_SOURCES = idle.c quickscope.h
 idle_LDADD = $(qs_LDADD)
 
-source_SOURCES = source.c quickscope.h
-source_LDADD = $(qs_LDADD)
+qsSource_SOURCES = qsSource.c quickscope.h
+qsSource_LDADD = $(qs_LDADD)
 
 saw_print_SOURCES = saw_print.c quickscope.h
 saw_print_LDADD = $(qs_LDADD)

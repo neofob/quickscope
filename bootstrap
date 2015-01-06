@@ -89,8 +89,13 @@ function bootstrap()
   # the way automake thinks we are.
   WARNINGS=all autoreconf --force --verbose --install || cleanup_FAIL
   set +x
-  echo "The subdir-objects warnings are a load of crap."
+  echo "The automake subdir-objects warnings are not a concern."
   echo "They make wrong assumptions about what this code it doing."
+  echo
+  echo "Successfully added the GNU autotools files to quickscope"
+  echo "The quickscope source is now bootstraped."
+  echo
+  echo "Success"
   exit 0
 }
 

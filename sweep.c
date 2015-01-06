@@ -425,7 +425,7 @@ void cb_changePeriod(struct QsSweep *sweep)
   _qsSweep_setContStart(sweep);
 
   // We need enough samples in the period of the sweep.
-  qsSource_setFrameRate((struct QsSource *) sweep, 10/sweep->period);
+  qsSource_setFrameRate((struct QsSource *) sweep, 30/sweep->period);
   qsSource_setScale((struct QsSource *) sweep, sweep->period);
 }
 

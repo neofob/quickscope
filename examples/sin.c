@@ -33,7 +33,7 @@ int main(int argc, char **argv)
       1 /*slope may be  -1, 0, 1   0 => free run */,
       0.3F /*trigger hold off*/,
       0.0F /*delay after trigger, may be negative*/,
-      sin /*source group: is from sin QsSource above */,
+      sin /*source that causes the triggering*/,
       0 /*source channel number, 0=first*/);
 
   /* create a trace */

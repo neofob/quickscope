@@ -8,21 +8,53 @@ script before configure.
 So build it and then run **qs_demo**.  qs_demo will let you get a
 sample of what quickscope can do.
 
+
 ### Run qs_demo!!
+
+
+### User C Code Examples
+
+
+The examples in examples/ do not use GNU autotools to build.  They are
+single file code examples meant to be used with the installed quickscope
+package (this package).  They come with a GNU make file that builds any
+examples/*.c file into a quickscope enabled program.  You can write a
+quickscope oscilloscope program by calling just 4 functions.
+
+
+### If You Like What You See
+
+
+If you like what you see, keep in mind that quickscope it currently
+unstable.  That does not necessarly means it's buggy, but just that it may
+be subject to have interface changes.  If you like you can contact me,
+Lance, the developer through email, or whatever means that GitHub.com
+provides.  I don't like spam.  Email me at: lance.arsenault   _AT_ that
+big evil search company that does not give a shit about net neutrality,
+but used to, dot COM.  Hint: 10^100mail.com  or you may just find my
+email address by 10^100ing it.
+
+
 
 ----------------------------------------------------------------------
 
-The rest of this document is just development notes.  Me being stupid.
-Thinking out load.  Quickscope is in Alpha.  I don't know of any bugs
-currently in it.  Half the time I think I see a bug it's just a dumb user
-problem, like a low input sample rate not being compatible with a high
-sweep rate.  There needs to be more code in it to check for stuff like
-that.  Like on a real scope if you turn the wrong knob you see no
-display.
+----------------------------------------------------------------------
+
+
+The rest of this document is just development notes, me being stupid,
+thinking out load.  Quickscope is in pre-Alpha. Many features are still
+missing, but it currently does a lot.  We don't know of any bugs currently
+in it.  Half the time I think I see a bug it's just a dumb user problem,
+like a low input sample rate not being compatible with a high sweep rate.
+There needs to be more code in it to check for stuff like that.  Like on a
+real oscilloscope if you turn the wrong knob you see no display and you
+futz around for 5 minutes trying to recover a good display only to find
+out you paused the input, but by that time all the parameters are total
+crap.
 
 
 
-#### Notes
+#### Developer Notes
 
 
 This file: contains general information about Quickscope and development
@@ -89,22 +121,26 @@ lines.
 More on OpenGL (swap buffers):  For standard 3-D graphics apps there is
 great benefit in drawing to two buffers and swapping them, given that
 every single pixel may be unrelated to the corresponding one in the
-previous frame buffer.  In the case of quickscope pixel rendering, most of
-the pixels in temporally adjacent frames will be the same, it's guaranteed
-within some limit of the pixel input rate and pixel fade rate.  That is
-the nature of buffer frames between adjacent frames is very different for
-3-D graphics and quickscope.  In extreme cases of low sample rates
-quickscope could only be changing 100 pixels per (60 Hz) refresh frame and
-so "swap buffering" would just increase system resources by orders of
-magnitude.  So please don't tell me "this is stupid because you're not
-using advanced graphics hardware", until you think about it first.  In
-this low rates limit it's the different between pegging the CPU like 3-D
-graphics programs tend to do and 0.2 % CPU when just drawing a few pixels
-per frame.  In the upper limit when the scope display fills most of the
-pixels with it's beam trace, it would not be a useful scope. All the trace
-lines in the scope would be mashed together letting you see just blobs and
-not lines.  So the nature of a oscilloscope is to draw thin the distinct
-lines, which means that it's not drawing on most of the view port area.
+previous frame buffer.  In the case of quickscope pixel rendering, most
+of the pixels in temporally adjacent frames will be the same, it's
+guaranteed within some limit of the pixel input rate and pixel fade rate.
+That is the nature of buffer frames between adjacent frames is very
+different for 3-D graphics and quickscope.  In extreme cases of low sample
+rates quickscope could only be changing 100 pixels per (60 Hz) refresh
+frame and so "swap buffering" would just increase system resources by
+orders of magnitude.  So please don't tell me "this is stupid because
+you're not using advanced graphics hardware", until you think about it
+first.  In this low rates limit it's the different between pegging the CPU
+like 3-D graphics programs tend to do and 0.2 % CPU when just drawing a
+few pixels per frame.  In the upper limit when the scope display fills
+most of the pixels with it's beam trace, it would not be a useful scope.
+All the trace lines in the scope would be mashed together letting you see
+just blobs and not lines.  So the nature of a oscilloscope is to draw thin
+the distinct lines, which means that it's not drawing on most of the view
+port area.
+
+Drawing pixels with OpenGL drawing will still be tested and compared with
+libX11's XDrawPoints() (todo).
 
 Comparing with video play back: To start with playing video has a big
 advantage of knowing what to draw an infinite amount of time ahead.  With
@@ -112,16 +148,17 @@ quickscope we can only benefit from pre computing view port pixels at the
 expense of display delay.  A 1/4 second delay in the display (from the
 time of input) would look very bad in quickscope, but for video play back
 a 1/4 of a second delay is very short and likely not even possible, and
-would be great.  So this interactive time needs to be kept in mind when
-comparing quickscope with video play back.  Because of this added latency
-in lining up buffer frames, it's not obvious how quickscope can benefit
-from video play back methods.  I was going to look at the video code, but
-I now see that would only help for a scope that showed the traces about
-one second after the data was read, and was not what we are interested in.
-Latency between time of data input to the time of display much be small.
-That not the case for video place play back.
+would be great. This delay is unrelated to the time between video
+frames.  So this interactive time needs to be kept in mind when comparing
+quickscope with video play back.  Because of this added latency in lining
+up buffer frames, it's not obvious how quickscope can benefit from video
+play back methods.  I was going to look at the video code, but I now see
+that would only help for a scope that showed the traces about one second
+after the data was read, and was not what we are interested in.  Latency
+between time of data input to the time of display much be small.  That
+not the case for video place play back.
 
-We do not use Cario to draw as, GTK+ does.  We found it to be way to slow.
+We do not use Cario to draw, as GTK+ does.  We found it to be way to slow.
 We don't bother with anti-aliasing when drawing the beam, because we found
 that that was way to slow.  We do a little anti-aliasing when drawing the
 grid lines, which is not as a big resource usage compared to anti-aliasing

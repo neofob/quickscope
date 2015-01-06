@@ -55,7 +55,9 @@ examples =\
  examples/GNUmakefile\
  examples/sin.c\
  examples/demo_launcher\
- examples/run_list
+ examples/saw.c\
+ exmaples/sin_lessComments.c
+
 
 
 EXTRA_DIST =\
@@ -121,7 +123,6 @@ libquickscope_la_SOURCES =\
  source_priv.h\
  group.c\
  group.h\
- saw.c\
  sin.c\
  soundFile.c\
  soundFile.h\
@@ -162,19 +163,23 @@ nodist_libquickscope_la_SOURCES =\
 
 # adjusterType.c is a marco template source file,
 # so to speak.  It's default Type is float.
-noinst_LTLIBRARIES = libadjD.la libadjLD.la libadjInt.la
+noinst_LTLIBRARIES = libadjD.la libadjLD.la libadjInt.la libsaw.la
+libsaw_la_SHORTNAME = saw
 libadjD_la_SHORTNAME = adjD
 libadjLD_la_SHORTNAME = adjLD
 libadjInt_la_SHORTNAME = adjInt
+libsaw_la_SOURCES = sin.c
 libadjD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
 libadjLD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
 libadjInt_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
+libsaw_la_CFLAGS = -DSAW $(GTK_3_CFLAGS)
 libadjD_la_CFLAGS = -DDOUBLE $(GTK_3_CFLAGS)
 libadjLD_la_CFLAGS = -DLONG_DOUBLE $(GTK_3_CFLAGS)
 libadjInt_la_CFLAGS = -DINT $(GTK_3_CFLAGS)
 
 libquickscope_la_SHORTNAME = qs
 libquickscope_la_LIBADD =\
+ libsaw.la\
  libadjD.la\
  libadjLD.la\
  libadjInt.la\

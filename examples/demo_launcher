@@ -3,6 +3,17 @@
 scriptdir="$(dirname ${BASH_SOURCE[0]})" || exit 1
 cd $scriptdir || exit 1
 
-make
+if ! which qs_demo_launcher > /dev/null ; then
+    echo
+    echo "qs_demo_launcher was not found in your path."
+    echo "Did you in install quickscope?"
+    echo "You need to install quickscope with programs"
+    echo "in your PATH in order to run this demo."
+    echo
+    exit 1
+fi
 
-qs_launcher --title="Running Quickscope Examples" --list=run_list 
+make || exit 1
+
+
+qs_demo_launcher --title="Running Quickscope Examples" --list=run_list 

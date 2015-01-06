@@ -24,48 +24,47 @@ static const char *const default_programs[] =
 
   // bin/ installed qs_launcher code
 
-  "qs_alsaCapture", NULL,
-  "qs_rossler3Wins", NULL,
-  "qs_circle", NULL,
-  "qs_sin", NULL,
+  "qs_alsaCapture",
+  "qs_rossler3Wins",
+  "qs_circle",
+  "qs_sin",
 
 #else
 
-#  define LONG_MUSIC  "/home/lanceman/Music/Alanis Morissette/Jagged"\
-                      " Little Pill/02. You Oughta Know.ogg"
+#  define LONG_MUSIC  "'/home/lanceman/Music/Alanis Morissette/Jagged"\
+                      " Little Pill/02. You Oughta Know.ogg'"
 
 #  define SHORT_MUSIC "/usr/share/tuxpaint/sounds/mirror.wav"
 
   // tests/ code
 
-  "hello", NULL,
-  "Quickplot", "source", "-", NULL,
-  "circle", NULL,
-  "Quickplot", "saw_print", "-", NULL,
-  "Quickplot", "non_master_print", "-", NULL,
-  "sin", NULL,
-  "sin", "--delay=2.125", NULL,
-  "sin", "--delay=-2.125", NULL,
-  "sin", "--samples-per-period=11", NULL,
-  "sin", "--slope=0", "--swipe=1", NULL,
-  "sin", "--slope=0", "--swipe=1", "--fade=0", NULL,
-  "sin", "--slope=0", "--swipe=1", "--fade=0", "--cos=1", NULL,
-  "Quickplot", "soundFile_print",
-      "/usr/share/tuxpaint/sounds/bleep.wav", NULL,
-  "soundFile", LONG_MUSIC, NULL,
-  "soundFile", SHORT_MUSIC, NULL,
-  "soundFile", "--swipe=0", "--fade=1", "--holdoff=0.03", LONG_MUSIC, NULL,
-  "Quickplot", "rk4_print", NULL,
-  "Quickplot", "ode_print", "system=lorenz", NULL,
-  "ode", "--system=lorenz", NULL,
-  "ode", "--system=lorenz", "--sweep=1", NULL,
-  "ode", "--system=rossler", NULL,
-  "rossler3Wins", NULL,
-  "urandom", NULL,
-  "urandom", "--hammer-time", NULL,
-  "sin", "--dense", "--slope=0", "--swipe=1", "--fade=0", NULL,
-  "Quickplot", "alsa_capture_print", NULL,
-  "alsaCapture", NULL,
+  "hello",
+  "qsSource | quickplot -",
+  "circle",
+  "saw_print | quickplot -",
+  "non_master_print | quickplot -",
+  "sin",
+  "sin --delay=2.125",
+  "sin --delay=-2.125",
+  "sin --samples-per-period=11",
+  "sin --slope=0 --swipe=1",
+  "sin --slope=0 --swipe=1 --fade=0",
+  "sin --slope=0 --swipe=1 --fade=0 --cos=1",
+  "soundFile_print "SHORT_MUSIC" | quickplot -",
+  "soundFile "LONG_MUSIC,
+  "soundFile "SHORT_MUSIC,
+  "soundFile --swipe=0 --fade=1 --holdoff=0.03 "LONG_MUSIC,
+  "rk4_print | quickplot -",
+  "ode_print system=lorenz | quickplot -",
+  "ode --system=lorenz",
+  "ode --system=lorenz --sweep=1",
+  "ode --system=rossler",
+  "rossler3Wins",
+  "urandom",
+  "urandom --hammer-time",
+  "sin --dense --slope=0 --swipe=1 --fade=0",
+  "alsa_capture_print | quickplot -",
+  "alsaCapture",
 
 #endif
   NULL // Null terminator
@@ -74,9 +73,8 @@ static const char *const default_programs[] =
 struct Run
 {
   int run_count;
-  bool useBash;
   GtkWidget *button;
-  char **args;
+  char *program;
 };
 
 
@@ -105,11 +103,19 @@ static void setPathEnv(void)
   if(!envPath) goto cleanup;
 
   char *newPath;
-  size_t len;
-  len = strlen(envPath) + strlen(path) + 2;
-  newPath = g_malloc(len);
-  snprintf(newPath, len, "%s:%s", path, envPath);
+#ifdef QS_TESTS
+  if(strcmp(".","."))
+    // built in other dir
+    newPath = g_strdup_printf("%s:%s:%s", "./tests", path, envPath);
+  else
+    // built in top source dir
+    newPath = g_strdup_printf("%s:%s", path, envPath);
+#else
+  newPath = g_strdup_printf("%s:%s", path, envPath);
+#endif
+
   setenv("PATH", newPath, 1);
+  fprintf(stderr, "set PATH=\"%s\"\n", newPath);
 
   g_free(newPath);
 
@@ -121,11 +127,9 @@ cleanup:
 static
 void setLabelString(struct Run *run)
 {
-  char *const *arg;
   char *text = NULL;
   GtkLabel *label;
   label = GTK_LABEL(gtk_bin_get_child(GTK_BIN(run->button)));
-  arg = run->args;
   char *color;
   switch(run->run_count)
   {
@@ -137,20 +141,8 @@ void setLabelString(struct Run *run)
       break;
   }
 
-  while(*arg)
-  {
-    if(text)
-    {
-      char *old;
-      old = text;
-      text = g_strdup_printf("%s %s", old, *arg++);
-      g_free(old);
-    }
-    else
-    {
-      text = g_strdup_printf("%s", *arg++);
-    }
-  }
+  text = g_strdup_printf("%s", run->program);
+  
   char *old;
   old = text;
   text = g_strdup_printf(
@@ -176,31 +168,10 @@ void setLabelString(struct Run *run)
 static bool run_cb(GtkWidget *button, struct Run *run)
 {
   fprintf(stderr, "running:");
-  char **arg;
-  arg = run->args;
-  while(*arg)
-    fprintf(stderr, " %s", *arg++);
+  fprintf(stderr, " %s", run->program);
   fprintf(stderr, "\n");
 
   setLabelString(run);
-
-  if(!run->useBash)
-  {
-    if(fork() == 0)
-    {
-      // child
-      if(!run->useBash)
-      {
-        execvp(*run->args, run->args);
-        fprintf(stderr, "failed to execute:");
-        while(*run->args)
-          fprintf(stderr, " %s", *run->args++);
-        fprintf(stderr, "\n");
-        exit(1);
-      }
-    }
-    return true;
-  }
 
   // pipe command to bash
 
@@ -226,15 +197,15 @@ static bool run_cb(GtkWidget *button, struct Run *run)
     }
     // bash will read the pipe
     execl("/bin/bash", "bash", NULL);
-    fprintf(stderr, "failed to execute: %s in bash pipeline\n", *run->args);
+    fprintf(stderr, "failed to execute: %s in bash pipeline\n", run->program);
     exit(1);
   }
 
   // The parent write the bash command to the pipe
-  if(write(fd[1], *run->args, strlen(*run->args)) != strlen(*run->args))
+  if(write(fd[1], run->program, strlen(run->program)) != strlen(run->program))
   {
     fprintf(stderr, "write(%d, \"%s\", %zu) failed: %s\n",
-        fd[1], *run->args, strlen(*run->args), strerror(errno));
+        fd[1], run->program, strlen(run->program), strerror(errno));
     exit(1);
   }
   if(write(fd[1], "\n", 2) != 2)
@@ -248,14 +219,12 @@ static bool run_cb(GtkWidget *button, struct Run *run)
   return true;
 }
 
-static void addButton(char *const *args, GtkContainer *vbox,
-    bool useBashToRun)
+static void addButton(const char *args, GtkContainer *vbox)
 {
   struct Run *run;
   run = g_malloc0(sizeof(*run));
   run->button = gtk_button_new_with_label(" ");
-  run->args = (char **) args;
-  run->useBash = useBashToRun;
+  run->program = (char *) args;
   g_signal_connect(run->button, "clicked", G_CALLBACK(run_cb), (void *) run);
   gtk_box_pack_start(GTK_BOX(vbox), run->button, false, false, 0);
   gtk_widget_show(run->button);
@@ -277,8 +246,7 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, void* data)
   return false;
 }
 
-static void makeWidgets(const char *title, const char *const programs[],
-    bool useBashToRun)
+static void makeWidgets(const char *title, const char *const programs[])
 {
   GtkWidget *window;
   GtkWidget *vbox;
@@ -304,8 +272,7 @@ static void makeWidgets(const char *title, const char *const programs[],
 
   while(*program)
   {
-    addButton((char **) program, GTK_CONTAINER(vbox), useBashToRun);
-    while(*(++program));
+    addButton(*program, GTK_CONTAINER(vbox));
     ++program;
   }
 
@@ -343,8 +310,8 @@ usage(char *argv0)
         "                     Example DSO source file:\n"
         "\n"
         "                       const char *const " DSO_SYMBOL "[] = {\n"
-        "                            \"hello\", NULL,\n"
-        "                            \"goodbye\", \"--day=Tuesday\", NULL,\n"
+        "                            \"hello\",\n"
+        "                            \"goodbye\", \"--day=Tuesday\",\n"
         "                             NULL };\n"
         "\n"
         "  --list LIST        load a list of programs to run from the file LIST\n"
@@ -369,10 +336,10 @@ const char *const *getFileList(char *filename)
     return NULL;
   }
   char *line = NULL;
-  size_t len = 0;
+  size_t num_progs = 0;
   char **programs = NULL;
-  size_t n = 0;
-  while(getline(&line, &n, file) != -1)
+  size_t line_length = 0;
+  while(getline(&line, &line_length, file) != -1)
   {
     if(line && line[0] && line[0] != '#')
     {
@@ -382,11 +349,9 @@ const char *const *getFileList(char *filename)
         line[strlen(line) - 1] = '\0';
       if(line[0])
       {
-        size_t n;
-        programs = realloc(programs, sizeof(char *) * (n = (++len)*2 + 1));
-        programs[n - 3] = strdup(line);
-        programs[n - 2] = NULL;
-        programs[n - 1] = NULL;
+        programs = realloc(programs, sizeof(char *) * (++num_progs + 1));
+        programs[num_progs - 1] = strdup(line);
+        programs[num_progs] = NULL;
       }
     }
   }
@@ -464,18 +429,18 @@ int main(int argc, char **argv)
     else
       return usage(argv[0]);
 
+    // Make run list only one way.
     if((dso_name || list_file) && programs != default_programs)
       return usage(argv[0]);
-
     if(dso_name && !(programs = getDSOList(dso_name)))
       return usage(argv[0]);
-    else if(list_file && !(programs = getFileList(list_file)))
+    if(list_file && !(programs = getFileList(list_file)))
       return usage(argv[0]);
   }
 
   setPathEnv();
   gtk_init(&argc, &argv);
-  makeWidgets(title, programs, list_file);
+  makeWidgets(title, programs);
   signal(SIGCHLD, sigChildCatcher);
   gtk_main();
 
