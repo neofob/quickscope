@@ -37,13 +37,13 @@ noinst_PROGRAMS =\
 
 
 
-qs_LDADD = ../lib/libquickscope.la 
+qs_LDADD = $(top_builddir)/lib/libquickscope.la 
 
 AM_CFLAGS = $(GTK_3_CFLAGS)
 
 # tests_launcher does not need libquickscope
 # but it does need gtk-3
-tests_launcher_SOURCES = $(srcdir)/../lib/launcher.c
+tests_launcher_SOURCES = $(top_srcdir)/lib/launcher.c
 tests_launcher_LDADD = $(GTK_3_LIBS) -ldl
 tests_launcher_CFLAGS = -DTESTS $(GTK_3_CFLAGS)
 
