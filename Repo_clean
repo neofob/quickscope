@@ -26,10 +26,6 @@
 # $0 --help.
 
 
-srcdir="$(dirname ${BASH_SOURCE[0]})" || exit 1
-cd $srcdir || exit 1
-
-
 function usage()
 {
   cat <<END
@@ -71,6 +67,10 @@ function rm_common()
 
 function remove_files()
 {
+  srcdir="$(dirname ${BASH_SOURCE[0]})" || exit 1
+  cd $srcdir || exit 1
+
+
 ####################################################################
   set -x
 
@@ -123,7 +123,7 @@ function remove_files()
   soundFile_print rk4_print ode ode_print ode_3wins\
   urandom rossler3Wins alsa_info\
   alsa_capture_print alsaCapture\
-  qsGtkWidget controller app_arg\
+  qsGtkWidget controller app_arg idle\
   sin.c ode.c rossler3Wins.c alsaCapture.c
 
 ####################################################################
@@ -131,7 +131,7 @@ function remove_files()
 
   cd ../examples || exit 1
 
-  make clean
+  make clean || exit 1
 
 ######################################################################
 
@@ -139,7 +139,7 @@ function remove_files()
 }
 
 
-[ "$1" = "--force" ] && remove_files && exit 0
+[ "$1" = "--force" ] && remove_files
 
 [ -z "$1" ] || usage
 

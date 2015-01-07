@@ -2,7 +2,7 @@
 
 # Quickscope - a software oscilloscope
 #
-# Copyright (C) 2012-2014  Lance Arsenault
+# Copyright (C) 2012-2015  Lance Arsenault
 
 # This file is part of Quickscope.
 #

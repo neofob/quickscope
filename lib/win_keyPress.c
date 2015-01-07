@@ -262,6 +262,38 @@ bool ecb_keyPress(GtkWidget *w, GdkEvent *e, struct QsWin *win)
     case GDK_KEY_F11:
       return flipViewCheckMenuItem(win->viewFullscreen);
       break;
+    case GDK_KEY_H:
+    case GDK_KEY_h:
+      printf(
+          "\n"
+          "================================================================\n"
+          "================== Quickscope Key Bindings =====================\n"
+          "================================================================\n"
+          "\n"
+          "  B  show win border\n"
+          "  C  show parameter control bar\n"
+          "  D  destroy current win, not the last\n"
+          "  F  change from/to full screen mode\n"
+          "  H  print this help\n"
+          "  I  save an image png file\n"
+          "  J  show next control parameter\n"
+          "  K  show previous control parameter\n"
+          "  N  show next control parameter\n"
+          "  M  show menu bar\n"
+          "  P  show previous control parameter\n"
+          "  Q  quit\n"
+          "  S  show status bar\n"
+          "  Z  freeze/resume all win displays\n"
+          "\n"
+          "  <F11>         change from/to full screen mode\n"
+          "  <escape>      destroy current win, not the last\n"
+          "  <arrow up>    increase/select current control parameter\n"
+          "  <arrow down>  decrease/select current control parameter\n"
+          "  <arrow right> select next right digit current control parameter\n"
+          "  <arrow left>  select next left  digit current control parameter\n"
+          "\n"
+          "================================================================\n");
+      break;
     case GDK_KEY_I:
     case GDK_KEY_i:
       cb_savePNG(NULL, win);

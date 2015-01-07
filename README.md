@@ -1,15 +1,32 @@
 
+### Ports
+
+
+GNU/Linux
+
+
+### Building and Install
+
+
 Installing: See file INSTALL.  This is a standard GNU autotools package.
 In a shell run: './configure'; 'make'; and 'make install'.
 
 To build it from the github repository source files run the 'bootstrap'
-script before configure.
+script before configure.  INSTALL is a GNU autotools generated file.
+
+
+### Run: qs_demo_launcher
+
 
 So build/install it and then run **qs_demo_launcher**.  qs_demo_launcher
 will let you get a sample of what quickscope can do.
 
+### Keyboard Bindings
 
-### Run: qs_demo_launcher
+
+Type 'h' to print keyboard bindings help to stdout.
+Scope parameters can be controlled with the keyboard.
+
 
 
 ### User C Code Examples
@@ -31,8 +48,8 @@ be subject to have interface changes.  If you like you can contact me,
 Lance, the developer through email, or whatever means that GitHub.com
 provides.  I don't like spam.  Email me at: lance.arsenault   _AT_ that
 big evil search company that does not give a shit about net neutrality,
-but used to, dot COM.  Hint: 10^100mail.com  or you may just find my
-email address by 10^100ing it.
+but used to, dot COM.  Hint: 10^100 or you may just find my email address
+by 10^100ing it.
 
 
 
@@ -52,6 +69,16 @@ futz around for 5 minutes trying to recover a good display only to find
 out you paused the input, but by that time all the parameters are total
 crap.
 
+
+
+
+# Comparing Quickscope
+
+
+Quickscope is striving for Super Cow Powers. That's the differance between
+quickscope and the 312 other github software oscilloscopes.  Looking at
+about 100 or so of them shows, that any of them that have any merit, are
+much more specific than quickscope. 
 
 
 #### Developer Notes
