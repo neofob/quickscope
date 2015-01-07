@@ -95,19 +95,19 @@ function remove_files()
  quickscope.xpm quickscope.pc quickscope.ico debug.h\
  bin/Makefile bin/Makefile.in ar-lib config.h*
 
-  remove_common
+  rm_common
 
 
   # directory bin/
   cd bin || exit 1
 
-  remove_common
+  rm_common
   rm -f qs_*
   
   # directory tests/
   cd ../tests || exit 1
 
-  remove_common
+  rm_common
   rm -f tests_launcher hello circle saw_print\
   non_master_print qsSource sin soundFile\
   soundFile_print rk4_print ode ode_print ode_3wins\
