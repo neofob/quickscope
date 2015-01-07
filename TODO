@@ -1,0 +1,37 @@
+
+NEXT:
+
+-2 Fix/finish fd controller
+
+-1 Finish status number displaying.  Add crosses
+   and X drawing to display differences in positions,
+   like scope HITACHI 225.
+
+0  Make grid, tic and axis drawing lineup with
+   good trace scaled values.
+
+1  refacter controller source callback ordering.
+   It's currently not well engineered.
+
+2   make the QsWidget public interfaces
+    make the QsWidget update function that
+    the user (indirectly??) may call to re-draw
+    the widget(s) after changing the parameter:
+    in particular trace swipe on/off.  It's needed
+    to make shell interface.
+
+6  Make interactive shell command-line interface for most
+   of API: include help, history, object and parameter
+   changing and listing, and tab completion.  Use GNU readline.
+
+4  Example that reads fd pipes
+
+4  Example that should shows to make a source
+
+4  Example that reads USB.
+
+5  Example that displays CPU usage.
+
+8  Many more examples ...
+
+6  ruby binding of API

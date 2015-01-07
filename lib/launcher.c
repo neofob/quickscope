@@ -28,6 +28,7 @@ static const char *const default_programs[] =
   "qs_rossler3Wins",
   "qs_circle",
   "qs_sin",
+  "qs_sin --slope=0",
   "qs_sin --fast --slope=0",
   "qs_urandom",
   "qs_urandom --fast",
