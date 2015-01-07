@@ -151,10 +151,10 @@ libsaw_la_SOURCES = sin.c
 libadjD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
 libadjLD_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
 libadjInt_la_SOURCES = adjusterType.c adjuster.h adjuster_priv.h
-libsaw_la_CFLAGS = -DSAW $(GTK_3_CFLAGS)
-libadjD_la_CFLAGS = -DDOUBLE $(GTK_3_CFLAGS)
-libadjLD_la_CFLAGS = -DLONG_DOUBLE $(GTK_3_CFLAGS)
-libadjInt_la_CFLAGS = -DINT $(GTK_3_CFLAGS)
+libsaw_la_CPPFLAGS = -DSAW $(GTK_3_CFLAGS)
+libadjD_la_CPPFLAGS = -DDOUBLE $(GTK_3_CFLAGS)
+libadjLD_la_CPPFLAGS = -DLONG_DOUBLE $(GTK_3_CFLAGS)
+libadjInt_la_CPPFLAGS = -DINT $(GTK_3_CFLAGS)
 
 libquickscope_la_SHORTNAME = qs
 libquickscope_la_LIBADD =\
@@ -168,7 +168,7 @@ libquickscope_la_LIBADD =\
  -lX11\
  -ldl\
  -lm
-libquickscope_la_CFLAGS = $(GTK_3_CFLAGS) $(SNDFILE_CFLAGS) $(ALSA_CFLAGS)
+libquickscope_la_CPPFLAGS = $(GTK_3_CFLAGS) $(SNDFILE_CFLAGS) $(ALSA_CFLAGS)
 libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
 
 
@@ -177,7 +177,8 @@ libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
 if HAVE_GNU_LIB_NAMES_H
 libquickscope_la_SOURCES  += lib_main.c
 libquickscope_la_LDFLAGS  += -shared -Wl,-e,_lib_main
-libquickscope_la_CFLAGS   += -fPIC -shared
+libquickscope_la_CPPFLAGS += -fPIC
+libquickscope_la_CFLAGS   = -shared
 else
 EXTRA_DIST += lib_main.c
 endif

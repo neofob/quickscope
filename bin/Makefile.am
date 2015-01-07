@@ -7,7 +7,7 @@
 # that get installed as part of Quickscope.
 
 qs_LDADD = $(top_builddir)/lib/libquickscope.la -lm
-AM_CFLAGS = $(GTK_3_CFLAGS)
+AM_CPPFLAGS = $(GTK_3_CFLAGS)
 
 bin_PROGRAMS =\
  qs_demo_launcher\
@@ -15,7 +15,8 @@ bin_PROGRAMS =\
  qs_circle\
  qs_sin\
  qs_alsaCapture\
- qs_urandom
+ qs_urandom\
+ qs_ode
 
 qs_demo_launcher_SOURCES = $(top_srcdir)/lib/launcher.c
 qs_demo_launcher_LDADD = $(GTK_3_LIBS) -ldl
@@ -34,4 +35,7 @@ qs_rossler3Wins_LDADD = $(qs_LDADD)
 
 qs_urandom_SOURCES = urandom.c
 qs_urandom_LDADD = $(qs_LDADD)
+
+qs_ode_SOURCES = ode.c
+qs_ode_LDADD = $(qs_LDADD)
 

@@ -28,6 +28,10 @@ static const char *const default_programs[] =
   "qs_rossler3Wins",
   "qs_circle",
   "qs_sin",
+  "qs_sin --fast --slope=0",
+  "qs_urandom",
+  "qs_urandom --fast",
+  "qs_ode --system=lorentz",
 
 #else
 
@@ -62,7 +66,7 @@ static const char *const default_programs[] =
   "rossler3Wins",
   "urandom",
   "urandom --hammer-time",
-  "sin --dense --slope=0 --swipe=1 --fade=0",
+  "sin --fast --slope=0 --swipe=1 --fade=0",
   "alsa_capture_print | quickplot -",
   "alsaCapture",
 

@@ -10,7 +10,9 @@
 
 BUILT_SOURCES =\
  rossler3Wins.c\
- alsaCapture.c
+ alsaCapture.c\
+ ode.c\
+ sin.c
 
 noinst_PROGRAMS =\
  tests_launcher\
@@ -39,17 +41,17 @@ noinst_PROGRAMS =\
 
 qs_LDADD = $(top_builddir)/lib/libquickscope.la 
 
-AM_CFLAGS = $(GTK_3_CFLAGS)
+AM_CPPFLAGS = $(GTK_3_CFLAGS)
 
 # tests_launcher does not need libquickscope
 # but it does need gtk-3
 tests_launcher_SOURCES = $(top_srcdir)/lib/launcher.c
 tests_launcher_LDADD = $(GTK_3_LIBS) -ldl
-tests_launcher_CFLAGS = -DTESTS $(GTK_3_CFLAGS)
+tests_launcher_CPPFLAGS = -DTESTS $(GTK_3_CFLAGS)
 
 qsGtkWidget_SOURCES = qsGtkWidget.c
 qsGtkWidget_LDADD = $(qs_LDADD) $(GTK_3_LIBS) -lX11
-qsGtkWidget_CFLAGS = -DTESTS $(GTK_3_CFLAGS)
+qsGtkWidget_CPPFLAGS = -DTESTS $(GTK_3_CFLAGS)
 
 hello_SOURCES = hello.c
 
@@ -94,11 +96,11 @@ urandom_LDADD = $(qs_LDADD)
 
 alsa_info_SOURCES = alsa_info.c quickscope.h
 alsa_info_LDADD = $(qs_LDADD) $(ALSA_LIBS)
-alsa_info_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
+alsa_info_CPPFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
 alsa_capture_print_SOURCES = alsa_capture_print.c
 alsa_capture_print_LDADD = $(qs_LDADD) $(ALSA_LIBS) $(GTK_3_LIBS)
-alsa_capture_print_CFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
+alsa_capture_print_CPPFLAGS = $(GTK_3_CFLAGS) $(ALSA_CFLAGS)
 
 alsaCapture_SOURCES = alsaCapture.c quickscope.h
 alsaCapture_LDADD = $(qs_LDADD)
@@ -110,9 +112,14 @@ app_arg_SOURCES = app_arg.c quickscope.h
 app_arg_LDADD = $(qs_LDADD)
 
 
-
 rossler3Wins.c: $(top_srcdir)/bin/rossler3Wins.c
 	$(LN_S) $< $@
 
 alsaCapture.c: $(top_srcdir)/bin/alsaCapture.c
+	$(LN_S) $< $@
+
+ode.c: $(top_srcdir)/bin/ode.c
+	$(LN_S) $< $@
+
+sin.c: $(top_srcdir)/bin/sin.c
 	$(LN_S) $< $@

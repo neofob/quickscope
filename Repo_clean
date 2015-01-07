@@ -121,9 +121,10 @@ function remove_files()
   rm -f tests_launcher hello circle saw_print\
   non_master_print qsSource sin soundFile\
   soundFile_print rk4_print ode ode_print ode_3wins\
-  urandom rossler3Wins rossler3Wins.c alsa_info\
-  alsa_capture_print alsaCapture idle alsaCapture.c\
-  qsGtkWidget controller app_arg
+  urandom rossler3Wins alsa_info\
+  alsa_capture_print alsaCapture\
+  qsGtkWidget controller app_arg\
+  sin.c ode.c rossler3Wins.c alsaCapture.c
 
 ####################################################################
   # directory examples/

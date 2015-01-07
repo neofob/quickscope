@@ -2,38 +2,68 @@
  * Copyright (C) 2012-2014  Lance Arsenault
  * GNU General Public License version 3
  */
-#include <math.h> // defines M_PI
-#include "../lib/quickscope.h"
-
+#include "quickscope.h"
 
 int main(int argc, char **argv)
 {
-  struct QsSource *sinSource, *sweepSource;
+  struct QsSource *sin, *cos=NULL, *sweep;
+  struct QsTrace *trace;
+  float period = 0.5F, sweepPeriod = 4.132F;
 
   qsApp_init(&argc, &argv);
 
-  qsApp->op_fade = true;
+  qsApp->op_fade = qsApp_bool("fade", true);
   qsApp->op_fadePeriod = 4.0F;
-  qsApp->op_fadeDelay = 5.0F;
+  qsApp->op_fadeDelay =  0.6F;
   qsApp->op_doubleBuffer = true;
   qsApp->op_grid = 0;
+  qsApp->op_axis = false;
 
-  sinSource = qsSin_create( 100 /* maxNumFrames */,
-        0.4F /*amplitude*/, 1.2348F /*period*/,
-        0.0F /*phaseShift*/, 35 /*samplesPerPeriod*/,
+  if(qsApp_bool("fast", false))
+  {
+    period = 1.23421234F/200.0F;
+    sweepPeriod = 0.01F;
+    qsApp->op_fadePeriod = 0.02F;
+    qsApp->op_fadeDelay =  0.04;
+  }
+
+
+  sin = qsSin_create( 30000 /* maxNumFrames */,
+        0.45F /*amplitude*/, period,
+        0.0F*M_PI /*phaseShift*/,
+        qsApp_int("samples-per-period", 100),
         NULL /* group */);
 
-  sweepSource = qsSweep_create(4/*period seconds*/, 0/*level*/,
-    0/*slope 0==freerun*/, 0/*holdOff*/, 0/*delay*/, sinSource, 0/*channelNum*/);
+  sweep = qsSweep_create(sweepPeriod,
+      0.0F/*level*/, qsApp_int("slope", 1),
+      0.0F/*holdOff*/,
+      qsApp_float("delay", 0.0F),
+      sin/*source*/, 0/*sourceChannelNum*/);
 
+  trace = qsTrace_create(NULL /* QsWin, NULL to make a default Win */,
+      sweep, 0, sin, 0, /* x/y source and channels */
+      1.0F, 1.0F, 0, 0, /* xscale, yscale, xshift, yshift */
+      true, /* lines */ 1, 0, 0.8F /* RGB line color */);
 
-  qsTrace_create(NULL /* QsWin, NULL to make a default */,
-      sweepSource, 0, sinSource, 0, /* x/y source and channels */
-      1.0F, 0.9F, 0, 0, /* xscale, yscale, xshift, yshift */
-      true, /* lines */ 0.1, 1, 1 /* RGB line color */);
+  qsTrace_setSwipeX(trace, qsApp_bool("swipe", false));
+
+  if(qsApp_bool("cos", false))
+  {
+    cos = qsSin_create(0 /* maxNumFrames */,
+        0.45F /*amplitude*/, 0.5F /*period*/,
+        0.5F*M_PI /*phaseShift*/,
+        qsApp_int("samples-per-period", 100),
+        sin /* group */);
+
+    trace = qsTrace_create(NULL /* QsWin, NULL to make a default Win */,
+        sweep, 0, cos, 0, /* x/y source and channels */
+        1.0F, 1.0F, 0, 0, /* xscale, yscale, xshift, yshift */
+        true, /* lines */ 0, 1, 0 /* RGB line color */);
+
+    qsTrace_setSwipeX(trace, qsApp_bool("swipe", false));
+  }
 
   qsApp_main();
-
   qsApp_destroy();
 
   return 0;
