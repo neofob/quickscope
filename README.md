@@ -304,24 +304,24 @@ source
 <dt>
 source types
 </dt>      <dd>
-              <p>*periodic*: fixed periodic, variable periodic,
+              <p><i>periodic</i>: fixed periodic, variable periodic,
                   or selectable periodic.  All have a maximum
                   and minimum period. The time interval between
                   frames, period, is fixed in a given source
                   read callback cycle.</p>
 
-              <p>*fixed periodic*: the period is fixed for the
+              <p><i>fixed periodic</i>: the period is fixed for the
                   life of the source.  This is the most rigid
                   type.</p>
 
-               <p>*variable periodic*: the period can vary continuously
+               <p><i>variable periodic</i>: the period can vary continuously
                   between source read callback cycles.</p>
 
-               <p>*selectable periodic*: the period can be varied
+               <p><i>selectable periodic</i>: the period can be varied
                   to a selected list of values between source
                   read callback frames.</p>
 
-              <p>*tolerant*: the time interval between frames
+              <p><i>tolerant</i>: the time interval between frames
                   is not necessarily predictable.  This source
                   can tolerate any interval and is compatible
                   with periodic sources. It has a min and max
@@ -329,7 +329,7 @@ source types
                   will override.  It has a sample rate that is
                   overridden if there are other source types.</p>
 
-              <p>*custom*: the time interval between frames
+              <p><i>custom</i>: the time interval between frames
                   is not necessarily predictable. This source
                   is does not tolerate any other source type.
                   Source type compatibility between custom sources
