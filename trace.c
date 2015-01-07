@@ -72,7 +72,7 @@ int Round(float x)
 /* TODO: add line drawing with one point outside of the view port */
 /* TODO: interpolate the fade time between the time at the two ends
  * of the line, passing in two fade times. But the gradient in the
- * color may use more system */
+ * color may use more system resources */
 
 // We don't like wasting time dereferencing pointers again
 // and again, so we are passing win, trace, and swipe, when

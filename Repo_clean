@@ -62,6 +62,13 @@ END
   exit 1
 }
 
+function rm_common()
+{
+  rm -f *.o *.la *.so *.lo stamp-h* *.a *.xpm\
+    Makefile Makefile.in stamp-h*
+  rm -rf .libs .deps
+}
+
 function remove_files()
 {
 ####################################################################
@@ -74,34 +81,33 @@ function remove_files()
     fi
   done
 
-  # generated directories
-  rm -rf .deps .libs conftest.dir autom4te.cache
+  # top src generated directories
+  rm -rf conftest.dir autom4te.cache
 
-  # wildcard
-  rm -f *.o *.la *.so *.lo config.h* stamp-h* *.a *.xpm
-
+  # top source dir
   rm -f\
  aclocal.m4 config.cache config.h install-sh config.log\
  Makefile Makefile.in missing mkinstalldirs ltmain.sh\
- config.sub config.guess configure\
+ config.sub config.guess configure README.html\
  configure.scan autoscan-*x.log INSTALL\
  libtool config.status autoscan.log depcomp confdefs.h\
  depend.make compile quickscope.h\
  quickscope.xpm quickscope.pc quickscope.ico debug.h\
- bin/Makefile bin/Makefile.in ar-lib
+ bin/Makefile bin/Makefile.in ar-lib config.h*
+
+  remove_common
+
 
   # directory bin/
   cd bin || exit 1
 
-  rm -rf .deps .libs
-  rm -f *.o *.la *.so *.lo stamp-h* *.a
+  remove_common
   rm -f qs_*
-
+  
   # directory tests/
   cd ../tests || exit 1
 
-  rm -rf .deps .libs
-  rm -f *.o *.la *.so *.lo stamp-h* *.a Makefile Makefile.in
+  remove_common
   rm -f tests_launcher hello circle saw_print\
   non_master_print qsSource sin soundFile\
   soundFile_print rk4_print ode ode_print ode_3wins\
@@ -113,13 +119,16 @@ function remove_files()
 
   cd ../examples || exit 1
 
-  rm -f *.o sin
+  make clean
 
 ######################################################################
+
+  exit 0
 }
 
 
-[ "$1" = "--force" ] && remove_files && exit
+[ "$1" = "--force" ] && remove_files && exit 0
+
 [ -z "$1" ] || usage
 
 # Test that we have some programs in path

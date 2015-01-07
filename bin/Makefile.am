@@ -9,7 +9,13 @@
 qs_LDADD = ../libquickscope.la -lm
 AM_CFLAGS = -I.. $(GTK_3_CFLAGS)
 
-bin_PROGRAMS = qs_demo_launcher qs_rossler3Wins qs_circle qs_sin qs_alsaCapture
+bin_PROGRAMS =\
+ qs_demo_launcher\
+ qs_rossler3Wins\
+ qs_circle\
+ qs_sin\
+ qs_alsaCapture\
+ qs_urandom
 
 qs_demo_launcher_SOURCES = $(srcdir)/../launcher.c
 qs_demo_launcher_LDADD = $(GTK_3_LIBS) -ldl
@@ -25,3 +31,7 @@ qs_sin_LDADD = $(qs_LDADD)
 
 qs_rossler3Wins_SOURCES = rossler3Wins.c
 qs_rossler3Wins_LDADD = $(qs_LDADD)
+
+qs_urandom_SOURCES = urandom.c
+qs_urandom_LDADD = $(qs_LDADD)
+

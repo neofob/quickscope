@@ -2,7 +2,7 @@
 Installing: See file INSTALL.  This is a standard GNU autotools
 package.  In a shell run: './configure'; 'make'; and 'make install'.
 
-To build it from the github repository source files run the 'bootctrap'
+To build it from the github repository source files run the 'bootstrap'
 script before configure.
 
 So build it and then run **qs_demo**.  qs_demo will let you get a
@@ -19,7 +19,7 @@ The examples in examples/ do not use GNU autotools to build.  They are
 single file code examples meant to be used with the installed quickscope
 package (this package).  They come with a GNU make file that builds any
 examples/*.c file into a quickscope enabled program.  You can write a
-quickscope oscilloscope program by calling just 4 functions.
+quickscope oscilloscope program by calling just 4 C API functions.
 
 
 ### If You Like What You See
@@ -198,8 +198,32 @@ the future.  We are building Quickscope for the future too.
 ## Class/Object structure:
 
 
-  Managing an object means that the manager destroys the object
-  when the manager is destroyed.
+Managing an object means that the manager destroys the object when the
+manager is destroyed.
+
+We use QS_ASSERT() and QS_VASSERT() almost everywhere we can.  We zero
+memory every time before freeing it, which in combination with QS_ASSERT()
+and QS_VASSERT() catches most memory management bugs.  They go away in
+non-debug builds.  In the long run it saves development time, especially
+when refactoring, which is unavoidable.  Even gods have limited
+foresight, because code has free will.
+
+C is not C++. We don't have/use the complexity of GObject, we chose a less
+robust and less rigorous method of a the idea of C objects.  It's less
+code and better performance, at the expense of making refactoring a very
+hard problem.  The table of definitions below should be kept up to date
+with the code, so as to keep object concepts straight in the developers
+mind, since we are using a very lose definition of object in quickscopes'
+code.  Cross file (not static) structs and functions must follow a naming
+convention for when to use '_qs', 'qs' or 'Qs' prefix and when to
+camel-case or '_' separate names.  The top rule being: names of private,
+and/or protected, internal functions, which are not part of the external
+API (application programming interface) have a '_qs' prefix.  API public
+(published) function names start with 'qs'.  Sometimes we expose interal
+interfaces in installed API header files, in order to have faster inline
+code, especially when interating in tight inner loops.  Since performance
+is paramount it just can't be avoided.
+
 
 
 Class         Description
@@ -255,7 +279,7 @@ idle
               looping and reading sources.  One of the
               source read callbacks should do a blocking
               read or like thing to keep this loop from
-              running uncontrolled and using to much CPU
+              running uncontrolled and using too much CPU
               usage</dd>
 <dt>
 source
@@ -277,46 +301,49 @@ source
               to have dependent channels that add move values
               that would otherwise not be there, like adding
               a "pen lift" when we sweep back in a "sweep source".</dd>
-
 <dt>
 source types
-</dt>
-                <dd>
-                periodic: fixed periodic, variable periodic,
+</dt>      <dd>
+              <p>*periodic*: fixed periodic, variable periodic,
                   or selectable periodic.  All have a maximum
                   and minimum period. The time interval between
                   frames, period, is fixed in a given source
-                  read callback cycle.
+                  read callback cycle.</p>
 
-                fixed periodic: the period is fixed for the
+              <p>*fixed periodic*: the period is fixed for the
                   life of the source.  This is the most rigid
-                  type.
+                  type.</p>
 
-                variable periodic: the period can vary continuously
-                  between source read callback cycles.
+               <p>*variable periodic*: the period can vary continuously
+                  between source read callback cycles.</p>
 
-                selectable periodic: the period can be varied
+               <p>*selectable periodic*: the period can be varied
                   to a selected list of values between source
-                  read callback frames.
+                  read callback frames.</p>
 
-                tolerant: the time interval between frames
+              <p>*tolerant*: the time interval between frames
                   is not necessarily predictable.  This source
                   can tolerate any interval and is compatible
                   with periodic sources. It has a min and max
                   sample rate that a variable periodic source
                   will override.  It has a sample rate that is
-                  overridden if there are other source types.
+                  overridden if there are other source types.</p>
 
-                custom: the time interval between frames
+              <p>*custom*: the time interval between frames
                   is not necessarily predictable. This source
-                  is does not necessarily tolerate any interval.
-                  Source type compatibility is handled with
-                  each source implementation.
+                  is does not tolerate any other source type.
+                  Source type compatibility between custom sources
+                  is handled with each source implementation.
+                  custom is a catch all that lets you do what ever
+                  you want at the expense of having to write more
+                  code and not share the same controller that
+                  non-custom sources are using.</p>
 
-              When scope under-run occurs, pen lifts will
+              <p>When scope under-run occurs, pen lifts will
               automatically be added, and time shifts added
-              to periodic and irregular sources before the read
-              callback is called; not so for custom sources.</dd>
+              to periodic and tolerant sources before the read
+              callback is called; not so for custom sources.</p>
+              </dd>
 
 <dt>
 group
@@ -348,23 +375,31 @@ win
 </dt>     <dd>GTK+ window widget with drawing area,
               manages associated traces, manages associated
               drawsyncs, is an adjusterList with widgets you
-              can interact with</dd>
+              can interact with, we draw pixels in the drawing
+              area GTK widget without using the GTK+ API since
+              GTK+ does not support fast pixel drawing,
+              currently using libX11 to draw, OpenGL will
+              also be tried too</dd>
 
 <dt>
 adjuster
-</dt>     <dd>generic widget for adjusting a parameter</dd>
+</dt>     <dd>generic thingy for adjusting a parameter</dd>
 
-<dt
+<dt>
 adjusterList
 </dt>     <dd>a list of adjusters, manages many adjuster
-              objects, you can cycle through many adjuster(s)
-              with an adjusters</dd>
+              objects, two adjusterLists may be added together
+              making bigger adjusterLists</dd>
 
 <dt>
 widget
 </dt>     <dd>a widget that displays/inputs adjusters to
               and from the user, not to be confused with a
-              GTK widget</dd>
+              GTK widget, it is managed by one adjusterList,
+              it back and forth through the adjusterList
+              displaying each adjuster one at a time,
+              it, there may be any number of widgets displaying
+              an adjusterList</dd>
 
 <dt>
 timer
@@ -385,13 +420,13 @@ assert
 
 #### On-the-fly Widget Changeable Parameter Types
 
-|type     |       example                          |
-|---------|----------------------------------------|
-|long double  | sweep Delay, sweep Holdoff (times) |
-|double       | trace plot scale and shift         |
-|float        | fadePeriod, fadePeriod             |
-|bool         | points lines freeRun               |
-|selector     | like radio selector, ex: sweep slope |
+|type         |       example                          |
+|-------------|----------------------------------------|
+|long double  | sweep Delay, sweep Holdoff (times)     |
+|double       | trace plot scale and shift             |
+|float        | fadePeriod, fadePeriod                 |
+|bool         | points lines freeRun                   |
+|selector     | like radio selector, ex: sweep slope   |
 
 
 
