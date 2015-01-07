@@ -1,15 +1,15 @@
 
-Installing: See file INSTALL.  This is a standard GNU autotools
-package.  In a shell run: './configure'; 'make'; and 'make install'.
+Installing: See file INSTALL.  This is a standard GNU autotools package.
+In a shell run: './configure'; 'make'; and 'make install'.
 
 To build it from the github repository source files run the 'bootstrap'
 script before configure.
 
-So build it and then run **qs_demo**.  qs_demo will let you get a
-sample of what quickscope can do.
+So build/install it and then run **qs_demo_launcher**.  qs_demo_launcher
+will let you get a sample of what quickscope can do.
 
 
-### Run qs_demo!!
+### Run: qs_demo_launcher
 
 
 ### User C Code Examples
