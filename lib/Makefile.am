@@ -192,7 +192,7 @@ include_HEADERS = quickscope.h
 
 
 if USE_CONVERT
-SUFFIXES += .png .xpm .ico _32.xpm
+SUFFIXES = .png .xpm .ico _32.xpm
 
 .png_32.xpm:
 	convert $< -resize 32x32 $@
