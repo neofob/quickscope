@@ -61,7 +61,7 @@ DEFAULT_GRID_FONT="Sans 10"
 # setting many variables before  AC_PROG_*
 ################################################################
 
-AC_CONFIG_HEADERS(config.h)
+AC_CONFIG_HEADERS(lib/config.h)
 
 #AM_INIT_AUTOMAKE(option1 option2 ...)
 #AM_INIT_AUTOMAKE([subdir-objects] dist-bzip2 dist-xz)
@@ -324,9 +324,10 @@ fi
 
 AC_CONFIG_FILES(
 Makefile
+lib/Makefile
+lib/quickscope.pc
 bin/Makefile
 tests/Makefile
-quickscope.pc
 )
 
 AC_OUTPUT

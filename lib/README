@@ -1,0 +1,8 @@
+This directory contains the source files to make the quickscope API
+(application programming interface) C library.
+
+The quickscope API is framework for building software oscilloscopes.
+Quickscope more than just one program.  It's a family of oscilloscope
+programs.  This API is the guts of quickscope.
+
+See ../README.md or the generated file ../README.html for design notes.

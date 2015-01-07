@@ -81,29 +81,39 @@ function remove_files()
     fi
   done
 
-  # top src generated directories
-  rm -rf conftest.dir autom4te.cache
+####################################################################
+  # top src dir
 
-  # top source dir
+  # generated directories
+  rm -rf conftest.dir autom4te.cache
+  rm_common
   rm -f\
  aclocal.m4 config.cache config.h install-sh config.log\
- Makefile Makefile.in missing mkinstalldirs ltmain.sh\
+ missing mkinstalldirs ltmain.sh\
  config.sub config.guess configure README.html\
  configure.scan autoscan-*x.log INSTALL\
  libtool config.status autoscan.log depcomp confdefs.h\
- depend.make compile quickscope.h\
- quickscope.xpm quickscope.pc quickscope.ico debug.h\
- bin/Makefile bin/Makefile.in ar-lib config.h*
+ depend.make compile ar-lib
+
+
+####################################################################
+  # directory lib/
+  cd lib || exit 1
 
   rm_common
+  rm -f\
+ config.h quickscope.h quickscope.xpm\
+ quickscope.pc quickscope.ico debug.h config.h*
 
 
+####################################################################
   # directory bin/
-  cd bin || exit 1
+  cd ../bin || exit 1
 
   rm_common
   rm -f qs_*
   
+####################################################################
   # directory tests/
   cd ../tests || exit 1
 
@@ -115,6 +125,7 @@ function remove_files()
   alsa_capture_print alsaCapture idle alsaCapture.c\
   qsGtkWidget controller app_arg
 
+####################################################################
   # directory examples/
 
   cd ../examples || exit 1

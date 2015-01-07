@@ -6,8 +6,8 @@
 # This directory has source code for programs
 # that get installed as part of Quickscope.
 
-qs_LDADD = ../libquickscope.la -lm
-AM_CFLAGS = -I.. $(GTK_3_CFLAGS)
+qs_LDADD = ../lib/libquickscope.la -lm
+AM_CFLAGS = $(GTK_3_CFLAGS)
 
 bin_PROGRAMS =\
  qs_demo_launcher\
@@ -17,7 +17,7 @@ bin_PROGRAMS =\
  qs_alsaCapture\
  qs_urandom
 
-qs_demo_launcher_SOURCES = $(srcdir)/../launcher.c
+qs_demo_launcher_SOURCES = $(srcdir)/../lib/launcher.c
 qs_demo_launcher_LDADD = $(GTK_3_LIBS) -ldl
 
 qs_circle_SOURCES = circle.c
