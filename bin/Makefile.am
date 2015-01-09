@@ -7,7 +7,7 @@
 # that get installed as part of Quickscope.
 
 qs_LDADD = $(top_builddir)/lib/libquickscope.la -lm
-AM_CPPFLAGS = $(GTK_3_CFLAGS)
+AM_CFLAGS = $(GTK_3_CFLAGS)
 
 bin_PROGRAMS =\
  qs_demo_launcher\
@@ -15,6 +15,7 @@ bin_PROGRAMS =\
  qs_circle\
  qs_sin\
  qs_alsaCapture\
+ qs_pulseCapture\
  qs_urandom\
  qs_ode
 
@@ -26,6 +27,10 @@ qs_circle_LDADD = $(qs_LDADD)
 
 qs_alsaCapture_SOURCES = alsaCapture.c
 qs_alsaCapture_LDADD = $(qs_LDADD)
+
+qs_pulseCapture_SOURCES = pulseCapture.c
+qs_pulseCapture_LDADD = $(qs_LDADD)
+
 
 qs_sin_SOURCES = sin.c
 qs_sin_LDADD = $(qs_LDADD)

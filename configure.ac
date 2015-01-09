@@ -173,6 +173,17 @@ PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.28],
     ]
 )
 
+PKG_CHECK_MODULES([PULSEAUDIO], [libpulse-simple >= 5.0],
+      [],
+    [error=yes
+     AC_MSG_WARN([
+        libpulse-simple >= 5.0 is required
+        The PulseAudio The simple PulseAudio API
+        http://freedesktop.org/software/pulseaudio
+        ])
+    ]
+)
+
 
 ################################################################
 #                 --enable-debug

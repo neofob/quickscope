@@ -46,6 +46,9 @@ struct QsSource *qsLorenz_create(int maxNumFrames,
 extern
 struct QsSource *qsAlsaCapture_create(int maxNumFrames, int sampleRate,
     struct QsSource *group);
+extern
+struct QsSource *qsPulseCapture_create(int maxNumFrames, int sampleRate,
+    struct QsSource *group);
 
 
 struct QsRK4Source
