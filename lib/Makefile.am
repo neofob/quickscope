@@ -50,8 +50,6 @@ EXTRA_DIST =\
  imgSaveImage.png\
  quickscope.png\
  top_quickscope.h\
- bootstrap\
- Repo_clean\
  $(convert_generated_images)
 
 

@@ -25,13 +25,22 @@ if QS_TESTS
 SUBDIRS += tests
 endif
 
+# adding examples
+# for i in examples/[a-zA-Z]* examples/[0-9][0-9]_*.c ; do echo -e " $i\\" ; done
 examples =\
- demo_launcher\
- GNUmakefile\
- README\
- saw.c\
- sin.c\
- sin_lessComments.c
+ examples/demo_launcher\
+ examples/GNUmakefile\
+ examples/README\
+ examples/00_sin.c\
+ examples/05_sin_lessComments.c\
+ examples/08_saw.c\
+ examples/13_lissajous.c\
+ examples/24_lorenz.c\
+ examples/40_my_ode_source.c\
+ examples/44_my_ode_source_2win.c\
+ examples/55_pulseCapture_highLatency.c\
+ examples/60_alsaCapture.c\
+ examples/65_rossler_3win.c
 
 
 EXTRA_DIST =\
