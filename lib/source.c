@@ -192,11 +192,11 @@ void qsSource_destroy(struct QsSource *s)
   if(s->isMaster)
   {
     QS_ASSERT(g->master == s);
-    // The master source is the first source created and
-    // all the other sources in the group depend on it.
-    // The g->sources list starts at the newest source
-    // so source destruction is in reverse order of
-    // creation.
+    // The master source is the first source created and all the other
+    // sources in the group depend on it.  The g->sources list starts at
+    // the newest source so source destruction is in reverse order of
+    // creation, which is a forward iteration through the group sources
+    // list.
     GSList *l, *next;
     for(l = g->sources; l; l=next)
     {
@@ -226,6 +226,12 @@ void qsSource_setReadFunc(struct QsSource *s, QsSource_ReadFunc_t read)
   QS_ASSERT(s);
   QS_ASSERT(read);
   s->read = read;
+}
+
+void qsSource_setCallbackData(struct QsSource *s, void *data)
+{
+  QS_ASSERT(s);
+  s->callbackData = data;
 }
 
 #define QS_MIN_MAXNUMFRAMES 100
@@ -304,8 +310,9 @@ void *qsSource_create(QsSource_ReadFunc_t read,
 
   group->sourceTypeChange = true;
 
-  // prepend!  It's very important that it's not append,
-  // so that we auto destroy in reverse order of creation.
+  // prepend!  It's very important that it's prepend,
+  // we auto destroy in reverse order of creation.
+  // So many stupid lists in quickscope...
   qsApp->sources = g_slist_prepend(qsApp->sources, s);
 
   return s;

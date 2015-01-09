@@ -4,6 +4,7 @@
  */
 
 #include <time.h>
+#include <stdbool.h>
 #include <string.h>
 #include <gtk/gtk.h>
 #include "debug.h"

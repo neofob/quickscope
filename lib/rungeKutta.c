@@ -63,7 +63,12 @@ void qsRungeKutta4_go(struct QsRungeKutta4 *rk4,
     RK4_TYPE *x, long double to)
 {
   QS_ASSERT(rk4);
-  QS_ASSERT(rk4->t < to);
+  // It should be able to handle going back in time, but we
+  // don't want the scope sources data to go back in time.
+  //
+  QS_VASSERT(to - rk4->t > 0.00001L,
+    "(to=%.25Lg) - (rk4->t=%.25Lg) = %.25Lg\n",
+    to, rk4->t, to - rk4->t);
 
   long double t, dt;
   dt = rk4->tStep;

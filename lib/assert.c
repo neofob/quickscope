@@ -4,6 +4,7 @@
  */
 
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -26,7 +27,7 @@ void qsSpew(const char *file, int line,
 }
 
 void qsAssert(const char *file, int line,
-    const char *func, long bool_arg,
+    const char *func, bool bool_arg,
     const char *arg, const char *format, ...)
 {
   if(!bool_arg)

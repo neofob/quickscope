@@ -70,6 +70,7 @@ _qsGroup_addSource(struct QsGroup *g, struct QsSource *s)
   QS_ASSERT(g);
   QS_ASSERT(g->time);
   QS_ASSERT(!g_slist_find(g->sources, s));
+  // newest source is now first in this list.
   g->sources = g_slist_prepend(g->sources, s);
 }
 

@@ -8,7 +8,12 @@ SHELL = /bin/bash
 
 CFLAGS = -g -Werror -Wall
 QS_CFLAGS = $(shell pkg-config --cflags quickscope)
-QS_LFLAGS = $(shell pkg-config --libs quickscope)
+QS_LFLAGS = $(shell pkg-config --libs quickscope) -lm
+
+QS_INSTALLED_HFILE =\
+ $(shell pkg-config --variable=includedir quickscope)/quickscope.h
+QS_INSTALLED_LIB =\
+ $(shell pkg-config --variable=libdir quickscope)/libquickscope.so
 
 programs =$(sort $(patsubst %.c, %,\
  $(filter-out run_list.c, $(wildcard *.c))))
@@ -23,13 +28,12 @@ run_list: $(programs)
 	echo "# this is a generated file" > $@
 	echo -e "$(addprefix \n./,$(programs))" >> $@
 
-%.o: %.c
+%.o: %.c $(QS_INSTALLED_HFILE)
 	$(CC) $(CFLAGS) $(QS_CFLAGS) -c $< -o $@
 
 
-
-$(programs): %:%.o
-	$(CC) $(CFLAGS) $^ -o $@ $(QS_LFLAGS)
+$(programs): %:%.o $(QS_INSTALLED_LIB)
+	$(CC) $(CFLAGS) $(filter-out $(QS_INSTALLED_LIB),$^) -o $@ $(QS_LFLAGS)
 
 clean:
 	rm -f *.o $(programs) run_list

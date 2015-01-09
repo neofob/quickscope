@@ -67,7 +67,6 @@ struct QsSource *qsRossler_create(int maxNumFrames,
     float a, float b, float c,
     QsRK4Source_projectionFunc_t projectionCallback,
     void *cbdata,
-    int numChannels/*number source channels written*/,
     struct QsSource *group)
 {
   struct QsRossler *r;

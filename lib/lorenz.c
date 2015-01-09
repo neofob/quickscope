@@ -67,7 +67,6 @@ struct QsSource *qsLorenz_create(int maxNumFrames,
     float sigma, float rho, float beta,
     QsRK4Source_projectionFunc_t projectionCallback,
     void *cbdata,
-    int numChannels/*number source channels written*/,
     struct QsSource *group)
 {
   struct QsLorenz *l;

@@ -35,7 +35,6 @@ struct QsSource *qsRossler_create(int maxNumFrames,
     float sigma, float rho, float beta,
     QsRK4Source_projectionFunc_t projectionCallback,
     void *cbdata,
-    int numChannels/*number source channels written*/,
     struct QsSource *group);
 extern
 struct QsSource *qsLorenz_create(int maxNumFrames,
@@ -43,7 +42,6 @@ struct QsSource *qsLorenz_create(int maxNumFrames,
     float sigma, float rho, float beta,
     QsRK4Source_projectionFunc_t projectionCallback,
     void *cbdata,
-    int numChannels/*number source channels written*/,
     struct QsSource *group);
 extern
 struct QsSource *qsAlsaCapture_create(int maxNumFrames, int sampleRate,

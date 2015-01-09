@@ -32,7 +32,6 @@ int main(int argc, char **argv)
     float sigma, float rho, float beta,
     QsRK4Source_projectionFunc_t projectionCallback,
     void *cbdata,
-    int numChannels/*number source channels written*/,
     struct QsSource *group) = qsLorenz_create;
 
   qsApp_init(&argc, &argv);
@@ -45,7 +44,6 @@ int main(int argc, char **argv)
       60/*play rate multiplier*/,
       -1,-1,-1,/*sigma, rho, beta -1 == use default*/
       NULL/*projectionCallback*/, NULL/*projectionCallback_data*/,
-      3/*numChannels, can be different if projectionCallback*/,
       NULL /* group */);
 
   qsSource_addChangeCallback(l,

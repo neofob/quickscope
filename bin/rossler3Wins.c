@@ -18,7 +18,6 @@ int main(int argc, char **argv)
       5/*play rate multiplier*/,
       -1,-1,-1,/*sigma, rho, beta -1 == use default*/
       NULL/*projectionCallback*/, NULL/*projectionCallback_data*/,
-      3/*numChannels, can be different if projectionCallback*/,
       NULL /* group */);
 
   struct QsSource *sweep;

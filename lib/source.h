@@ -224,12 +224,7 @@ void *qsSource_create(QsSource_ReadFunc_t read,
     int numChannels,  int maxNumFrames /* max num frames buffered */,
     // The maxNumFrames will only be set for the first source
     // made in the group (checked that it is the same in QS_DEBUG).
-    // It is also the ring buffer length.
-#if 0 // will be changed to add this
-    enum QsSource_Type type,
-    const float *sampleRates/*NULL, min and max, or list*/,
-    float sampleRate/*default frame sample rate*/
-#endif
+    // It is related to the ring buffer length.
     const struct QsSource *group /* group=NULL to make a new group */,
     size_t objectSize);
 extern
@@ -240,6 +235,9 @@ bool qsSource_isSwipable(struct QsSource *s)
   QS_ASSERT(s);
   return s->isSwipable;
 }
+extern
+void qsSource_setCallbackData(struct QsSource *s, void *data);
+
 // Returns the frame sample rate if not type QS_CUSTOM
 static inline
 float qsSource_getSampleRate(struct QsSource *s)

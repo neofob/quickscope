@@ -21,14 +21,14 @@ void qsSpew(const char *file, int line,
 
 extern
 void qsAssert(const char *file, int line,
-    const char *func, long bool_arg,
+    const char *func, bool bool_arg,
     const char *arg, const char *format, ...)
     __printf(6,7);
 
 #  define QS_ASSERT(x)          qsAssert(__FILE__, __LINE__,            \
-                               __func__, (long) (x), #x, " ")
+                               __func__, (x), #x, " ")
 #  define QS_VASSERT(x, fmt, ...)                                       \
                                 qsAssert(__FILE__, __LINE__, __func__,  \
-                                (long) (x), #x, fmt, ##__VA_ARGS__)
+                                (x), #x, fmt, ##__VA_ARGS__)
 #endif
 

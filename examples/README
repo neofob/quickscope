@@ -1,15 +1,22 @@
+Example source code is from simplest starting in C source file name
+00_*.c to more complex higher file name number prefix.  If you look at
+the C source files in that order you just might get an understanding.  The
+C source filename number prefixes are ordered but not necessarily
+sequential, so that as examples are added the filenames do not have to
+change so much.
+
+
 This directory contains example programs that build with an installed
 quickscope package and does not use GNU autotools to build.  You will need
 the pkg-config to be able to get libquickscope installation information,
 maybe by setting the environment variable PKG_CONFIG_PATH to include the
-directory where quickscope.pc is installed.  For example in a bash shell
+directory where quickscope.pc is installed.  For example: in a bash shell
 
 
    export PKG_CONFIG_PATH=/home/joe/installed/lib/pkgconfig
 
 
 given that the quickscope installation prefix was /home/joe/installed
-
 
 
 
@@ -35,6 +42,14 @@ To make your own example:
 
 Your new example will now by in the demo_launcher run list until you
 remove MY_EAXMPLE.c and run 'make' or './demo_launcher'.
+
+
+These example are intended to be simple so as to aid users writing any
+kind of quickscope program, be it complex or simple.  We feel that a 1000
+line hello world program is not as useful as a 10 line hello world
+program.  If you want more complexity look at the programs in ../bin.  How
+do ya like that, they are not complex either.  Guess you better write the
+complex quickscope program yourself.
 
 
 Note:  These example use a GNU make file with GNU make extensions, so

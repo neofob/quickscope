@@ -256,7 +256,7 @@ void qsApp_main(void)
     GSList *l;
     for(l = qsApp->sources; l; l = l->next)
     {
-      // Source in this list are from newest to oldest.
+      // asApp sources list is from newest to oldest.
       // The oldest and last in this list is the master.
       struct QsSource *s;
       s = l->data;
@@ -270,14 +270,11 @@ void qsApp_main(void)
         QS_ASSERT(qsApp->controllers->data);
 
         qsController_prependSource(
-          (struct QsController *) qsApp->controllers->data,
-          s, NULL); // append to the start of controller list
-        // This can give slower results if the source was
-        // dependent on another source that is listed
-        // later in the qsApp->sources list.
-        // The controllers list of sources will be from
-        // oldest source to newest source.
-        //
+          (struct QsController *) qsApp->controllers->data, s);
+        // add to the start of controller list
+        // So we are making the controller source list from oldest source
+        // to newest source, assuming that the user did not add any
+        // sources in another order.
       }
     }
   }

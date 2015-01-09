@@ -68,9 +68,7 @@ bool _qsController_run(struct QsController *c)
   GSList *l;
   long double t;
   int changeSource = 0;
-
   QS_ASSERT(c);
-//QS_SPEW("controller %p\n", c);
 
   t = _qsTimer_get(qsApp->timer);
   
@@ -146,11 +144,10 @@ void qsController_destroy(struct QsController *c)
 
 static
 void _qsController_changeSource(struct QsController *c,
-    struct QsSource *s, void *callbackData,
+    struct QsSource *s,
     GSList *(*g_list_func)(GSList *, gpointer data))
 {
   c->sources = g_list_func(c->sources, s);
-  s->callbackData = callbackData;
   if(c->changedSource)
     c->changedSource(c, c->sources);
 
@@ -167,24 +164,24 @@ void _qsController_changeSource(struct QsController *c,
 }
 
 void qsController_appendSource(struct QsController *c,
-    struct QsSource *s, void *callbackData)
+    struct QsSource *s)
 {
   QS_ASSERT(c);
   QS_ASSERT(s);
   if(s->controller)
     qsController_removeSource(c, s);
-  _qsController_changeSource(c, s, callbackData, g_slist_append);
+  _qsController_changeSource(c, s, g_slist_append);
   s->controller = c;
 }
 
 void qsController_prependSource(struct QsController *c,
-    struct QsSource *s, void *callbackData)
+    struct QsSource *s)
 {
   QS_ASSERT(c);
   QS_ASSERT(s);
   if(s->controller)
     qsController_removeSource(c, s);
-  _qsController_changeSource(c, s, callbackData, g_slist_prepend);
+  _qsController_changeSource(c, s, g_slist_prepend);
   s->controller = c;
 }
 
@@ -194,7 +191,7 @@ void qsController_removeSource(struct QsController *c, struct QsSource *s)
   QS_ASSERT(c);
   QS_ASSERT(s);
 
-  _qsController_changeSource(c, s, NULL,
+  _qsController_changeSource(c, s,
       (GSList *(*)(GSList *, gpointer data)) g_slist_remove);
   s->controller = NULL;
 
