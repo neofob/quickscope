@@ -180,10 +180,8 @@ libquickscope_la_LDFLAGS = -export-symbols-regex '^qs'
 # For making libquickscope.so executable if we are using gcc and
 # glibc which we tested by compiling with the gnu/lib-names.h file.
 if HAVE_GNU_LIB_NAMES_H
-libquickscope_la_SOURCES  += lib_main.c
-libquickscope_la_LDFLAGS  += -shared -Wl,-e,_lib_main
-libquickscope_la_CFLAGS += -fPIC
-libquickscope_la_CFLAGS   = -shared
+libquickscope_la_SOURCES += lib_main.c
+libquickscope_la_LDFLAGS += -Wl,-e,_lib_main
 else
 EXTRA_DIST += lib_main.c
 endif
