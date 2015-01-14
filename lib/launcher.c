@@ -334,7 +334,9 @@ static
 const char *const *getFileList(char *filename)
 {
   FILE *file;
-  if(!(file = fopen(filename, "r")))
+  if(filename[0] == '-' && !filename[1])
+    file = stdin;
+  else if(!(file = fopen(filename, "r")))
   {
     fprintf(stderr, "fopen(\"%s\", 'r') failed: %s\n",
         filename, strerror(errno));
@@ -367,6 +369,9 @@ const char *const *getFileList(char *filename)
     fprintf(stderr,
         "No programs listed in file: %s\n",
         filename);
+
+  if(file != stdin)
+    fclose(file);
 
   return (const char *const *) programs;
 }
