@@ -146,7 +146,7 @@ void setLabelString(struct Run *run)
       break;
   }
 
-  text = g_strdup_printf("%s", run->program);
+  text = g_markup_printf_escaped("%s", run->program);
   
   char *old;
   old = text;
