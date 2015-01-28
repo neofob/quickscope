@@ -30,7 +30,7 @@ ${HOME}/tmp/SCOPE/installed/bin/qs_demo_launcher
 
 It's very likely that you're missing some prerequisite software.  We are
 able to get the above script to run through on a Debian GNU/Linux 8.0
-(jessie).  Likely packages needed are:
+(jessie) system.  Likely packages needed are:
 
 ~~~
 git
