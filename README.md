@@ -14,6 +14,38 @@ In a shell run: './configure'; 'make'; and 'make install'.
 To build it from the github repository source files run the 'bootstrap'
 script before configure.  INSTALL is a GNU autotools generated file.
 
+If you have all the required prerequisite software installed and
+accessible you can try running this; read/copy/paste in a shell:
+
+~~~
+mkdir -p ${HOME}/tmp/SCOPE &&\
+cd ${HOME}/tmp/SCOPE &&\
+git clone https://github.com/lanceman2/quickscope.git &&\
+cd quickscope && ./bootstrap && cd ${HOME}/tmp/SCOPE &&\
+./quickscope/configure --prefix ${HOME}/tmp/SCOPE/installed &&\
+make -j5 install &&\
+${HOME}/tmp/SCOPE/installed/bin/qs_demo_launcher
+~~~
+
+
+It's very likely that you're missing some prerequisite software.  We are
+able to get the above script to run through on a Debian GNU/Linux 8.0
+(jessie).  Likely packages needed are:
+
+~~~
+git
+gcc
+autoconf
+libsndfile1-dev
+libgtk-3-dev
+libasound2-dev
+libpulse-dev
+imagemagick
+
+
+marked from: https://github.com/chjj/marked.git
+~~~
+
 
 ### Run: qs_demo_launcher
 
@@ -39,18 +71,11 @@ examples/*.c file into a quickscope enabled program.  You can write a
 quickscope oscilloscope program by calling just 4 C API functions.
 
 
-### If You Like What You See
+### If You Like What You See Let Me Know
 
+lance.arsenault _at_ G mail . COM
 
-If you like what you see, keep in mind that quickscope it currently
-unstable.  That does not necessarly means it's buggy, but just that it may
-be subject to have interface changes.  If you like you can contact me,
-Lance, the developer through email, or whatever means that GitHub.com
-provides.  I don't like spam.  Email me at: lance.arsenault   _AT_ that
-big evil search company that does not give a shit about net neutrality,
-but used to, dot COM.  Hint: 10^100 or you may just find my email address
-by 10^100ing it.
-
+You may be the first.
 
 
 ----------------------------------------------------------------------
@@ -66,9 +91,8 @@ like a low input sample rate not being compatible with a high sweep rate.
 There needs to be more code in it to check for stuff like that.  Like on a
 real oscilloscope if you turn the wrong knob you see no display and you
 futz around for 5 minutes trying to recover a good display only to find
-out you paused the input, but by that time all the parameters are total
-crap.
-
+out you paused the input, but of course by that time all the control
+parameters are total crap.
 
 
 
@@ -76,9 +100,20 @@ crap.
 
 
 Quickscope is striving for Super Cow Powers. That's the differance between
-quickscope and the 312 other github software oscilloscopes.  Looking at
-about 100 or so of them shows, that any of them that have any merit, are
-much more specific than quickscope. 
+quickscope and the 312 other github software oscilloscopes.
+
+Looking at about 100 or so of them shows, that any of them that have any
+merit, are much more specific than quickscope.   quickscope is more of a
+generic oscilloscope toolkit, that comes with many example scopes.  Making
+an interface to a particular hardware or software is another example.
+If quickscope is done correctly adding new examples is a smaller task.
+
+We've never seen xoscope run; we don't have any of the special hardware
+that is required, and all the sound input devices are not supported any
+more.  xoscope clearly has a more specific use case than quickscope.
+Looking at the xoscope code, they draw with another package API that uses
+older GTK2 drawing that uses libX11 to draw pixels and lines for the scope
+traces.  Looks like the X direction is always sweep.
 
 
 #### Developer Notes
