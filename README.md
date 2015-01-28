@@ -337,7 +337,7 @@ fd
 
 <dt>
 idle
-</dt>     <dd>This controller uses g_idle_add() to keep
+</dt>     <dd>idle controller uses g_idle_add() to keep
               looping and reading sources.  One of the
               source read callbacks should do a blocking
               read or like thing to keep this loop from
@@ -345,7 +345,8 @@ idle
               usage</dd>
 <dt>
 source
-</dt>     <dd>we read data from a source, source callback
+</dt>     <dd>
+          <p>we read data from a source, source callback
               controlled by controller using a controller,
               this allocates the buffer of data read that
               may be used to render in the beam trace,
@@ -356,13 +357,14 @@ source
               controllers that control sources manage sources,
               destroying a source will automatically destroy
               traces that use that source
-
+           </p><p>
               Time is always increasing or the same between
               frames, but there can be frames which have
               multiple channel values.  That makes is possible
-              to have dependent channels that add move values
+              to have dependent channels that add more values
               that would otherwise not be there, like adding
-              a "pen lift" when we sweep back in a "sweep source".</dd>
+              a "pen lift" when we sweep back in a "sweep source".
+              </p></dd>
 <dt>
 source types
 </dt>      <dd>
