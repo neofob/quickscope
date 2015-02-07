@@ -259,7 +259,7 @@ at the expense of adding or fixing a glitch in the display at regular
 intervals.  So ya, time is a long double, even though we may not need it
 most of the time.  On Linux amd64 systems gettimeofday() returns two 64
 bit ints, one for seconds and one for fractions of seconds.  Currently not
-all that resolution is used.  It's clearly there, so that, it works well in
+all that resolution is used.  It's clearly there, so that it works well in
 the future.  We are building Quickscope for the future too.
 
 
@@ -274,8 +274,8 @@ We use QS_ASSERT() and QS_VASSERT() almost everywhere we can.  We zero
 memory every time before freeing it, which in combination with QS_ASSERT()
 and QS_VASSERT() catches most memory management bugs.  They go away in
 non-debug builds.  In the long run it saves development time, especially
-when refactoring, which is unavoidable.  Even gods have limited
-foresight, because code has free will.
+when refactoring, which is unavoidable.  Even gods have limited foresight,
+because code has free will.
 
 C is not C++. We don't have/use the complexity of GObject, we chose a less
 robust and less rigorous method of a the idea of C objects.  It's less
@@ -374,7 +374,15 @@ source
               </p></dd>
 <dt>
 source types
-</dt>      <dd>
+</dt>     <dd>
+
+             <p>quickscope does not require a fixed sample rate from
+             source inputs, which makes quickscope much more flexable, at
+             the expense of being more complex.  Source data is only
+             required to be read-in in a temperially ordered sequence.
+             Hence quickscope sources have a sampling
+             classification:</p>
+
               <p><i>periodic</i>: fixed periodic, variable periodic,
                   or selectable periodic.  All have a maximum
                   and minimum period. The time interval between
@@ -432,6 +440,14 @@ sweep
               another source buffer to compose the sweep source,
               has lots of configuration parameters that can
               be adjusted and are in its source adjusterList</dd>
+
+<dt>
+built-in sources
+</dt>
+           <dd>sweep is a built-in source, there are lots of other
+           built-in sources in the quickscope library, like: soundFile,
+           alasCapture, sin, saw, ode, lorentz (which is a ode) and so
+           on</dd>
 
 <dt>
 trace
