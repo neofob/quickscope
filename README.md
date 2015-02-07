@@ -225,7 +225,7 @@ play back methods.  I was going to look at the video code, but I now see
 that would only help for a scope that showed the traces about one second
 after the data was read, and was not what we are interested in.  Latency
 between time of data input to the time of display must be small.  That's
-not the case for video place play back.
+not the case for video play back.
 
 We do not use Cario to draw, as GTK+ does.  We found it to be way to slow.
 We don't bother with anti-aliasing when drawing the beam, because we found
