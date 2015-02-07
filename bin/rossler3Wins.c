@@ -34,6 +34,9 @@ int main(int argc, char **argv)
   qsApp->op_height = 500;
   qsApp->op_showWindowBorder = false;
   qsApp->op_showControlbar =false;
+  qsApp->op_bgR = 94.0F/255.0F;
+  qsApp->op_bgG = 96.0F/255.0F;
+  qsApp->op_bgB = 113.0F/255.0F;
 
   int i;
   for(i=0; i<3; ++i)
