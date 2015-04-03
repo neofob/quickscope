@@ -169,8 +169,9 @@ bool ecbButtonPress(GtkWidget *w, GdkEvent *event, struct QsWin *win)
 
 {
   QS_ASSERT(event);
-  QS_ASSERT(event->type == GDK_BUTTON_PRESS);
-  if(event->button.button != LEFT_BUTTON)
+  // This below assertion fails is we click the window a lot.
+  //QS_ASSERT(event->type == GDK_BUTTON_PRESS);
+  if(event->button.button != LEFT_BUTTON || event->type != GDK_BUTTON_PRESS)
     return false;
 
   QS_ASSERT(leftButtonDown == false);
