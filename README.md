@@ -122,6 +122,11 @@ Looking at the xoscope code, they draw with another package API that uses
 older GTK2 drawing that uses libX11 to draw pixels and lines for the scope
 traces.  Looks like the X direction is always sweep.
 
+Quickscope has sweep mode and X/Y mode.  Quickscope has an adjustable beam
+fade.  No other software scopes (currently) have that.  Quickscope has an
+unlimited number of source inputs.  Given it's an API it should have an
+unlimited number of source inputs.
+
 
 #### Developer Notes
 
