@@ -232,9 +232,9 @@ after the data was read, and was not what we are interested in.  Latency
 between time of data input to the time of display must be small.  That's
 not the case for video play back.
 
-We do not use Cario to draw, as GTK+ does.  We found it to be way to slow.
+We do not use Cario to draw, as GTK+ does.  We found it to be way too slow.
 We don't bother with anti-aliasing when drawing the beam, because we found
-that that was way to slow.  We do a little anti-aliasing when drawing the
+that that was way too slow.  We do a little anti-aliasing when drawing the
 grid lines, which is not as a big resource usage compared to anti-aliasing
 the beam lines.  The beam is only one pixel wide to minimize the system
 resource usage.  Higher fidelity drawing things can be made optional, but
