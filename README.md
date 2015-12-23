@@ -29,7 +29,8 @@ mkdir -p ${HOME}/tmp/SCOPE &&\
 cd ${HOME}/tmp/SCOPE &&\
 git clone https://github.com/lanceman2/quickscope.git &&\
 cd quickscope && ./bootstrap && cd ${HOME}/tmp/SCOPE &&\
-./quickscope/configure --prefix ${HOME}/tmp/SCOPE/installed &&\
+./quickscope/configure --prefix ${HOME}/tmp/SCOPE/installed \
+--enable-repobuild &&\
 make -j5 install &&\
 ${HOME}/tmp/SCOPE/installed/bin/qs_demo_launcher
 ~~~
