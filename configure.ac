@@ -173,7 +173,7 @@ PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.28],
     ]
 )
 
-PKG_CHECK_MODULES([PULSEAUDIO], [libpulse-simple >= 5.0],
+PKG_CHECK_MODULES([PULSEAUDIO], [libpulse-simple >= 4.0],
       [],
     [error=yes
      AC_MSG_WARN([
