@@ -21,8 +21,25 @@ In a shell run: './configure'; 'make'; and 'make install'.
 To build it from the github repository source files run the 'bootstrap'
 script before configure.  INSTALL is a GNU autotools generated file.
 
+It's very likely that you're missing some prerequisite software.  We are
+able to get the above script to run through on a Debian GNU/Linux 8.0
+(jessie) system, and just ported to 14.04.1-Ubuntu. Likely packages needed
+are:
+
+~~~
+git
+gcc
+autoconf
+libsndfile1-dev
+libgtk-3-dev
+libasound2-dev
+libpulse-dev
+imagemagick
+markdown
+~~~
+
 If you have all the required prerequisite software installed and
-accessible you can try running this; read/copy/paste in a shell:
+accessible you can try running this; read/copy/paste in a bash shell:
 
 ~~~
 mkdir -p ${HOME}/tmp/SCOPE &&\
@@ -35,24 +52,6 @@ make -j5 install &&\
 ${HOME}/tmp/SCOPE/installed/bin/qs_demo_launcher
 ~~~
 
-
-It's very likely that you're missing some prerequisite software.  We are
-able to get the above script to run through on a Debian GNU/Linux 8.0
-(jessie) system.  Likely packages needed are:
-
-~~~
-git
-gcc
-autoconf
-libsndfile1-dev
-libgtk-3-dev
-libasound2-dev
-libpulse-dev
-imagemagick
-
-
-marked from: https://github.com/chjj/marked.git
-~~~
 
 
 ### Run: qs_demo_launcher
