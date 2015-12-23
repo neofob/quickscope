@@ -126,22 +126,21 @@ AM_CONDITIONAL([USE_CONVERT], [test x$USE_CONVERT = xyes])
 
 ##################### marked mark down program ###################
 
-USE_MARKED=no
+USE_MARKDOWN=no
 
 if test "$enable_repobuild" != "no"; then
-  USE_MARKED=yes
-  AC_CHECK_PROG(HAVE_MARKED, convert, [yes], [no])
+  USE_MARKDOWN=yes
+  AC_CHECK_PROG(HAVE_MARKDOWN, convert, [yes], [no])
 
-  if test x$HAVE_MARKED != xyes; then
+  if test x$HAVE_MARKDOWN != xyes; then
     error=yes
     AC_MSG_WARN([
         For building $PACKAGE_NAME from the git repository
-        marked is required to be in your PATH
-        homepage: https://github.com/chjj/marked.git])
+        markdown is required to be in your PATH])
   fi
 fi
 
-AM_CONDITIONAL([USE_MARKED], [test x$USE_MARKED = xyes])
+AM_CONDITIONAL([USE_MARKDOWN], [test x$USE_MARKDOWN = xyes])
 
 
 ##############################################################

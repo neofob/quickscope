@@ -53,7 +53,7 @@ EXTRA_DIST =\
 
  BUILT_SOURCES =
 
-if USE_MARKED
+if USE_MARKDOWN
  BUILT_SOURCES += README.html
 endif
 
@@ -64,7 +64,7 @@ bz2file = $(distdir).tar.bz2
 
 SUFFIXES = .html .bz2 .bz2.sha512
 
-if USE_MARKED
+if USE_MARKDOWN
  SUFFIXES += .md
 endif
 
@@ -72,9 +72,9 @@ endif
 
 .PHONY: hash sha512
 
-if USE_MARKED
+if USE_MARKDOWN
 .md.html:
-	marked $< > $@
+	markdown $< > $@
 endif
 
 
