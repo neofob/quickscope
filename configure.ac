@@ -165,7 +165,7 @@ PKG_CHECK_MODULES([SNDFILE], [sndfile >= 1.0.5],
     ]
 )
 
-PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.28],
+PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.27],
     [],
     [error=yes
      AC_MSG_WARN([
