@@ -433,9 +433,15 @@ int main(int argc, char **argv)
     else if(strcmp(*args, "--list") == 0)
       list_file = *(++args);
     else if(strncmp(*args, "--title=", 8) == 0)
+    {
       title = &(*args)[8];
+      continue;
+    }
     else if(strcmp(*args, "--title") == 0)
+    {
       title = *(++args);
+      continue;
+    }
     else
       return usage(argv[0]);
 
@@ -456,4 +462,3 @@ int main(int argc, char **argv)
 
   return 0;
 }
-
