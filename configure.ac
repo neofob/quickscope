@@ -28,7 +28,7 @@ AC_PREREQ(2.69)
 
 
 # AC_INIT( PACKAGE, VERSION, BUGREPORT, TARNAME , URL)
-AC_INIT([quickscope], 0.1.0,
+AC_INIT([quickscope], 0.2.0,
         [https://github.com/lanceman2/quickscope],
         [quickscope],
         [https://github.com/lanceman2/quickscope])
