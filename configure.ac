@@ -151,7 +151,8 @@ PKG_CHECK_MODULES([GTK_3], [gtk+-3.0 >= 3.0.12],
     [error=yes
      AC_MSG_WARN([
         gtk+-3.0 version >= 3.0.12 is required
-        homepage: http://www.gtk.org/])
+        homepage: http://www.gtk.org/
+	debian package: libgtk-3-dev])
     ]
 )
 
@@ -160,7 +161,8 @@ PKG_CHECK_MODULES([SNDFILE], [sndfile >= 1.0.5],
     [error=yes
      AC_MSG_WARN([
         lib sndfile version >= 1.0.5 is required
-        homepage: http://www.mega-nerd.com/libsndfile/])
+        homepage: http://www.mega-nerd.com/libsndfile/
+	debian package: libsndfile1-dev])
     ]
 )
 
@@ -168,7 +170,8 @@ PKG_CHECK_MODULES([ALSA], [alsa >= 1.0.27],
     [],
     [error=yes
      AC_MSG_WARN([
-        lib alsa version >= 1.0.28 is required])
+        lib alsa version >= 1.0.28 is required
+        debian package: libasound2-dev])
     ]
 )
 
@@ -179,7 +182,7 @@ PKG_CHECK_MODULES([PULSEAUDIO], [libpulse-simple >= 4.0],
         libpulse-simple >= 5.0 is required
         The PulseAudio The simple PulseAudio API
         http://freedesktop.org/software/pulseaudio
-        ])
+        debian package: libpulse-dev])
     ]
 )
 

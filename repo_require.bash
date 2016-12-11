@@ -50,6 +50,13 @@ function check_repo_require()
   homepage: http://www.gnu.org/software/autoconf/\n\
   debian package: apt-get install autoconf\n"
 
+  local req_bin[2]="libtoolize"
+  local req_desc[2]="\
+  You need the 'libtoolize' program from the libtool package\n\
+  homepage: http://www.gnu.org/software/libtool/\n\
+  debian package: apt-get install libtool\n"
+
+
 
   local fail=
   if [ ! -d ".git" ] ; then
