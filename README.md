@@ -138,14 +138,14 @@ runs on GNU/Linux systems.
 
 
 Quickscope is computer programs and one or more libraries written in C.
-It has bindings for other languages (planed), a shell interface (planed),
-and GTK+ widgets.  It is an attempt at making a generic 2-D real-time
-operator-in-the-loop display tool.  Something like a real oscilloscope but
-with the flexibility of software not encumbered by limitations of
-hardware, and then again not as fast a real scope.  We don't care if the
-buttons and knobs don't necessarily look like a real scope, and to that
-end we extend parameter controls beyond that of buttons and knobs given
-the flexibility of software.
+It has bindings for other languages (plained), a shell interface
+(plained), and GTK+ widgets.  It is an attempt at making a generic 2-D
+real-time operator-in-the-loop display tool.  Something like a real
+oscilloscope but with the flexibility of software not encumbered by
+limitations of hardware, and then again not as fast a real scope.  We
+don't care if the buttons and knobs don't necessarily look like a real
+scope, and to that end we extend parameter controls beyond that of buttons
+and knobs given the flexibility of software.
 
 
 When you consider how slow a computer pixel monitor and device input rates
