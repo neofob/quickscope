@@ -9,7 +9,7 @@ GNU/Linux
 ### Screenshots
 
 
-See: http://162.216.113.210/quickscope/index.html
+See: http://107.191.96.171/quickscope/index.html
 
 
 ### Building and Install
