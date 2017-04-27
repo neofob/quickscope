@@ -38,6 +38,10 @@ imagemagick
 markdown
 ~~~
 
+Note: There is currently use of deprecated GTK++-3 API functions,
+so using gcc compiler option "-Wno-deprecated-declarations" may
+be helpful.
+
 If you have all the required prerequisite software installed and
 accessible you can try running this; read/copy/paste in a bash shell:
 
@@ -46,6 +50,7 @@ mkdir -p ${HOME}/tmp/SCOPE &&\
 cd ${HOME}/tmp/SCOPE &&\
 git clone https://github.com/lanceman2/quickscope.git &&\
 cd quickscope && ./bootstrap && cd ${HOME}/tmp/SCOPE &&\
+CFLAGS="-g -Wall -Werror -Wno-deprecated-declarations" \
 ./quickscope/configure --prefix ${HOME}/tmp/SCOPE/installed \
 --enable-repobuild &&\
 make -j5 install &&\
