@@ -225,9 +225,9 @@ endif
 
 quickscope.h: Makefile $(srcdir)/top_quickscope.h debug.h $(quickscope_lastheaders)
 	echo "/* This is a generated file */" > $@
-	echo -e "#ifndef __quickscope_h__\n#define __quickscope_h__" >> $@
+	echo -e "\n#ifndef __quickscope_h__\n#define __quickscope_h__\n" >> $@
 	cat $(srcdir)/top_quickscope.h >> $@
-	echo -e "#ifdef __cplusplus // port to C++\nextern \"C\" {\n#endif" >> $@
+	echo -e "\n#ifdef __cplusplus // port to C++\nextern \"C\" {\n#endif\n" >> $@
 	cat debug.h >> $@
 	for i in $(quickscope_lastheaders) ; do \
            echo "/*********** Start from file: $$i **************/" >> $@; \
